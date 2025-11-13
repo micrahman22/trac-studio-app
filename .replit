@@ -30,8 +30,4 @@ waitForPort = 5000
 localPort = 5000
 externalPort = 80
 
-[[ports]]
-localPort = 40073
-externalPort = 3000
-
 [nix]
