@@ -2333,6 +2333,42 @@
             document.getElementById('archivedPopup').style.display = 'none';
         }
 
+        function copyPortfolioLink() {
+            const portfolioLinkInput = document.getElementById('portfolioLink');
+            if (portfolioLinkInput && portfolioLinkInput.value) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(portfolioLinkInput.value)
+                        .then(() => {
+                            alert('✅ Portfolio link copied to clipboard!');
+                        })
+                        .catch(err => {
+                            console.error('Failed to copy:', err);
+                            fallbackCopy();
+                        });
+                } else {
+                    fallbackCopy();
+                }
+                
+                function fallbackCopy() {
+                    try {
+                        portfolioLinkInput.select();
+                        portfolioLinkInput.setSelectionRange(0, 99999);
+                        const successful = document.execCommand('copy');
+                        if (successful) {
+                            alert('✅ Portfolio link copied to clipboard!');
+                        } else {
+                            alert('❌ Copy failed. Please manually select and copy the link.');
+                        }
+                    } catch (err) {
+                        console.error('Fallback copy failed:', err);
+                        alert('❌ Copy failed. Please manually select and copy the link.');
+                    }
+                }
+            } else {
+                alert('❌ No portfolio link to copy. Please save your profile with a username first.');
+            }
+        }
+
         function showStyleBrowser() {
             document.getElementById('styleBrowserModal').style.display = 'flex';
             console.log('Style browser opened');
@@ -3781,6 +3817,14 @@
             const profileForm = document.getElementById('profileSettingsForm');
             if (profileForm) {
                 profileForm.addEventListener('submit', saveProfile);
+                
+                // Prevent Enter key from accidentally submitting the form
+                profileForm.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.type !== 'submit') {
+                        e.preventDefault();
+                        return false;
+                    }
+                });
             }
 
             // Collection form submission
