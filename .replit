@@ -31,3 +31,14 @@ localPort = 5000
 externalPort = 80
 
 [nix]
+
+# Add these lines to your .replit file
+[env]
+NODE_OPTIONS = "--dns-result-order=ipv4first"
+
+[packages]
+nodejs = "18"
+
+# Add this if not present
+[deployment]
+run = ["sh", "-c", "python3 -m http.server 3000"]
