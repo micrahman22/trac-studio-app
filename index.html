@@ -2165,6 +2165,58 @@
                                 </div>
                             </section>
 
+                            <!-- 2×2 GRID: Activity History | Alerts -->
+                            <section class="dashboard-grid-section" style="padding: 3rem 0; border-top: 1px solid #e5e5e5;">
+                                <div class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
+
+                                    <!-- ROW 1: ACTIVITY HISTORY -->
+                                            <div class="dashboard-card" style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; cursor: pointer;" onclick="showActivityHistory()">
+                                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                                    <h3 style="font-size: 1rem; margin: 0; font-weight: 500;">Activity History</h3>
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.5;">
+                                                        <circle cx="12" cy="12" r="10"></circle>
+                                                        <polyline points="12 16 16 12 12 8"></polyline>
+                                                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                                                    </svg>
+                                                </div>
+                                                <div id="activitiesList" style="flex: 1; display: flex; align-items: center; justify-content: center;">
+                                                    <div style="text-align: center; color: #666;">
+                                                        <div style="margin-bottom: 0.5rem;">
+                                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                                            </svg>
+                                                        </div>
+                                                        <p style="margin: 0; font-size: 0.85rem;">Recent activity</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- ROW 1: ALERTS -->
+                                            <div class="dashboard-card" style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; cursor: pointer;" onclick="showAlertsManager()">
+                                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                                    <h3 style="font-size: 1rem; margin: 0; font-weight: 500;">Opportunity Alerts</h3>
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.5;">
+                                                        <circle cx="12" cy="12" r="10"></circle>
+                                                        <polyline points="12 16 16 12 12 8"></polyline>
+                                                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                                                    </svg>
+                                                </div>
+                                                <div id="alertsList" style="flex: 1; display: flex; align-items: center; justify-content: center;">
+                                                    <div style="text-align: center; color: #666;">
+                                                        <div style="margin-bottom: 0.5rem;">
+                                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                                <circle cx="12" cy="12" r="10"></circle>
+                                                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                                            </svg>
+                                                        </div>
+                                                        <p style="margin: 0; font-size: 0.85rem;">No new opportunities</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+
                             <!-- Artworks Grid Section -->
                             <section class="artworks-section">
                                 <div class="section-header">
@@ -2279,58 +2331,12 @@
                                         <button class="cta-button" onclick="showAddEventForm()">Add Your First Event</button>
                                     </div>
                                 </div>
-                            </section>           
+                            </section>      
 
-                                    <!-- 2×2 GRID: Activity | Alerts + WIP | Blockchain -->
-                                    <section class="dashboard-grid-section" style="padding: 3rem 0; border-top: 1px solid #e5e5e5;">
-                                        <div class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
-
-                                            <!-- ROW 1: ACTIVITY HISTORY -->
-                                            <div class="dashboard-card" style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; cursor: pointer;" onclick="showActivityHistory()">
-                                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                                                    <h3 style="font-size: 1rem; margin: 0; font-weight: 500;">Activity History</h3>
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.5;">
-                                                        <circle cx="12" cy="12" r="10"></circle>
-                                                        <polyline points="12 16 16 12 12 8"></polyline>
-                                                        <line x1="8" y1="12" x2="16" y2="12"></line>
-                                                    </svg>
-                                                </div>
-                                                <div id="activitiesList" style="flex: 1; display: flex; align-items: center; justify-content: center;">
-                                                    <div style="text-align: center; color: #666;">
-                                                        <div style="margin-bottom: 0.5rem;">
-                                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                                                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                                                            </svg>
-                                                        </div>
-                                                        <p style="margin: 0; font-size: 0.85rem;">Recent activity</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <!-- ROW 1: ALERTS -->
-                                            <div class="dashboard-card" style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; cursor: pointer;" onclick="showAlertsManager()">
-                                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                                                    <h3 style="font-size: 1rem; margin: 0; font-weight: 500;">Opportunity Alerts</h3>
-                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity: 0.5;">
-                                                        <circle cx="12" cy="12" r="10"></circle>
-                                                        <polyline points="12 16 16 12 12 8"></polyline>
-                                                        <line x1="8" y1="12" x2="16" y2="12"></line>
-                                                    </svg>
-                                                </div>
-                                                <div id="alertsList" style="flex: 1; display: flex; align-items: center; justify-content: center;">
-                                                    <div style="text-align: center; color: #666;">
-                                                        <div style="margin-bottom: 0.5rem;">
-                                                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                                                <circle cx="12" cy="12" r="10"></circle>
-                                                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                                            </svg>
-                                                        </div>
-                                                        <p style="margin: 0; font-size: 0.85rem;">No new opportunities</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
+                            <!-- 2×2 GRID: WIP | BLOCKCHAIN -->
+                            <section class="dashboard-grid-section" style="padding: 3rem 0; border-top: 1px solid #e5e5e5;">
+                                <div class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
+ 
                                             <!-- ROW 2: WIP STUDIO -->
                                             <div class="dashboard-card" style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; cursor: pointer;" onclick="openWipStudio()">
                                                 <div style="text-align: center; padding: 0.5rem;">
@@ -7708,15 +7714,15 @@
                                 left: 0;
                                 width: 100%;
                                 height: 100%;
-                                background: rgba(0,0,0,0.7); // DARKER BACKGROUND
+                                background: rgba(0,0,0,0.7);
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                z-index: 10010; // HIGHER Z-INDEX
+                                z-index: 10010;
                             `;
 
                             modal.innerHTML = `
-                                <div style="background: white; border-radius: 12px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto;">
+                                <div style="background: white; border-radius: 12px; max-width: 500px; width: 95%; max-height: 90vh; overflow-y: auto;">
                                     <!-- HEADER -->
                                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid #e5e5e5; background: #fafafa;">
                                         <h3 style="margin: 0; font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em;">Add Reference</h3>
@@ -7736,7 +7742,6 @@
                                         <!-- IMAGE UPLOAD SECTION -->
                                         <div id="imageUploadSection">
                                             <div style="margin-bottom: 1.5rem;">
-                                                <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">Upload Image</label>
                                                 <div class="upload-zone" style="border: 2px dashed #d1d1d1; border-radius: 8px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s;"
                                                      onmouseover="this.style.borderColor='#000'"
                                                      onmouseout="this.style.borderColor='#d1d1d1'">
@@ -7758,20 +7763,8 @@
                                         <!-- LINK INPUT SECTION -->
                                         <div id="linkInputSection" style="display: none;">
                                             <div style="margin-bottom: 1.5rem;">
-                                                <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">Web Link</label>
                                                 <input type="url" id="referenceLink" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem;" placeholder="https://...">
                                             </div>
-                                        </div>
-
-                                        <!-- COMMON FIELDS -->
-                                        <div style="margin-bottom: 1.5rem;">
-                                            <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">Title *</label>
-                                            <input type="text" id="referenceTitle" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem;" placeholder="Enter reference title" required>
-                                        </div>
-
-                                        <div style="margin-bottom: 2rem;">
-                                            <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">Description</label>
-                                            <textarea id="referenceDescription" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem; min-height: 80px; resize: vertical;" placeholder="Add notes about this reference..."></textarea>
                                         </div>
 
                                         <div style="display: flex; gap: 1rem; justify-content: flex-end;">
@@ -8018,13 +8011,7 @@
                                     </div>
 
                                     <div style="padding: 2rem;">
-                                        <div style="margin-bottom: 1.5rem;">
-                                            <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">Title *</label>
-                                            <input type="text" id="noteTitle" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem;" placeholder="Enter note title" required>
-                                        </div>
-
                                         <div style="margin-bottom: 2rem;">
-                                            <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">Content</label>
                                             <textarea id="noteContent" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem; min-height: 200px; resize: vertical; font-family: monospace;" placeholder="Write your notes, ideas, or research here..."></textarea>
                                         </div>
 
