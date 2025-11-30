@@ -1984,6 +1984,70 @@
                             background: #f8f8f8;
                         }
 
+                        /* ==================== WIP STUDIO GRID FIXES ==================== */
+                        #wipStudioModal .artworks-section {
+                            max-width: none !important;
+                            padding: 0 !important;
+                            margin: 0 !important;
+                        }
+
+                        #wipStudioModal .artworks-grid {
+                            display: grid !important;
+                            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+                            gap: 2rem !important;
+                            padding: 0 1rem !important;
+                            max-width: none !important;
+                            margin: 0 auto !important;
+                        }
+
+                        #wipStudioModal .artwork-card {
+                            background: white;
+                            border-radius: 12px;
+                            overflow: hidden;
+                            transition: transform 0.2s ease, box-shadow 0.2s ease;
+                            position: relative;
+                        }
+
+                        #wipStudioModal .artwork-card:hover {
+                            transform: translateY(-2px);
+                            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+                        }
+
+                        #wipStudioModal .artwork-image {
+                            width: 100%;
+                            overflow: hidden;
+                            background: #f5f5f5;
+                            min-height: 200px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                        }
+
+                        #wipStudioModal .artwork-image img {
+                            width: 100%;
+                            height: auto;
+                            display: block;
+                            transition: transform 0.3s ease;
+                        }
+
+                        #wipStudioModal .artwork-card:hover .artwork-image img {
+                            transform: scale(1.05);
+                        }
+
+                        #wipStudioModal .artwork-info {
+                            padding: 1rem;
+                        }
+
+                        /* Force grid layout in WIP Studio */
+                        #wipMoodboardTab .artworks-grid,
+                        #wipSketchesTab .artworks-grid {
+                            display: grid !important;
+                            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+                            gap: 2rem !important;
+                        }
+
+                        /* FIX WIP STUDIO GRID SPACING */
+                        #wipStudioModal .artworks-grid { gap: 2rem !important; }
                         
                     </style>
                 </head>
@@ -7076,9 +7140,9 @@
                                 document.body.appendChild(modal);
                             }
 
-                            // ✅ UPDATED MODAL WITH TABS
+                            // ✅ UPDATED MODAL WITH LARGER SIZE + PROPER GRID CONTAINERS
                             modal.innerHTML = `
-                                <div style="background: white; border-radius: 16px; width: 95%; max-width: 1200px; height: 90vh; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.3); margin: auto;">
+                                <div style="background: white; border-radius: 16px; width: 98%; max-width: 1400px; height: 95vh; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.3); margin: auto;">
                                     <!-- Header -->
                                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid #e5e5e5; background: #fafafa; flex-shrink: 0;">
                                         <div style="display: flex; align-items: center; gap: 1rem;">
@@ -7181,14 +7245,18 @@
                                                 </div>
                                             </div>
 
-                                            <!-- MOODBOARD TAB -->
+                                            <!-- MOODBOARD TAB - UPDATED WITH PROPER GRID CONTAINER -->
                                             <div id="wipMoodboardTab" class="wip-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 2rem;">
-                                                <div id="moodboardGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem;"></div>
+                                                <div class="artworks-section" style="max-width: none; padding: 0;">
+                                                    <div id="moodboardGrid" class="artworks-grid portfolio-layout grid-classic medium"></div>
+                                                </div>
                                             </div>
 
-                                            <!-- SKETCHES TAB -->
+                                            <!-- SKETCHES TAB - UPDATED WITH PROPER GRID CONTAINER -->
                                             <div id="wipSketchesTab" class="wip-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 2rem;">
-                                                <div id="sketchesGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem;"></div>
+                                                <div class="artworks-section" style="max-width: none; padding: 0;">
+                                                    <div id="sketchesGrid" class="artworks-grid portfolio-layout grid-classic medium"></div>
+                                                </div>
                                             </div>
 
                                             <!-- NOTES TAB -->
@@ -7221,12 +7289,74 @@
                                     .wip-tab-content.active {
                                         display: block;
                                     }
+
+                                    /* WIP STUDIO GRID FIXES */
+                                    #wipStudioModal .artworks-section {
+                                        max-width: none !important;
+                                        padding: 0 !important;
+                                        margin: 0 !important;
+                                    }
+
+                                    #wipStudioModal .artworks-grid {
+                                        display: grid !important;
+                                        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+                                        gap: 2rem !important;
+                                        padding: 0 1rem !important;
+                                        max-width: none !important;
+                                        margin: 0 auto !important;
+                                    }
+
+                                    #wipStudioModal .artwork-card {
+                                        background: white;
+                                        border-radius: 12px;
+                                        overflow: hidden;
+                                        transition: transform 0.2s ease, box-shadow 0.2s ease;
+                                        position: relative;
+                                    }
+
+                                    #wipStudioModal .artwork-card:hover {
+                                        transform: translateY(-2px);
+                                        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+                                    }
+
+                                    #wipStudioModal .artwork-image {
+                                        width: 100%;
+                                        overflow: hidden;
+                                        background: #f5f5f5;
+                                        min-height: 200px;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                    }
+
+                                    #wipStudioModal .artwork-image img {
+                                        width: 100%;
+                                        height: auto;
+                                        display: block;
+                                        transition: transform 0.3s ease;
+                                    }
+
+                                    #wipStudioModal .artwork-card:hover .artwork-image img {
+                                        transform: scale(1.05);
+                                    }
+
+                                    #wipStudioModal .artwork-info {
+                                        padding: 1rem;
+                                    }
+
+                                    /* Force grid layout in WIP Studio */
+                                    #wipMoodboardTab .artworks-grid,
+                                    #wipSketchesTab .artworks-grid {
+                                        display: grid !important;
+                                        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+                                        gap: 2rem !important;
+                                    }
                                 </style>
                             `;
 
                             modal.style.display = 'flex';
                             setupWipStudioEvents();
-                            setupWipTabNavigation(); // ✅ ADD THIS FUNCTION
+                            setupWipTabNavigation();
 
                             // Load projects
                             loadWipProjects().then(projects => {
@@ -7237,10 +7367,49 @@
                                 }
                             });
 
-                            console.log('✅ WIP Studio opened with tabs');
+                            console.log('✅ WIP Studio opened with larger size');
+
+                            // ✅ FORCE GRID REFRESH AFTER OPENING
+                            setTimeout(() => {
+                                console.log('🔄 Force refreshing WIP grids...');
+
+                                if (window.currentWipProjectId) {
+                                    const activeTab = document.querySelector('.wip-tab.active')?.getAttribute('data-tab');
+                                    console.log('Active tab:', activeTab);
+
+                                    if (activeTab === 'moodboard') {
+                                        console.log('🔄 Loading moodboard grid...');
+                                        loadMoodboardItems(window.currentWipProjectId);
+                                    } else if (activeTab === 'sketches') {
+                                        console.log('🔄 Loading sketches grid...');
+                                        loadSketches(window.currentWipProjectId);
+                                    }
+                                } else {
+                                    console.log('❌ No current project ID found');
+                                }
+
+                                // Force CSS recalculation
+                                const moodboardGrid = document.getElementById('moodboardGrid');
+                                const sketchesGrid = document.getElementById('sketchesGrid');
+
+                                if (moodboardGrid) {
+                                    moodboardGrid.style.display = 'none';
+                                    setTimeout(() => {
+                                        moodboardGrid.style.display = 'grid';
+                                        console.log('✅ Moodboard grid forced refresh');
+                                    }, 50);
+                                }
+
+                                if (sketchesGrid) {
+                                    sketchesGrid.style.display = 'none';
+                                    setTimeout(() => {
+                                        sketchesGrid.style.display = 'grid';
+                                        console.log('✅ Sketches grid forced refresh');
+                                    }, 50);
+                                }
+                            }, 500);
                         }
 
-                        // ✅ ADD TAB NAVIGATION FUNCTION
                         function setupWipTabNavigation() {
                             document.querySelectorAll('.wip-tab').forEach(tab => {
                                 tab.addEventListener('click', function() {
@@ -7253,11 +7422,11 @@
                                     this.style.borderBottom = '2px solid #000';
 
                                     // Update tab content
-                                    const tabName = this.getAttribute('data-tab');
                                     document.querySelectorAll('.wip-tab-content').forEach(content => {
                                         content.style.display = 'none';
                                     });
 
+                                    const tabName = this.getAttribute('data-tab');
                                     const tabContent = document.getElementById(`wip${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`);
                                     if (tabContent) {
                                         tabContent.style.display = 'block';
@@ -7274,13 +7443,11 @@
                         function setupWipStudioEvents() {
                             console.log('🔧 Setting up WIP Studio events...');
 
-                            // Remove any existing listeners
                             const existingHandler = window.handleWipStudioClicks;
                             if (existingHandler) {
                                 document.removeEventListener('click', existingHandler);
                             }
 
-                            // Create new handler
                             window.handleWipStudioClicks = function(e) {
                                 const wipModal = document.getElementById('wipStudioModal');
                                 if (!wipModal || wipModal.style.display !== 'flex') return;
@@ -8125,8 +8292,8 @@
 
                                 if (!items || items.length === 0) {
                                     moodboardGrid.innerHTML = `
-                                        <div style="text-align: center; padding: 4rem 2rem; color: #666; grid-column: 1 / -1;">
-                                            <div style="margin-bottom: 1rem;">
+                                        <div class="empty-state" style="grid-column: 1 / -1;">
+                                            <div class="empty-icon">
                                                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                                                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
@@ -8142,7 +8309,7 @@
                                 }
 
                                 moodboardGrid.innerHTML = items.map(item => `
-                                    <div class="moodboard-item" style="border-radius: 12px; overflow: hidden; background: white; transition: transform 0.2s ease; position: relative;">
+                                    <div class="artwork-card" style="margin: 0;">
                                         <!-- DELETE BUTTON -->
                                         <button onclick="deleteMoodboardItem('${item.id}')" 
                                                 style="position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(0,0,0,0.7); color: white; border: none; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2; backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.2s ease;">
@@ -8153,42 +8320,32 @@
                                             </svg>
                                         </button>
 
-                                        ${item.type === 'image' ? `
-                                            <!-- FULL IMAGE - NO TITLE -->
-                                            <div style="width: 100%; overflow: hidden;">
-                                                <img src="${item.image_url}" alt="Reference" 
-                                                     style="width: 100%; height: auto; display: block; transition: transform 0.3s ease;">
-                                            </div>
-
-                                            <!-- UPLOAD DATE ONLY -->
-                                            <div style="padding: 0.75rem; background: white; border-top: 1px solid #f0f0f0;">
-                                                <div style="font-size: 0.75rem; color: #666;">
-                                                    ${new Date(item.created_at).toLocaleDateString()}
+                                        <div class="artwork-image">
+                                            ${item.type === 'image' ? `
+                                                <img src="${item.image_url}" alt="Reference" loading="lazy" decoding="async" style="width: 100%; height: auto; display: block;">
+                                            ` : `
+                                                <div style="background: #f8f8f8; padding: 2rem; text-align: center; height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5; margin-bottom: 1rem;">
+                                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                                        <polyline points="15 3 21 3 21 9"></polyline>
+                                                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                                                    </svg>
+                                                    <div style="font-size: 0.8rem; color: #666; word-break: break-all;">
+                                                        ${item.web_url.replace(/^https?:\/\//, '').substring(0, 40)}...
+                                                    </div>
                                                 </div>
+                                            `}
+                                        </div>
+                                        <div class="artwork-info" style="padding: 0.75rem;">
+                                            <div style="font-size: 0.75rem; color: #666;">
+                                                ${new Date(item.created_at).toLocaleDateString()}
                                             </div>
-                                        ` : `
-                                            <!-- LINK ITEMS KEEP BASIC INFO -->
-                                            <div style="background: #f8f8f8; padding: 2rem; text-align: center;">
-                                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5; margin-bottom: 1rem;">
-                                                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                                                    <polyline points="15 3 21 3 21 9"></polyline>
-                                                    <line x1="10" y1="14" x2="21" y2="3"></line>
-                                                </svg>
-                                                <div style="font-size: 0.8rem; color: #666; word-break: break-all;">
-                                                    ${item.web_url.replace(/^https?:\/\//, '').substring(0, 40)}...
-                                                </div>
-                                            </div>
-                                            <div style="padding: 0.75rem; background: white; border-top: 1px solid #f0f0f0;">
-                                                <div style="font-size: 0.75rem; color: #666;">
-                                                    ${new Date(item.created_at).toLocaleDateString()}
-                                                </div>
-                                            </div>
-                                        `}
+                                        </div>
                                     </div>
                                 `).join('');
 
                                 // HOVER EFFECTS
-                                moodboardGrid.querySelectorAll('.moodboard-item').forEach(item => {
+                                moodboardGrid.querySelectorAll('.artwork-card').forEach(item => {
                                     item.addEventListener('mouseenter', () => {
                                         item.style.transform = 'translateY(-2px)';
                                         item.querySelector('button').style.opacity = '1';
@@ -8293,7 +8450,7 @@
 
                                 if (!sketches || sketches.length === 0) {
                                     sketchesGrid.innerHTML = `
-                                        <div style="text-align: center; padding: 4rem 2rem; color: #666; grid-column: 1 / -1;">
+                                        <div class="empty-state" style="grid-column: 1 / -1;">
                                             <div style="margin-bottom: 1rem;">
                                                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                                     <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
@@ -8311,7 +8468,7 @@
                                 }
 
                                 sketchesGrid.innerHTML = sketches.map(sketch => `
-                                    <div class="sketch-item" style="border-radius: 12px; overflow: hidden; background: white; position: relative; transition: transform 0.2s ease;">
+                                    <div class="artwork-card" style="margin: 0;">
                                         <!-- DELETE BUTTON -->
                                         <button onclick="deleteWipSketch('${sketch.id}', 'Sketch')" 
                                                 style="position: absolute; top: 0.5rem; right: 0.5rem; background: rgba(0,0,0,0.7); color: white; border: none; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 2; backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.2s ease;">
@@ -8322,14 +8479,10 @@
                                             </svg>
                                         </button>
 
-                                        <!-- FULL IMAGE - NO TITLE -->
-                                        <div class="sketch-image" style="width: 100%; overflow: hidden;">
-                                            <img src="${sketch.image_url}" alt="Sketch" 
-                                                 style="width: 100%; height: auto; display: block; transition: transform 0.3s ease;">
+                                        <div class="artwork-image">
+                                            <img src="${sketch.image_url}" alt="Sketch" loading="lazy" decoding="async" style="width: 100%; height: auto; display: block;">
                                         </div>
-
-                                        <!-- UPLOAD DATE ONLY -->
-                                        <div style="padding: 0.75rem; background: white; border-top: 1px solid #f0f0f0;">
+                                        <div class="artwork-info" style="padding: 0.75rem;">
                                             <div style="font-size: 0.75rem; color: #666;">
                                                 ${new Date(sketch.created_at).toLocaleDateString()}
                                             </div>
@@ -8338,7 +8491,7 @@
                                 `).join('');
 
                                 // HOVER EFFECTS
-                                sketchesGrid.querySelectorAll('.sketch-item').forEach(item => {
+                                sketchesGrid.querySelectorAll('.artwork-card').forEach(item => {
                                     item.addEventListener('mouseenter', () => {
                                         item.style.transform = 'translateY(-2px)';
                                         item.querySelector('button').style.opacity = '1';
@@ -11475,7 +11628,7 @@
                                 animation: scaleIn 0.3s ease;
                             `;
 
-                            // Header with close button
+                            // Header with close button - REMOVED "Artwork" text
                             const header = document.createElement('div');
                             header.style.cssText = `
                                 display: flex;
@@ -11488,7 +11641,7 @@
                             `;
 
                             const titleElement = document.createElement('h2');
-                            titleElement.textContent = title || 'Untitled';
+                            titleElement.textContent = title || 'Untitled'; // Just show the actual title, no "Artwork"
                             titleElement.style.cssText = `
                                 margin: 0;
                                 font-size: 1.5rem;
@@ -11561,7 +11714,7 @@
 
                             imageSection.appendChild(image);
 
-                            // Details section
+                            // Details section - REMOVED "Artwork" labels
                             const detailsSection = document.createElement('div');
                             detailsSection.style.cssText = `
                                 padding: 2rem;
@@ -11571,7 +11724,7 @@
                                 background: white;
                             `;
 
-                            // Artwork details
+                            // Artwork details - Clean layout without labels
                             const detailsList = document.createElement('div');
                             detailsList.style.cssText = `
                                 display: flex;
@@ -11579,38 +11732,48 @@
                                 gap: 1rem;
                             `;
 
-                            if (artwork.year) {
-                                const yearItem = createDetailItem('Year', artwork.year);
+                            // Only add details if they exist and are not empty
+                            if (artwork.year && artwork.year.trim() !== '') {
+                                const yearItem = document.createElement('div');
+                                yearItem.style.cssText = `
+                                    font-size: 1rem;
+                                    color: #333;
+                                    line-height: 1.4;
+                                `;
+                                yearItem.textContent = artwork.year;
                                 detailsList.appendChild(yearItem);
                             }
 
-                            if (artwork.medium) {
-                                const mediumItem = createDetailItem('Medium', artwork.medium);
+                            if (artwork.medium && artwork.medium.trim() !== '') {
+                                const mediumItem = document.createElement('div');
+                                mediumItem.style.cssText = `
+                                    font-size: 1rem;
+                                    color: #333;
+                                    line-height: 1.4;
+                                `;
+                                mediumItem.textContent = artwork.medium;
                                 detailsList.appendChild(mediumItem);
                             }
 
-                            if (artwork.dimensions) {
-                                const dimensionsItem = createDetailItem('Dimensions', artwork.dimensions);
+                            if (artwork.dimensions && artwork.dimensions.trim() !== '') {
+                                const dimensionsItem = document.createElement('div');
+                                dimensionsItem.style.cssText = `
+                                    font-size: 1rem;
+                                    color: #333;
+                                    line-height: 1.4;
+                                `;
+                                dimensionsItem.textContent = artwork.dimensions;
                                 detailsList.appendChild(dimensionsItem);
                             }
 
                             detailsSection.appendChild(detailsList);
 
                             // Description
-                            if (artwork.description) {
+                            if (artwork.description && artwork.description.trim() !== '') {
                                 const descriptionSection = document.createElement('div');
                                 descriptionSection.style.cssText = `
                                     border-top: 1px solid #e5e5e5;
                                     padding-top: 1.5rem;
-                                `;
-
-                                const descriptionTitle = document.createElement('h4');
-                                descriptionTitle.textContent = 'Description';
-                                descriptionTitle.style.cssText = `
-                                    margin: 0 0 0.75rem 0;
-                                    font-size: 1rem;
-                                    font-weight: 500;
-                                    color: #000;
                                 `;
 
                                 const descriptionText = document.createElement('p');
@@ -11622,7 +11785,6 @@
                                     font-size: 0.9rem;
                                 `;
 
-                                descriptionSection.appendChild(descriptionTitle);
                                 descriptionSection.appendChild(descriptionText);
                                 detailsSection.appendChild(descriptionSection);
                             }
@@ -11679,26 +11841,17 @@
                                 gap: 1rem;
                             `;
 
-                            const labelElement = document.createElement('span');
-                            labelElement.textContent = label;
-                            labelElement.style.cssText = `
-                                font-weight: 500;
-                                color: #000;
-                                font-size: 0.9rem;
-                                min-width: 80px;
-                            `;
-
+                            // REMOVED the label element entirely
                             const valueElement = document.createElement('span');
                             valueElement.textContent = value;
                             valueElement.style.cssText = `
-                                color: #666;
-                                font-size: 0.9rem;
-                                text-align: right;
+                                color: #333;
+                                font-size: 1rem;
+                                text-align: left;
                                 flex: 1;
                                 line-height: 1.4;
                             `;
 
-                            item.appendChild(labelElement);
                             item.appendChild(valueElement);
                             return item;
                         }
@@ -11796,47 +11949,48 @@
                                     console.log('✅ Popup elements created');
                                 }
 
-                                // Open popup function
-                                function openPopup(imageSrc, title, year, medium, dimensions) {
-                                    console.log('🖼️ Opening popup with:', { title, year, medium, dimensions });
+                        function openPopup(imageSrc, title, year, medium, dimensions) {
+                            console.log('🖼️ Opening popup');
 
-                                    const popup = document.getElementById('artworkPopup');
-                                    const popupImg = document.getElementById('popupImg');
-                                    const popupInfo = document.getElementById('popupInfo');
+                            const popup = document.getElementById('artworkPopup');
+                            const popupImg = document.getElementById('popupImg');
+                            const popupInfo = document.getElementById('popupInfo');
 
-                                    // Create elements if missing
-                                    if (!popup || !popupImg || !popupInfo) {
-                                        console.log('🔄 Creating missing popup elements');
-                                        createPopupElements();
-                                        // Retry after creation
-                                        setTimeout(() => openPopup(imageSrc, title, year, medium, dimensions), 100);
-                                        return;
-                                    }
+                            if (!popup || !popupImg || !popupInfo) {
+                                createPopupElements();
+                                setTimeout(() => openPopup(imageSrc, title, year, medium, dimensions), 100);
+                                return;
+                            }
 
-                                    // Set image
-                                    popupImg.src = imageSrc;
-                                    popupImg.alt = title;
+                            // Set image
+                            popupImg.src = imageSrc;
+                            popupImg.alt = title || '';
 
-                                    // Create side details
-                                    let infoHTML = `
-                                        <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 100%; padding-bottom: 2rem; padding-left: 1.5rem;">
-                                            <div style="color: white;">
-                                                <div style="font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem;">${title}</div>
-                                    `;
+                            // Check if we're in WIP Studio - if so, NO TEXT
+                            const isWipStudio = document.getElementById('wipStudioModal')?.style.display === 'flex';
 
-                                    if (year && year !== '') infoHTML += `<div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.2rem;">${year}</div>`;
-                                    if (medium && medium !== '') infoHTML += `<div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.2rem;">${medium}</div>`;
-                                    if (dimensions && dimensions !== '') infoHTML += `<div style="font-size: 0.8rem; opacity: 0.8;">${dimensions}</div>`;
+                            if (isWipStudio) {
+                                // WIP Studio - NO TEXT
+                                popupInfo.innerHTML = '';
+                            } else {
+                                // Portfolio - show text as normal
+                                let infoHTML = `
+                                    <div style="display: flex; flex-direction: column; justify-content: flex-end; height: 100%; padding-bottom: 2rem; padding-left: 1.5rem;">
+                                        <div style="color: white;">
+                                            <div style="font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem;">${title}</div>
+                                `;
 
-                                    infoHTML += `</div></div>`;
+                                if (year && year.trim() !== '') infoHTML += `<div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.2rem;">${year}</div>`;
+                                if (medium && medium.trim() !== '') infoHTML += `<div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.2rem;">${medium}</div>`;
+                                if (dimensions && dimensions.trim() !== '') infoHTML += `<div style="font-size: 0.8rem; opacity: 0.8;">${dimensions}</div>`;
 
-                                    popupInfo.innerHTML = infoHTML;
+                                infoHTML += `</div></div>`;
+                                popupInfo.innerHTML = infoHTML;
+                            }
 
-                                    // Show the popup
-                                    popup.style.display = 'flex';
-
-                                    console.log('✅ Popup visible!');
-                                }
+                            // Show the popup
+                            popup.style.display = 'flex';
+                        }
 
                                 // Close popup function
                                 function closePopup() {
@@ -11991,41 +12145,50 @@
                         // ==================== SAFE POPUP SYSTEM (PORTFOLIO ONLY) ====================
                         function initSafePopupHandlers() {
                             document.addEventListener('click', function(e) {
-                                console.log('🖱️ Click detected on:', e.target);
-
-                                // ✅ REMOVED PORTFOLIO SECTION CHECK
-
                                 if (e.target.matches('.artwork-image img')) {
-                                    console.log('✅ Portfolio image clicked, opening popup...');
+                                    console.log('🖼️ Image clicked for popup');
                                     const img = e.target;
                                     const card = img.closest('.artwork-card');
 
                                     if (!card) {
-                                        console.log('❌ No artwork card found');
+                                        console.log('❌ No card found');
                                         return;
                                     }
 
-                                    // Read from hidden DOM elements
-                                    const title = card.querySelector('.artwork-title')?.textContent || 'Untitled';
-                                    const details = card.querySelector('.artwork-details');
+                                    // METHOD 1: Try to get data from attributes first
+                                    let title = img.getAttribute('data-artwork-title') || '';
+                                    let year = img.getAttribute('data-artwork-year') || '';
+                                    let medium = img.getAttribute('data-artwork-medium') || '';
+                                    let dimensions = img.getAttribute('data-artwork-dimensions') || '';
 
-                                    let year = '', medium = '', dimensions = '';
-                                    if (details) {
-                                        const divs = details.querySelectorAll('div');
-                                        for (let i = 0; i < Math.min(divs.length, 3); i++) {
-                                            const text = divs[i].textContent.trim();
-                                            if (i === 0) year = text;
-                                            if (i === 1) medium = text;
-                                            if (i === 2) dimensions = text;
-                                        }
+                                    console.log('📝 Data from attributes:', { title, year, medium, dimensions });
+
+                                    // If no data in attributes, try DOM elements
+                                    if (!title || title === 'Artwork') {
+                                        title = card.querySelector('.artwork-title')?.textContent || 'Untitled';
                                     }
 
-                                    console.log('📝 Popup data:', { title, year, medium, dimensions });
+                                    // CLEAN ALL TEXT - remove "Artwork" completely
+                                    title = cleanText(title);
+                                    year = cleanText(year);
+                                    medium = cleanText(medium);
+                                    dimensions = cleanText(dimensions);
 
-                                    // USE THE EXISTING POPUP SYSTEM
+                                    console.log('🧹 Cleaned data:', { title, year, medium, dimensions });
+
+                                    // USE THE POPUP
                                     openPopup(img.src, title, year, medium, dimensions);
                                 }
                             });
+                        }
+
+                        // ADD THIS HELPER FUNCTION TO CLEAN TEXT
+                        function cleanText(text) {
+                            if (!text) return '';
+                            return text
+                                .replace(/Artwork/gi, '')
+                                .replace(/\s+/g, ' ')
+                                .trim();
                         }
 
                         // ==================== DASHBOARD CLEANUP ====================
