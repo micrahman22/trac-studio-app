@@ -2383,9 +2383,11 @@
                                 </div>
                             </section>      
 
-                            <!-- 2×2 GRID: Activity | Blockchain -->
-                            <section class="dashboard-grid-section" style="padding: 3rem 0; border-top: 1px solid #e5e5e5;">
-                                <div class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
+                            <!-- 2×2 GRID: Alerts | Blockchain -->
+                                    <div class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative;">
+
+                                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85); z-index: 1; border-radius: 12px; pointer-events: none;"></div>
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; color: #666; padding: 0.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 0.9rem; pointer-events: none; white-space: nowrap;">Advanced Tools • Launching Soon</div>
 
                                     <!-- ROW 1: ALERTS -->
                                     <div class="dashboard-card" onclick="showAlertsManager()">
@@ -3554,20 +3556,21 @@
 
                         // ==================== AUTHENTICATION SYSTEM ====================
                         async function signIn() {
-                            const email = document.getElementById('email').value.trim();
-                            const password = document.getElementById('password').value;
-                            const button = document.getElementById('signInButton');
-                            const buttonText = document.getElementById('signInText');
+                            const email = document.getElementById('signInEmail').value;
+                            const password = document.getElementById('signInPassword').value;
 
                             if (!email || !password) {
                                 showToast('Please enter email and password', 'error');
                                 return;
                             }
 
-                            button.disabled = true;
-                            buttonText.innerHTML = '<span class="loading-spinner"></span>Signing in...';
+                            const submitBtn = document.querySelector('#signInForm button[type="submit"]');
+                            const originalText = submitBtn.textContent;
 
                             try {
+                                submitBtn.disabled = true;
+                                submitBtn.innerHTML = '<span class="loading-spinner"></span> Signing in...';
+
                                 const { data, error } = await supabaseClient.auth.signInWithPassword({
                                     email: email,
                                     password: password
@@ -3576,13 +3579,35 @@
                                 if (error) throw error;
 
                                 showToast('Welcome back!');
+
+                                // Hide auth section
+                                document.getElementById('auth-section').style.display = 'none';
+
+                                // Load user data
+                                currentUser = data.user;
+                                await loadProfile();
+
+                                // Show dashboard
                                 showSection('dashboard');
+                                await loadDashboard();
+
+                                // ✅ ADD THIS LINE - FIXES COUNTS AFTER SIGN IN
+                                setTimeout(updateDashboardCounts, 300);
+
+                                // Update navigation
+                                document.querySelectorAll('.main-nav a').forEach(navItem => {
+                                    navItem.style.display = 'block';
+                                });
+
+                                // Log the login
+                                await logActivity('user_login', 'Signed in', `User logged into TRAC Studio`);
 
                             } catch (error) {
-                                showToast('Sign in failed: ' + error.message, 'error');
+                                console.error('Sign in error:', error);
+                                showToast('Error: ' + error.message, 'error');
                             } finally {
-                                button.disabled = false;
-                                buttonText.textContent = 'Sign in';
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = originalText;
                             }
                         }
 
@@ -3712,6 +3737,10 @@
                                 if (session) {
                                     console.log("✅ User signed in:", session.user.email);
                                     showSection('dashboard');
+
+                                    // ✅ FUCKING ADD THIS LINE TO UPDATE COUNTS WHEN LOGGED IN USER LOADS APP
+                                    setTimeout(updateDashboardCounts, 500);
+
                                     setTimeout(() => {
                                         fetchUserArtworks();
                                         fetchUserEvents();
@@ -5792,31 +5821,43 @@
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
                                 if (!user) {
-                                    console.log('No user found - skipping activity log');
+                                    console.log('❌ No user for activity logging');
                                     return;
                                 }
+
+                                console.log('📝 Logging activity:', { type, title, description });
+
+                                // ✅ FIXED: Database uses 'type' column
+                                const activityData = {
+                                    artist_id: user.id,
+                                    type: type,
+                                    title: title,
+                                    description: description,
+                                    metadata: metadata,
+                                    created_at: new Date().toISOString()
+                                };
 
                                 const { error } = await supabaseClient
                                     .from('activities')
-                                    .insert([{
-                                        artist_id: user.id,
-                                        activity_type: type,
-                                        title: title,
-                                        description: description,
-                                        metadata: metadata,
-                                        created_at: new Date().toISOString()
-                                    }]);
+                                    .insert([activityData]);
 
                                 if (error) {
-                                    console.error('Error logging activity:', error);
+                                    console.error('❌ Error logging activity:', error);
                                     return;
                                 }
 
-                                console.log('Activity logged:', type);
+                                console.log('✅ Activity logged successfully:', title);
+
+                                // ✅ UPDATE DASHBOARD COUNTS
+                                updateDashboardCounts();
+
+                                // ✅ REFRESH ACTIVITY HISTORY IF OPEN
+                                if (document.getElementById('activityHistoryPopup')?.style.display === 'flex') {
+                                    loadActivityHistory(24); // Default: last day
+                                }
 
                             } catch (error) {
-                                console.error('Unexpected error logging activity:', error);
-                                // Fail silently - don't break main functionality
+                                console.error('❌ Error in logActivity:', error);
                             }
                         }
 
@@ -5899,7 +5940,13 @@
                             if (diffMins < 60) return `${diffMins}m ago`;
                             if (diffHours < 24) return `${diffHours}h ago`;
                             if (diffDays < 7) return `${diffDays}d ago`;
-                            return activityTime.toLocaleDateString();
+
+                            // More than a week ago - show full date
+                            return activityTime.toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric',
+                                year: 'numeric'
+                            });
                         }
 
                         // ==================== PORTFOLIO SYSTEM ====================
@@ -7140,7 +7187,7 @@
                                 document.body.appendChild(modal);
                             }
 
-                            // ✅ UPDATED MODAL WITH LARGER SIZE + PROPER GRID CONTAINERS
+                            // ✅ UPDATED MODAL WITH ACTIVITY REFRESH
                             modal.innerHTML = `
                                 <div style="background: white; border-radius: 16px; width: 98%; max-width: 1400px; height: 95vh; max-height: 95vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.3); margin: auto;">
                                     <!-- Header -->
@@ -7156,12 +7203,16 @@
                                             <div>
                                                 <h3 style="margin: 0; font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em;">Studio Workspace</h3>
                                                 <p style="margin: 0; font-size: 0.8rem; color: #666; font-weight: 400;">Your creative projects</p>
+                                                <!-- ✅ ACTIVITY COUNT BADGE -->
+                                                <div style="margin-top: 0.25rem; font-size: 0.7rem; color: #999;">
+                                                    <span id="wipStudioActivityCount">0</span> recent activities
+                                                </div>
                                             </div>
                                         </div>
                                         <button onclick="closeWipStudio()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; transition: all 0.2s;">×</button>
                                     </div>
 
-                                    <!-- Content Area -->
+                                    <!-- Content Area (existing code remains the same) -->
                                     <div style="flex: 1; display: flex; overflow: hidden;">
                                         <!-- Projects Sidebar -->
                                         <div style="width: 300px; border-right: 1px solid #e5e5e5; background: #f8f8f8; display: flex; flex-direction: column; flex-shrink: 0;">
@@ -7182,7 +7233,7 @@
                                             </div>
                                         </div>
 
-                                        <!-- Main Workspace -->
+                                        <!-- Main Workspace (existing code remains exactly the same) -->
                                         <div style="flex: 1; display: flex; flex-direction: column; background: white; position: relative; min-width: 0;">
                                             <!-- TABS NAVIGATION -->
                                             <div style="display: flex; border-bottom: 1px solid #e5e5e5; background: #fafafa; flex-shrink: 0;">
@@ -7245,14 +7296,14 @@
                                                 </div>
                                             </div>
 
-                                            <!-- MOODBOARD TAB - UPDATED WITH PROPER GRID CONTAINER -->
+                                            <!-- MOODBOARD TAB -->
                                             <div id="wipMoodboardTab" class="wip-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 2rem;">
                                                 <div class="artworks-section" style="max-width: none; padding: 0;">
                                                     <div id="moodboardGrid" class="artworks-grid portfolio-layout grid-classic medium"></div>
                                                 </div>
                                             </div>
 
-                                            <!-- SKETCHES TAB - UPDATED WITH PROPER GRID CONTAINER -->
+                                            <!-- SKETCHES TAB -->
                                             <div id="wipSketchesTab" class="wip-tab-content" style="display: none; flex: 1; overflow-y: auto; padding: 2rem;">
                                                 <div class="artworks-section" style="max-width: none; padding: 0;">
                                                     <div id="sketchesGrid" class="artworks-grid portfolio-layout grid-classic medium"></div>
@@ -7358,7 +7409,7 @@
                             setupWipStudioEvents();
                             setupWipTabNavigation();
 
-                            // Load projects
+                            // ✅ LOAD PROJECTS AND UPDATE ACTIVITY COUNTS
                             loadWipProjects().then(projects => {
                                 if (projects && projects.length > 0) {
                                     if (projects[0]) {
@@ -7367,7 +7418,7 @@
                                 }
                             });
 
-                            console.log('✅ WIP Studio opened with larger size');
+                            console.log('✅ WIP Studio opened with activity tracking');
 
                             // ✅ FORCE GRID REFRESH AFTER OPENING
                             setTimeout(() => {
@@ -7407,6 +7458,18 @@
                                         console.log('✅ Sketches grid forced refresh');
                                     }, 50);
                                 }
+
+                                // ✅ UPDATE ACTIVITY COUNT IN WIP STUDIO HEADER
+                                updateDashboardCounts().then(() => {
+                                    // Get the activity count from dashboard
+                                    const activityCount = document.getElementById('activitiesCount')?.textContent || '0';
+                                    const wipStudioBadge = document.getElementById('wipStudioActivityCount');
+                                    if (wipStudioBadge) {
+                                        wipStudioBadge.textContent = activityCount;
+                                        console.log('✅ Updated WIP Studio activity badge:', activityCount);
+                                    }
+                                });
+
                             }, 500);
                         }
 
@@ -7611,6 +7674,17 @@
                                 if (error) throw error;
 
                                 showToast(`"${name}" created!`);
+
+                                // ✅ LOG ACTIVITY - FIXED CALL
+                                await logActivity(
+                                    'project_created',  // This will be stored as 'type' in database
+                                    `Created project "${name}"`,
+                                    description || 'New WIP project started',
+                                    { project_id: project.id }
+                                );
+
+                                // ✅ UPDATE DASHBOARD COUNTS
+                                updateDashboardCounts();
 
                                 // Reload projects and open the new one
                                 await loadWipProjects();
@@ -7852,6 +7926,13 @@
                                 showToast('Reference added!');
                                 modal.remove();
 
+                                // ✅ LOG ACTIVITY
+                                await logActivity(
+                                    'moodboard_added',
+                                    `Added ${type} reference`,
+                                    type === 'image' ? 'Image reference added to moodboard' : 'Web link reference added to moodboard'
+                                );
+
                                 // RELOAD MOODBOARD
                                 if (window.currentWipProjectId) {
                                     loadMoodboardItems(window.currentWipProjectId);
@@ -8029,20 +8110,16 @@
                                 }
 
                                 const originalFile = fileInput.files[0];
-                                console.log('📤 Original file:', originalFile.name, Math.round(originalFile.size / 1024 / 1024) + 'MB');
+                                console.log('📤 Uploading sketch:', originalFile.name);
 
-                                // ✅ FORCE COMPRESSION FOR LARGE FILES
                                 let fileToUpload = originalFile;
-                                if (originalFile.size > 1 * 1024 * 1024) { // Compress if over 1MB
+                                if (originalFile.size > 1 * 1024 * 1024) {
                                     showToast('Compressing image...');
-
-                                    // Use simpler compression for large files
-                                    const compressedBlob = await compressImage(originalFile, 800, 0.6, 300 * 1024); // Smaller target
+                                    const compressedBlob = await compressImage(originalFile, 800, 0.6, 300 * 1024);
                                     fileToUpload = new File([compressedBlob], originalFile.name, {
                                         type: 'image/jpeg',
                                         lastModified: Date.now()
                                     });
-                                    console.log('✅ Image compressed:', Math.round(originalFile.size / 1024 / 1024) + 'MB → ' + Math.round(compressedBlob.size / 1024 / 1024) + 'MB');
                                 }
 
                                 showToast('Uploading...');
@@ -8074,6 +8151,13 @@
 
                                 showToast('Sketch uploaded!');
                                 modal.remove();
+
+                                // ✅ LOG ACTIVITY
+                                await logActivity(
+                                    'sketch_uploaded',
+                                    'Uploaded new sketch',
+                                    'Process work added to project'
+                                );
 
                                 if (window.currentWipProjectId) {
                                     loadSketches(window.currentWipProjectId);
@@ -8121,16 +8205,53 @@
                                 try {
                                     const { data: { user } } = await supabaseClient.auth.getUser();
                                     if (!user) return;
-                                    const { error } = await supabaseClient.from('wip_sketches').delete().eq('id', sketchId).eq('artist_id', user.id);
+
+                                    // Get sketch info before deleting
+                                    const { data: sketch, error: fetchError } = await supabaseClient
+                                        .from('wip_sketches')
+                                        .select('*')
+                                        .eq('id', sketchId)
+                                        .eq('artist_id', user.id)
+                                        .single();
+
+                                    if (fetchError) throw fetchError;
+
+                                    const { error } = await supabaseClient
+                                        .from('wip_sketches')
+                                        .delete()
+                                        .eq('id', sketchId)
+                                        .eq('artist_id', user.id);
+
                                     if (error) throw error;
+
+                                    // ✅ LOG ACTIVITY
+                                    await logActivity(
+                                        'sketch_deleted',
+                                        'Deleted sketch',
+                                        `From project: ${window.currentWipProjectId || 'Unknown project'}, Created: ${new Date(sketch.created_at).toLocaleDateString()}`,
+                                        { 
+                                            sketch_id: sketchId,
+                                            project_id: sketch.project_id,
+                                            had_image: !!sketch.image_url,
+                                            created_at: sketch.created_at
+                                        }
+                                    );
+
                                     showToast('Sketch deleted');
                                     if (window.currentWipProjectId) loadSketches(window.currentWipProjectId);
+
+                                    // Update dashboard counts
+                                    updateDashboardCounts();
+
                                 } catch (error) {
                                     console.error('Error deleting sketch:', error);
-                                    showToast('Error deleting sketch', 'error');
+                                    showToast('Error deleting sketch: ' + error.message, 'error');
                                 }
                             };
-                            dialog.onclick = (e) => { if (e.target === dialog) document.body.removeChild(dialog); };
+
+                            dialog.onclick = (e) => { 
+                                if (e.target === dialog) document.body.removeChild(dialog); 
+                            };
                         }
 
                         // ==================== NOTES SYSTEM ====================
@@ -8217,6 +8338,13 @@
                                 showToast('Note created successfully!');
                                 modal.remove();
 
+                                // ✅ LOG ACTIVITY
+                                await logActivity(
+                                    'note_created', 
+                                    'Created new note',
+                                    'Ideas or research added to project'
+                                );
+
                                 if (window.currentWipProjectId) {
                                     loadNotes(window.currentWipProjectId);
                                 }
@@ -8263,16 +8391,54 @@
                                 try {
                                     const { data: { user } } = await supabaseClient.auth.getUser();
                                     if (!user) return;
-                                    const { error } = await supabaseClient.from('wip_notes').delete().eq('id', noteId).eq('artist_id', user.id);
+
+                                    // Get note info before deleting
+                                    const { data: note, error: fetchError } = await supabaseClient
+                                        .from('wip_notes')
+                                        .select('*')
+                                        .eq('id', noteId)
+                                        .eq('artist_id', user.id)
+                                        .single();
+
+                                    if (fetchError) throw fetchError;
+
+                                    const { error } = await supabaseClient
+                                        .from('wip_notes')
+                                        .delete()
+                                        .eq('id', noteId)
+                                        .eq('artist_id', user.id);
+
                                     if (error) throw error;
+
+                                    // ✅ LOG ACTIVITY
+                                    await logActivity(
+                                        'note_deleted',
+                                        'Deleted note',
+                                        `From project: ${note.project_id}, Content preview: ${note.content.substring(0, 100)}...`,
+                                        { 
+                                            note_id: noteId,
+                                            project_id: note.project_id,
+                                            content_length: note.content.length,
+                                            created_at: note.created_at,
+                                            had_title: !!note.title
+                                        }
+                                    );
+
                                     showToast('Note deleted');
                                     if (window.currentWipProjectId) loadNotes(window.currentWipProjectId);
+
+                                    // Update dashboard counts
+                                    updateDashboardCounts();
+
                                 } catch (error) {
                                     console.error('Error deleting note:', error);
-                                    showToast('Error deleting note', 'error');
+                                    showToast('Error deleting note: ' + error.message, 'error');
                                 }
                             };
-                            dialog.onclick = (e) => { if (e.target === dialog) document.body.removeChild(dialog); };
+
+                            dialog.onclick = (e) => { 
+                                if (e.target === dialog) document.body.removeChild(dialog); 
+                            };
                         }
 
                         // ==================== LOADING FUNCTIONS ====================
@@ -8691,7 +8857,6 @@
                         async function deleteWipProject(projectId, projectName, event) {
                             if (event) event.stopPropagation();
 
-                            // ✅ CREATE CUSTOM CONFIRMATION DIALOG THAT APPEARS ON TOP
                             const confirmDialog = document.createElement('div');
                             confirmDialog.style.cssText = `
                                 position: fixed;
@@ -8703,7 +8868,7 @@
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                z-index: 10010; // HIGHER THAN WIP STUDIO
+                                z-index: 10010;
                             `;
 
                             confirmDialog.innerHTML = `
@@ -8726,7 +8891,6 @@
 
                             document.body.appendChild(confirmDialog);
 
-                            // Wait for user choice
                             return new Promise((resolve) => {
                                 confirmDialog.querySelector('#cancelDelete').onclick = () => {
                                     document.body.removeChild(confirmDialog);
@@ -8747,6 +8911,14 @@
                                             .eq('artist_id', user.id);
 
                                         if (error) throw error;
+
+                                        // ✅ ADDED: LOG ACTIVITY
+                                        await logActivity(
+                                            'project_deleted',
+                                            `Deleted project "${projectName}"`,
+                                            'Project removed from WIP Studio',
+                                            { project_id: projectId }
+                                        );
 
                                         showToast(`"${projectName}" deleted successfully`);
 
@@ -8948,16 +9120,53 @@
                                 try {
                                     const { data: { user } } = await supabaseClient.auth.getUser();
                                     if (!user) return;
-                                    const { error } = await supabaseClient.from('moodboard_items').delete().eq('id', itemId).eq('artist_id', user.id);
+
+                                    // Get item info before deleting
+                                    const { data: item, error: fetchError } = await supabaseClient
+                                        .from('moodboard_items')
+                                        .select('*')
+                                        .eq('id', itemId)
+                                        .eq('artist_id', user.id)
+                                        .single();
+
+                                    if (fetchError) throw fetchError;
+
+                                    const { error } = await supabaseClient
+                                        .from('moodboard_items')
+                                        .delete()
+                                        .eq('id', itemId)
+                                        .eq('artist_id', user.id);
+
                                     if (error) throw error;
+
+                                    // ✅ LOG ACTIVITY
+                                    await logActivity(
+                                        'moodboard_item_deleted',
+                                        'Deleted moodboard reference',
+                                        `Type: ${item.type}, ${item.type === 'image' ? 'Image reference' : 'Web link reference'}`,
+                                        { 
+                                            item_id: itemId,
+                                            project_id: item.project_id,
+                                            item_type: item.type,
+                                            had_title: !!item.title
+                                        }
+                                    );
+
                                     showToast('Reference deleted');
                                     if (window.currentWipProjectId) loadMoodboardItems(window.currentWipProjectId);
+
+                                    // Update dashboard counts
+                                    updateDashboardCounts();
+
                                 } catch (error) {
                                     console.error('Error deleting reference:', error);
-                                    showToast('Error deleting reference', 'error');
+                                    showToast('Error deleting reference: ' + error.message, 'error');
                                 }
                             };
-                            dialog.onclick = (e) => { if (e.target === dialog) document.body.removeChild(dialog); };
+
+                            dialog.onclick = (e) => { 
+                                if (e.target === dialog) document.body.removeChild(dialog); 
+                            };
                         }
 
                         async function loadConnectedArtworks(projectId) {
@@ -9761,28 +9970,54 @@
                             createNewNote(); // Redirect to the existing function
                         }
 
-                        // Update WIP and COA counts
                         async function updateDashboardCounts() {
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
                                 if (!user) return;
 
+                                console.log('🔄 Updating dashboard counts...');
+
                                 // Get WIP projects count
-                                const { count, error } = await supabaseClient
+                                const { count: wipCount, error: wipError } = await supabaseClient
                                     .from('wip_projects')
                                     .select('*', { count: 'exact', head: true })
                                     .eq('artist_id', user.id)
                                     .eq('status', 'active');
 
-                                if (!error && count !== null) {
-                                    document.getElementById('wipCount').textContent = count;
+                                // Get ALL activities count
+                                const { count: activityCount, error: activityError } = await supabaseClient
+                                    .from('activities')
+                                    .select('*', { count: 'exact', head: true })
+                                    .eq('artist_id', user.id);
+
+                                console.log('📊 Counts from database:', { wipCount, activityCount });
+
+                                // ✅ FIXED: USE CORRECT ELEMENT IDs FROM YOUR HTML
+                                const wipElement = document.getElementById('wipCount');
+                                const activitiesElement = document.getElementById('activitiesCount');
+
+                                if (wipElement) {
+                                    wipElement.textContent = wipCount || '0';
+                                    console.log('✅ WIP count updated to:', wipCount);
+                                } else {
+                                    console.log('❌ wipCount element not found');
                                 }
 
-                                // COA count (placeholder for now)
-                                document.getElementById('coaCount').textContent = '0';
+                                if (activitiesElement) {
+                                    activitiesElement.textContent = activityCount || '0';
+                                    console.log('✅ Activity count updated to:', activityCount);
+                                } else {
+                                    console.log('❌ activitiesCount element not found');
+                                }
 
                             } catch (error) {
-                                console.error('Error updating counts:', error);
+                                console.error('Dashboard counts error:', error);
+                                // Fallback - force set to known values
+                                const wipElement = document.getElementById('wipCount');
+                                const activitiesElement = document.getElementById('activitiesCount');
+
+                                if (wipElement) wipElement.textContent = '0';
+                                if (activitiesElement) activitiesElement.textContent = '0';
                             }
                         }
 
@@ -9944,6 +10179,24 @@
 
                         function showActivityHistory() {
                             document.getElementById('activityHistoryPopup').style.display = 'flex';
+
+                            // ✅ RESET FILTERS TO "LAST DAY" BY DEFAULT
+                            const filters = document.querySelectorAll('.timeline-filter');
+                            filters.forEach(btn => {
+                                btn.classList.remove('active');
+                                btn.style.background = 'none';
+                                btn.style.color = '#666';
+                            });
+
+                            // ✅ SET "LAST DAY" AS ACTIVE
+                            const lastDayBtn = document.querySelector('[data-hours="24"]');
+                            if (lastDayBtn) {
+                                lastDayBtn.classList.add('active');
+                                lastDayBtn.style.background = '#000';
+                                lastDayBtn.style.color = 'white';
+                            }
+
+                            // ✅ LOAD ACTIVITIES
                             loadActivityHistory(24); // Default: last day
                         }
 
@@ -9951,10 +10204,15 @@
                             document.getElementById('activityHistoryPopup').style.display = 'none';
                         }
 
-                        async function loadActivityHistory(hours = 0) {
+                        async function loadActivityHistory(hours = 24) {
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user) return;
+                                if (!user) {
+                                    console.log('❌ No user found for activity history');
+                                    return;
+                                }
+
+                                console.log('🔄 Loading activity history for:', hours, 'hours');
 
                                 let query = supabaseClient
                                     .from('activities')
@@ -9962,59 +10220,103 @@
                                     .eq('artist_id', user.id)
                                     .order('created_at', { ascending: false });
 
+                                // ✅ FIXED: PROPER TIME FILTERING
+                                if (hours > 0) {
+                                    const timeAgo = new Date();
+                                    timeAgo.setHours(timeAgo.getHours() - hours);
+                                    query = query.gte('created_at', timeAgo.toISOString());
+                                }
+
                                 const { data: activities, error } = await query;
 
-                                if (error) throw error;
+                                if (error) {
+                                    console.error('Error loading activities:', error);
+                                    throw error;
+                                }
 
+                                console.log('✅ Loaded activities:', activities?.length || 0);
+
+                                // ✅ UPDATE FILTER BUTTONS
+                                updateTimelineFilters(hours);
+
+                                // ✅ DISPLAY ACTIVITIES
                                 displayActivityHistory(activities || []);
 
                             } catch (error) {
                                 console.error('Error loading activity history:', error);
-                                document.getElementById('activityHistoryList').innerHTML = `
-                                    <div class="activity-item">
-                                        <div class="activity-dot"></div>
-                                        <div class="activity-content">
-                                            <p>Unable to load activity history</p>
+                                const container = document.getElementById('activityHistoryList');
+                                if (container) {
+                                    container.innerHTML = `
+                                        <div class="activity-item">
+                                            <div class="activity-dot"></div>
+                                            <div class="activity-content">
+                                                <p>Unable to load activity history</p>
+                                                <div class="activity-time">Please try again later</div>
+                                            </div>
                                         </div>
-                                    </div>
-                                `;
+                                    `;
+                                }
                             }
                         }
 
-                                function displayActivityHistory(activities) {
-                                    const container = document.getElementById('activityHistoryList');
-                                    if (!container) return;
-
-                                    if (!activities || activities.length === 0) {
-                                        container.innerHTML = `
-                                            <div class="activity-item">
-                                                <div class="activity-dot"></div>
-                                                <div class="activity-content">
-                                                    <p>No activities recorded yet</p>
-                                                    <div class="activity-time">Upload artworks or make changes to see activity history</div>
-                                                </div>
-                                            </div>
-                                        `;
-                                        return;
-                                    }
-
-                                    container.innerHTML = activities.map(activity => {
-                                        let displayText = activity.title;
-                                        if (activity.description) {
-                                            displayText += ` - ${activity.description}`;
-                                        }
-
-                                        return `
-                                            <div class="activity-item">
-                                                <div class="activity-dot"></div>
-                                                <div class="activity-content">
-                                                    <p>${displayText}</p>
-                                                    <div class="activity-time">${formatActivityTime(activity.created_at)}</div>
-                                                </div>
-                                            </div>
-                                        `;
-                                    }).join('');
+                        // ✅ NEW FUNCTION: UPDATE TIMELINE FILTER BUTTONS
+                        function updateTimelineFilters(activeHours) {
+                            const filters = document.querySelectorAll('.timeline-filter');
+                            filters.forEach(btn => {
+                                const hours = parseInt(btn.getAttribute('data-hours'));
+                                if (hours === activeHours) {
+                                    btn.classList.add('active');
+                                    btn.style.background = '#000';
+                                    btn.style.color = 'white';
+                                } else {
+                                    btn.classList.remove('active');
+                                    btn.style.background = 'none';
+                                    btn.style.color = '#666';
                                 }
+                            });
+                        }
+
+                        function displayActivityHistory(activities) {
+                            const container = document.getElementById('activityHistoryList');
+                            if (!container) return;
+
+                            if (!activities || activities.length === 0) {
+                                container.innerHTML = `
+                                    <div class="activity-item">
+                                        <div class="activity-dot"></div>
+                                        <div class="activity-content">
+                                            <p>No activities recorded yet</p>
+                                            <div class="activity-time">Upload artworks or make changes to see activity history</div>
+                                        </div>
+                                    </div>
+                                `;
+                                return;
+                            }
+
+                            container.innerHTML = activities.map(activity => {
+                                let displayText = activity.title;
+                                if (activity.description) {
+                                    displayText += ` - ${activity.description}`;
+                                }
+
+                                // ✅ ADD ICONS BASED ON ACTIVITY TYPE
+                                let icon = '📝';
+                                if (activity.type.includes('artwork')) icon = '🖼️';
+                                if (activity.type.includes('event')) icon = '📅';
+                                if (activity.type.includes('project')) icon = '🎨';
+                                if (activity.type.includes('collection')) icon = '📚';
+
+                                return `
+                                    <div class="activity-item">
+                                        <div class="activity-dot">${icon}</div>
+                                        <div class="activity-content">
+                                            <p>${displayText}</p>
+                                            <div class="activity-time">${formatActivityTime(activity.created_at)}</div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('');
+                        }
 
                         function hideArchivedPopup() {
                             document.getElementById('archivedPopup').style.display = 'none';
@@ -10721,6 +11023,8 @@
                                     }
                                 };
 
+                                console.log('🎨 Applying style changes:', styleData);
+
                                 // ✅ SAVE TO DATABASE
                                 const { error } = await supabaseClient
                                     .from('profiles')
@@ -10728,6 +11032,21 @@
                                     .eq('id', user.id);
 
                                 if (error) throw error;
+
+                                // ✅ LOG ACTIVITY
+                                await logActivity(
+                                    'portfolio_style_updated',
+                                    'Updated portfolio style',
+                                    `Layout: ${styleData.portfolio_layout}, Header: ${styleData.header_layout}, Footer: ${styleData.footer_style}, Colors: Custom`,
+                                    { 
+                                        layout: styleData.portfolio_layout,
+                                        header: styleData.header_layout,
+                                        footer: styleData.footer_style,
+                                        image_size: styleData.image_size
+                                    }
+                                );
+
+                                showToast('✅ Style changes applied!');
 
                                 // ✅ APPLY CHANGES IMMEDIATELY TO PORTFOLIO
                                 const portfolioPage = document.getElementById('portfolioPage');
@@ -10749,46 +11068,20 @@
                                     portfolioPage.style.setProperty('--footer-font-size', styleData.custom_fonts.body_size);
 
                                     // ✅ UPDATE LAYOUTS
-                                    updateHeaderOnly(styleData.header_layout, await getCurrentProfileData());
-                                    updateFooterOnly(styleData.footer_style, await getCurrentProfileData());
-                                    updateGridLayoutOnly(styleData.portfolio_layout);
-                                    updateImageSizeOnly(styleData.image_size);
+                                    const currentProfile = await getCurrentProfileData();
+                                    if (currentProfile) {
+                                        currentProfile.header_layout = styleData.header_layout;
+                                        currentProfile.footer_style = styleData.footer_style;
+                                        currentProfile.portfolio_layout = styleData.portfolio_layout;
+                                        currentProfile.image_size = styleData.image_size;
+                                        currentProfile.collection_title_layout = styleData.collection_title_layout;
 
-                                    // ✅ UPDATE COLLECTION LAYOUTS
-                                    const newCollectionLayout = styleData.collection_title_layout;
-                                    const collections = document.querySelectorAll('.collection-section');
-                                    if (collections.length > 0) {
-                                        const currentProfile = await getCurrentProfileData();
-                                        if (currentProfile) {
-                                            currentProfile.collection_title_layout = newCollectionLayout;
-                                            collections.forEach(collection => {
-                                                const title = collection.querySelector('h2')?.textContent || '';
-                                                const description = collection.querySelector('p')?.textContent || '';
-                                                const artworks = Array.from(collection.querySelectorAll('.artwork-card')).map(card => {
-                                                    return {
-                                                        image_url: card.querySelector('img')?.src,
-                                                        title: card.querySelector('.artwork-title')?.textContent,
-                                                        year: card.querySelector('.artwork-details div:nth-child(1)')?.textContent,
-                                                        medium: card.querySelector('.artwork-details div:nth-child(2)')?.textContent,
-                                                        dimensions: card.querySelector('.artwork-details div:nth-child(3)')?.textContent
-                                                    };
-                                                });
-
-                                                if (artworks.length > 0) {
-                                                    const collectionData = { name: title, description: description };
-                                                    collection.innerHTML = generateCollectionLayout(
-                                                        collectionData, 
-                                                        newCollectionLayout, 
-                                                        artworks, 
-                                                        currentProfile
-                                                    );
-                                                }
-                                            });
-                                        }
+                                        updateHeaderOnly(styleData.header_layout, currentProfile);
+                                        updateFooterOnly(styleData.footer_style, currentProfile);
+                                        updateGridLayoutOnly(styleData.portfolio_layout);
+                                        updateImageSizeOnly(styleData.image_size);
                                     }
                                 }
-
-                                showToast('✅ Style changes applied!');
 
                             } catch (error) {
                                 console.error('Style application error:', error);
@@ -12652,6 +12945,33 @@
                                                                 }
                                                                 });
                                                                 }
+                                                                
+                                                                setTimeout(() => {
+                                                                        document.addEventListener('click', function(e) {
+                                                                            if (e.target.classList.contains('timeline-filter')) {
+                                                                                e.preventDefault();
+                                                                                const hours = parseInt(e.target.getAttribute('data-hours'));
+
+                                                                                // Update all buttons
+                                                                                document.querySelectorAll('.timeline-filter').forEach(btn => {
+                                                                                    btn.classList.remove('active');
+                                                                                    btn.style.background = 'none';
+                                                                                    btn.style.color = '#666';
+                                                                                    btn.style.border = '1px solid #d1d1d1';
+                                                                                });
+
+                                                                                // Highlight clicked button
+                                                                                e.target.classList.add('active');
+                                                                                e.target.style.background = '#000';
+                                                                                e.target.style.color = 'white';
+                                                                                e.target.style.border = '1px solid #000';
+
+                                                                                // Load activities
+                                                                                loadActivityHistory(hours);
+                                                                            }
+                                                                        });
+                                                                    }, 1000);
+
                                                                 });
 
                                                                 // ==================== CSS ANIMATIONS FOR TRAC BRAND ====================
