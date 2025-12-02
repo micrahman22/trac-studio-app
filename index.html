@@ -2324,6 +2324,8 @@
                             border-radius: 8px;
                             font-size: 0.9rem;
                           }
+
+                          
                         }
 
                         @media (max-width: 480px) {
@@ -2350,6 +2352,39 @@
                             width: 50px !important;
                             height: 50px !important;
                             font-size: 2rem !important;
+                          }
+                        }
+
+                        /* ==================== MOBILE ARTWORK POPUP FIX ==================== */
+                        @media (max-width: 768px) {
+                          #artworkPopup {
+                            align-items: center !important;
+                            justify-content: center !important;
+                            padding: 1rem !important;
+                          }
+
+                          #artworkPopup > div {
+                            display: flex !important;
+                            flex-direction: column !important;
+                            align-items: center !important;
+                            max-width: 100% !important;
+                            max-height: 100% !important;
+                            gap: 1rem !important;
+                          }
+
+                          #popupImg {
+                            max-width: 95vw !important;
+                            max-height: 70vh !important;
+                            width: auto !important;
+                            height: auto !important;
+                            object-fit: contain !important;
+                          }
+
+                          #popupInfo {
+                            width: 95vw !important;
+                            text-align: center !important;
+                            padding: 1rem !important;
+                            font-size: 0.9rem !important;
                           }
                         }
 
