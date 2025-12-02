@@ -3210,7 +3210,7 @@
                         </div>
                     </div>
 
-                    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.38.0/dist/umd/supabase.min.js"></script>
+                                    <script src="supabase.min.js"></script>
                     <script>
                         
                         /* ==================== TRAC CORE SYSTEM ==================== */
@@ -3556,16 +3556,16 @@
 
                         // ==================== AUTHENTICATION SYSTEM ====================
                         async function signIn() {
-                            const email = document.getElementById('signInEmail').value;
-                            const password = document.getElementById('signInPassword').value;
+                            const email = document.getElementById('email').value;
+                            const password = document.getElementById('password').value;
 
                             if (!email || !password) {
                                 showToast('Please enter email and password', 'error');
                                 return;
                             }
 
-                            const submitBtn = document.querySelector('#signInForm button[type="submit"]');
-                            const originalText = submitBtn.textContent;
+                            const submitBtn = document.getElementById('signInButton');
+                            const originalText = document.getElementById('signInText').textContent;
 
                             try {
                                 submitBtn.disabled = true;
@@ -3581,15 +3581,13 @@
                                 showToast('Welcome back!');
 
                                 // Hide auth section
-                                document.getElementById('auth-section').style.display = 'none';
+                                document.getElementById('login-section').style.display = 'none';
 
                                 // Load user data
                                 currentUser = data.user;
-                                await loadProfile();
 
                                 // Show dashboard
                                 showSection('dashboard');
-                                await loadDashboard();
 
                                 // ✅ ADD THIS LINE - FIXES COUNTS AFTER SIGN IN
                                 setTimeout(updateDashboardCounts, 300);
@@ -3607,7 +3605,9 @@
                                 showToast('Error: ' + error.message, 'error');
                             } finally {
                                 submitBtn.disabled = false;
-                                submitBtn.textContent = originalText;
+                                if (originalText && document.getElementById('signInText')) {
+                                    document.getElementById('signInText').textContent = originalText;
+                                }
                             }
                         }
 
@@ -8850,7 +8850,7 @@
                                 showToast('Error creating project: ' + error.message, 'error');
                             } finally {
                                 submitBtn.disabled = false;
-                                submitBtn.textContent = originalText;
+                                document.getElementById('signInText').textContent = originalText;
                             }
                         }
 
@@ -9958,7 +9958,7 @@
                                 showToast('Error saving reference: ' + error.message, 'error');
                             } finally {
                                 submitBtn.disabled = false;
-                                submitBtn.textContent = originalText;
+                                document.getElementById('signInText').textContent = originalText;
                             }
                         }
 
@@ -10173,7 +10173,7 @@
                             } finally {
                                 // Reset button state
                                 submitBtn.disabled = false;
-                                submitBtn.textContent = originalText;
+                                document.getElementById('signInText').textContent = originalText;
                             }
                         }
 
