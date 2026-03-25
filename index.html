@@ -7054,7 +7054,6 @@
                                         .from('profiles')
                                         .select('*')
                                         .eq('username', targetUsername)
-                                        .eq('is_public', true)
                                         .single();
 
                                     if (profileError) {
