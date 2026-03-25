@@ -5304,6 +5304,7 @@
                         async function uploadArtwork() {
                             const submitBtn = document.getElementById('uploadSubmitBtn');
                             const submitText = document.getElementById('uploadSubmitText');
+                            let isEdit = false;
 
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -5311,7 +5312,7 @@
 
                                 const form = document.getElementById('artworkUploadForm');
                                 const title = document.getElementById('title').value;
-                                const isEdit = form.dataset.mode === 'edit';
+                                isEdit = form.dataset.mode === 'edit';
                                 const artworkId = form.dataset.artworkId;
 
                                 if (!title) {
@@ -14023,8 +14024,7 @@
 
                                                                             const { error } = await supabaseClient
                                                                                 .from('profiles')
-                                                                                .update(updateData)
-                                                                                .eq('id', user.id);
+                                                                                .upsert({ id: user.id, ...updateData });
 
                                                                             if (error) throw error;
 
