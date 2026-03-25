@@ -11679,6 +11679,39 @@
                             document.getElementById('styleBrowserModal').style.display = 'none';
                         }
 
+                        function previewStyle(styleId) {
+                            const style = STYLE_PRESETS[styleId] || generatedStyles.find(s => s.id === styleId);
+                            if (!style) return;
+
+                            const existing = document.getElementById('style-preview-overlay');
+                            if (existing) existing.remove();
+
+                            const overlay = document.createElement('div');
+                            overlay.id = 'style-preview-overlay';
+                            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+                            overlay.innerHTML = `
+                                <div style="background:${style.colors.bg};color:${style.colors.text};border-radius:16px;padding:3rem;max-width:600px;width:90%;font-family:'${style.fonts.primary}',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
+                                    <h2 style="margin:0 0 0.5rem;font-size:1.8rem;font-weight:600;">${style.name}</h2>
+                                    <p style="margin:0 0 2rem;opacity:0.7;font-family:'${style.fonts.secondary}',sans-serif;">${style.description || ''}</p>
+                                    <div style="border-top:1px solid ${style.colors.border};padding-top:1.5rem;margin-bottom:1.5rem;">
+                                        <div style="font-size:0.8rem;opacity:0.6;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.1em;">Fonts</div>
+                                        <div>${style.fonts.primary} + ${style.fonts.secondary}</div>
+                                    </div>
+                                    <div style="display:flex;gap:0.5rem;margin-bottom:2rem;">
+                                        ${Object.entries(style.colors).map(([k,v]) => `<div title="${k}" style="width:32px;height:32px;border-radius:6px;background:${v};border:1px solid rgba(128,128,128,0.3);"></div>`).join('')}
+                                    </div>
+                                    <div style="display:flex;gap:1rem;justify-content:flex-end;">
+                                        <button onclick="document.getElementById('style-preview-overlay').remove()" style="background:transparent;border:1px solid ${style.colors.border};color:${style.colors.text};padding:0.75rem 1.5rem;border-radius:8px;cursor:pointer;font-size:0.9rem;">Close</button>
+                                        <button onclick="applyStyle('${styleId}');document.getElementById('style-preview-overlay').remove();" style="background:${style.colors.accent};color:${style.colors.bg};border:none;padding:0.75rem 1.5rem;border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:600;">Apply Style</button>
+                                    </div>
+                                </div>
+                            `;
+                            document.body.appendChild(overlay);
+                            overlay.addEventListener('click', function(e) {
+                                if (e.target === overlay) overlay.remove();
+                            });
+                        }
+
                         function loadStyleBrowser() {
                             const container = document.getElementById('styleBrowserGrid');
                             if (!container) return;
