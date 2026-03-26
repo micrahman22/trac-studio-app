@@ -12542,17 +12542,20 @@
                             });
 
                             // Reset other controls to defaults but DON'T reset the portfolio
-                            document.getElementById('gridLayout').value = 'grid-classic';
-                            document.getElementById('headerLayout').value = 'centered';
-                            document.getElementById('footerStyle').value = 'minimal';
-                            document.getElementById('imageSize').value = 'medium';
-                            document.getElementById('collectionTitleLayout').value = 'centered';
-                            document.getElementById('headerFont').value = 'Space Grotesk';
-                            document.getElementById('bodyFont').value = 'Space Grotesk';
-                            document.getElementById('headerSize').value = '24';
-                            document.getElementById('bodySize').value = '16';
-                            document.getElementById('showFooterContact').checked = false;
-                            document.getElementById('hoverEffects').checked = true;
+                            const _setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+                            _setVal('gridLayout', 'grid-classic');
+                            _setVal('headerLayout', 'centered');
+                            _setVal('footerStyle', 'minimal');
+                            _setVal('imageSize', 'medium');
+                            _setVal('collectionTitleLayout', 'centered');
+                            _setVal('headerFont', 'Space Grotesk');
+                            _setVal('bodyFont', 'Space Grotesk');
+                            _setVal('headerSize', '24');
+                            _setVal('bodySize', '16');
+                            const _sfc = document.getElementById('showFooterContact');
+                            if (_sfc) _sfc.checked = false;
+                            const _he = document.getElementById('hoverEffects');
+                            if (_he) _he.checked = true;
 
                             showToast('🔄 Editor reset to defaults');
                         }
