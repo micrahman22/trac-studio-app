@@ -11956,8 +11956,7 @@
                                 // ✅ KEEP ALL EXISTING DATABASE CODE EXACTLY THE SAME
                                 const { error } = await supabaseClient
                                     .from('profiles')
-                                    .update(updateData)
-                                    .eq('id', user.id);
+                                    .upsert({ id: user.id, ...updateData });
 
                                 if (error) throw error;
 
@@ -12402,8 +12401,7 @@
                                 // ✅ SAVE TO DATABASE
                                 const { error } = await supabaseClient
                                     .from('profiles')
-                                    .update(styleData)
-                                    .eq('id', user.id);
+                                    .upsert({ id: user.id, ...styleData });
 
                                 if (error) throw error;
 
@@ -12601,95 +12599,6 @@
                         }
 
                         // ==================== LOAD CURRENT STYLES INTO EDITOR ====================
-                        async function loadCurrentStyleIntoEditor() {
-                            try {
-                                const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user) return;
-
-                                const { data: profile, error } = await supabaseClient
-                                    .from('profiles')
-                                    .select('*')
-                                    .eq('id', user.id)
-                                    .single();
-
-                                if (error) {
-                                    console.error('Database error:', error);
-                                    return;
-                                }
-
-                                console.log('🎨 Loading editor for profile:', profile);
-
-                                // ✅ SAFE ELEMENT CHECKING
-                                const getElement = (id) => {
-                                    const el = document.getElementById(id);
-                                    if (!el) console.warn(`⚠️ Editor element not found: ${id}`);
-                                    return el;
-                                };
-
-                                // COLORS - with safety checks
-                                const bgColorEl = getElement('bgColor');
-                                const textColorEl = getElement('textColor');
-                                const accentColorEl = getElement('accentColor');
-                                const borderColorEl = getElement('borderColor');
-
-                                if (profile.custom_colors) {
-                                    if (bgColorEl) bgColorEl.value = profile.custom_colors.bg || '#ffffff';
-                                    if (textColorEl) textColorEl.value = profile.custom_colors.text || '#000000';
-                                    if (accentColorEl) accentColorEl.value = profile.custom_colors.accent || '#666666';
-                                    if (borderColorEl) borderColorEl.value = profile.custom_colors.border || '#e5e5e5';
-                                }
-
-                                // UPDATE COLOR DISPLAYS
-                                document.querySelectorAll('.color-picker').forEach(picker => {
-                                    const valueSpan = picker.nextElementSibling;
-                                    if (valueSpan && valueSpan.classList.contains('color-value')) {
-                                        valueSpan.textContent = picker.value;
-                                    }
-                                });
-
-                                // LAYOUTS - with safety checks
-                                const layoutElements = {
-                                    'headerLayout': profile.header_layout || 'centered',
-                                    'footerStyle': profile.footer_style || 'minimal',
-                                    'gridLayout': profile.portfolio_layout || 'grid-classic',
-                                    'imageSize': profile.image_size || 'medium',
-                                    'collectionTitleLayout': profile.collection_title_layout || 'centered'
-                                };
-
-                                Object.entries(layoutElements).forEach(([id, value]) => {
-                                    const el = getElement(id);
-                                    if (el) el.value = value;
-                                });
-
-                                // TOGGLE CONTROLS
-                                const showFooterContactEl = getElement('showFooterContact');
-                                if (showFooterContactEl) {
-                                    showFooterContactEl.checked = profile.show_footer_contact || false;
-                                    const statusSpan = document.getElementById('footerContactStatus');
-                                    if (statusSpan) {
-                                        statusSpan.textContent = showFooterContactEl.checked ? 'Enabled' : 'Disabled';
-                                    }
-                                }
-
-                                // FONTS - with safety checks
-                                if (profile.custom_fonts) {
-                                    const headerSizeEl = getElement('headerSize');
-                                    const bodySizeEl = getElement('bodySize');
-                                    const headerFontEl = getElement('headerFont');
-                                    const bodyFontEl = getElement('bodyFont');
-
-                                    if (headerSizeEl) headerSizeEl.value = parseInt(profile.custom_fonts.header_size) || 24;
-                                    if (bodySizeEl) bodySizeEl.value = parseInt(profile.custom_fonts.body_size) || 16;
-                                    if (headerFontEl) headerFontEl.value = profile.custom_fonts.header || 'Space Grotesk';
-                                    if (bodyFontEl) bodyFontEl.value = profile.custom_fonts.body || 'Space Grotesk';
-                                }
-
-                                console.log('✅ Editor loaded successfully');
-
-                            } catch (error) {
-                                console.error('❌ Error loading editor:', error);
-                            }
-                        }
 
                         async function getCurrentProfileData() {
                             try {
@@ -12712,30 +12621,31 @@
                         // ==================== HELPER FUNCTION FOR DEFAULTS ====================
                         function setDefaultEditorValues() {
                             console.log('⚙️ Setting default editor values');
+                            const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
 
                             // Colors
-                            document.getElementById('bgColor').value = '#ffffff';
-                            document.getElementById('textColor').value = '#000000';
-                            document.getElementById('accentColor').value = '#666666';
-                            document.getElementById('borderColor').value = '#e5e5e5';
+                            set('bgColor', '#ffffff');
+                            set('textColor', '#000000');
+                            set('accentColor', '#666666');
+                            set('borderColor', '#e5e5e5');
 
                             // Update color displays
                             document.querySelectorAll('.color-picker').forEach(picker => {
                                 const valueSpan = picker.nextElementSibling;
-                                valueSpan.textContent = picker.value;
+                                if (valueSpan) valueSpan.textContent = picker.value;
                             });
 
                             // Layouts
-                            document.getElementById('gridLayout').value = 'grid-classic';
-                            document.getElementById('headerLayout').value = 'centered';
-                            document.getElementById('footerStyle').value = 'minimal';
-                            document.getElementById('imageSize').value = 'medium';
+                            set('gridLayout', 'grid-classic');
+                            set('headerLayout', 'centered');
+                            set('footerStyle', 'minimal');
+                            set('imageSize', 'medium');
 
                             // Fonts
-                            document.getElementById('headerSize').value = 24;
-                            document.getElementById('bodySize').value = 16;
-                            document.getElementById('headerFont').value = 'Space Grotesk';
-                            document.getElementById('bodyFont').value = 'Space Grotesk';
+                            set('headerSize', 24);
+                            set('bodySize', 16);
+                            set('headerFont', 'Space Grotesk');
+                            set('bodyFont', 'Space Grotesk');
 
                             // Update font displays
                             document.querySelectorAll('#headerSize + .size-value').forEach(span => {
@@ -12966,64 +12876,50 @@
                                     .eq('id', user.id)
                                     .single();
 
-                                if (error) {
-                                    console.error('Database error:', error);
-                                    return;
-                                }
+                                if (error) { console.error('Database error:', error); return; }
 
-                                const portfolioPage = document.getElementById('portfolioPage');
-                                const styles = portfolioPage ? getComputedStyle(portfolioPage) : null;
+                                const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+                                const check = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
+                                const text = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
 
                                 // COLORS
+                                const portfolioPage = document.getElementById('portfolioPage');
+                                const styles = portfolioPage ? getComputedStyle(portfolioPage) : null;
                                 if (profile.custom_colors) {
-                                    document.getElementById('bgColor').value = profile.custom_colors.bg || '#ffffff';
-                                    document.getElementById('textColor').value = profile.custom_colors.text || '#000000';
-                                    document.getElementById('accentColor').value = profile.custom_colors.accent || '#666666';
-                                    document.getElementById('borderColor').value = profile.custom_colors.border || '#e5e5e5';
+                                    set('bgColor', profile.custom_colors.bg || '#ffffff');
+                                    set('textColor', profile.custom_colors.text || '#000000');
+                                    set('accentColor', profile.custom_colors.accent || '#666666');
+                                    set('borderColor', profile.custom_colors.border || '#e5e5e5');
                                 } else if (styles) {
-                                    // Fallback to CSS
-                                    document.getElementById('bgColor').value = rgbToHex(styles.getPropertyValue('--bg-color').trim() || '#ffffff');
-                                    document.getElementById('textColor').value = rgbToHex(styles.getPropertyValue('--text-color').trim() || '#000000');
-                                    document.getElementById('accentColor').value = rgbToHex(styles.getPropertyValue('--accent-color').trim() || '#666666');
-                                    document.getElementById('borderColor').value = rgbToHex(styles.getPropertyValue('--border-color').trim() || '#e5e5e5');
+                                    set('bgColor', rgbToHex(styles.getPropertyValue('--bg-color').trim() || '#ffffff'));
+                                    set('textColor', rgbToHex(styles.getPropertyValue('--text-color').trim() || '#000000'));
+                                    set('accentColor', rgbToHex(styles.getPropertyValue('--accent-color').trim() || '#666666'));
+                                    set('borderColor', rgbToHex(styles.getPropertyValue('--border-color').trim() || '#e5e5e5'));
                                 }
 
-                                // UPDATE COLOR DISPLAYS
+                                // Update color value labels
                                 document.querySelectorAll('.color-picker').forEach(picker => {
                                     const valueSpan = picker.nextElementSibling;
-                                    valueSpan.textContent = picker.value;
+                                    if (valueSpan) valueSpan.textContent = picker.value;
                                 });
 
                                 // LAYOUTS
-                                document.getElementById('headerLayout').value = profile.header_layout || 'centered';
-                                document.getElementById('footerStyle').value = profile.footer_style || 'minimal';
-                                document.getElementById('gridLayout').value = profile.portfolio_layout || 'grid-classic';
-                                document.getElementById('imageSize').value = profile.image_size || 'medium';
+                                set('gridLayout', profile.portfolio_layout || 'grid-classic');
+                                set('headerLayout', profile.header_layout || 'centered');
+                                set('footerStyle', profile.footer_style || 'minimal');
+                                set('imageSize', profile.image_size || 'medium');
+                                set('collectionTitleLayout', profile.collection_title_layout || 'centered');
 
-                                // ✅ ADVANCED CONTROLS WITH CORRECT IDs
-                                document.getElementById('collectionTitleLayout').value = profile.collection_title_layout || 'centered';
-                                document.getElementById('showFooterContact').checked = profile.show_footer_contact || false;
-                                document.getElementById('footerContactStatus').textContent = 
-                                    profile.show_footer_contact ? 'Enabled' : 'Disabled';
+                                // ADVANCED TOGGLES
+                                check('showFooterContact', profile.show_footer_contact || false);
+                                text('footerContactStatus', profile.show_footer_contact ? 'Enabled' : 'Disabled');
 
-                                // ✅ SPACING CONTROLS WITH CORRECT IDs
-                                if (profile.grid_gap) {
-                                    const gapValue = parseFloat(profile.grid_gap);
-                                    document.getElementById('gridSpacing').value = gapValue;
-                                    document.querySelector('#gridSpacing + .size-value').textContent = gapValue + 'rem';
-                                }
-                                if (profile.card_padding) {
-                                    const paddingValue = parseFloat(profile.card_padding);
-                                    document.getElementById('cardPadding').value = paddingValue;
-                                    document.querySelector('#cardPadding + .size-value').textContent = paddingValue + 'rem';
-                                }
-
-                                // FONTS  
+                                // FONTS
                                 if (profile.custom_fonts) {
-                                    document.getElementById('headerSize').value = parseInt(profile.custom_fonts.header_size) || 24;
-                                    document.getElementById('bodySize').value = parseInt(profile.custom_fonts.body_size) || 16;
-                                    document.getElementById('headerFont').value = profile.custom_fonts.header || 'Space Grotesk';
-                                    document.getElementById('bodyFont').value = profile.custom_fonts.body || 'Space Grotesk';
+                                    set('headerFont', profile.custom_fonts.header || 'Space Grotesk');
+                                    set('bodyFont', profile.custom_fonts.body || 'Space Grotesk');
+                                    set('headerSize', parseInt(profile.custom_fonts.header_size) || 24);
+                                    set('bodySize', parseInt(profile.custom_fonts.body_size) || 16);
                                 }
 
                                 console.log('🎨 Editor loaded with correct IDs');
@@ -14033,8 +13929,7 @@
                                                                                 contact_email: document.getElementById('contactEmail').value,
                                                                                 social_links: getSocialPlatformsData(),
                                                                                 has_cv: hasCV,
-                                                                                cv_url: cvUrl,
-                                                                                portfolio_layout: 'grid-classic'
+                                                                                cv_url: cvUrl
                                                                             };
 
                                                                             console.log('🔄 updateData being saved:', JSON.stringify(updateData, null, 2));
