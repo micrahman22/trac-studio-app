@@ -7330,7 +7330,21 @@
                             <main class="gallery-main">
                                 <section id="works-section" class="portfolio-tab">
                                     <section class="artworks-section">
-                                        ${collections.length > 0 ? displayCollectionsInPortfolio(collections, profileData, collectionTitleLayout, stylePreset) : artworksHTML}
+                                        ${collections.length > 0 ? displayCollectionsInPortfolio(collections, profileData, collectionTitleLayout, stylePreset) : `
+                                            <div class="empty-state">
+                                                <div class="empty-icon">
+                                                    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" stroke="#ddd" stroke-width="1.5">
+                                                        <rect x="10" y="10" width="60" height="60" rx="4" fill="none"/>
+                                                        <line x1="25" y1="25" x2="55" y2="55" stroke="#ddd" stroke-width="1"/>
+                                                        <line x1="55" y1="25" x2="25" y2="55" stroke="#ddd" stroke-width="1"/>
+                                                        <circle cx="40" cy="40" r="8" fill="none"/>
+                                                    </svg>
+                                                </div>
+                                                <h4>No collections yet</h4>
+                                                <p>${isOwner ? 'Create a collection in Settings and add artworks to it — they will appear here.' : 'This artist has no public collections yet.'}</p>
+                                                ${isOwner ? '<button class="cta-button" onclick="showSection(\'settings\')">Go to Settings</button>' : ''}
+                                            </div>
+                                        `}
                                     </section>
                                 </section>
 
