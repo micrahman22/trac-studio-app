@@ -7864,30 +7864,7 @@
                         }
 
                         // ==================== COLLECTIONS DISPLAY ====================
-                        function displayCollectionsInPortfolio(collections, profileData) { // ADD profileData parameter
-                            if (!collections || collections.length === 0) {
-                                return ''; 
-                            }
-
-                            let collectionsHTML = '';
-                            const layoutClass = profileData.portfolio_layout || "grid-classic";
-                            const sizeClass = profileData.image_size || 'medium';
-
-                            collections.forEach(collection => {
-                                const collectionArtworks = collection.artwork_collections?.map(ac => ac.artworks).filter(Boolean) || [];
-
-                                if (collectionArtworks.length > 0) {
-                                    collectionsHTML += `
-                                        <div class="collection-section" style="margin-top: 4rem; margin-bottom: 4rem;">
-                                            ${generateCollectionLayout(collection, profileData.collection_title_layout || stylePreset.collectionTitleLayout, collectionArtworks, profileData)}
-                                        </div>
-                                    `;
-                                }
-                            });
-
-                            return collectionsHTML;
-                        }
-                            function displayCollectionsInPortfolio(collections, profileData, collectionLayout = 'grid', stylePreset) {
+                        function displayCollectionsInPortfolio(collections, profileData, collectionLayout = 'grid', stylePreset) {
                             if (!collections || collections.length === 0) {
                                 return ''; 
                             }
@@ -13931,16 +13908,7 @@
 
                                                                 // Event form
                                                                 document.getElementById('eventForm').addEventListener('submit', function(e) {
-                                                                createEvent(e);
-                                                                e.preventDefault();
-                                                                const formData = new FormData(this);
-                                                                createEvent({
-                                                                title: formData.get('title'),
-                                                                eventType: formData.get('eventType'),
-                                                                eventDate: formData.get('eventDate'),
-                                                                location: formData.get('location'),
-                                                                description: formData.get('description')
-                                                                });
+                                                                    createEvent(e);
                                                                 });
 
                                                                     // Add profile photo upload handler
