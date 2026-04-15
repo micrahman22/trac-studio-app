@@ -4600,7 +4600,7 @@
                             }
 
                             const submitBtn = document.getElementById('signInButton');
-                            const originalText = document.getElementById('signInText').textContent;
+                            const originalHTML = submitBtn.innerHTML;
 
                             try {
                                 submitBtn.disabled = true;
@@ -4637,9 +4637,7 @@
                                 showToast('Error: ' + error.message, 'error');
                             } finally {
                                 submitBtn.disabled = false;
-                                if (originalText && document.getElementById('signInText')) {
-                                    document.getElementById('signInText').textContent = originalText;
-                                }
+                                submitBtn.innerHTML = originalHTML;
                             }
                         }
 
@@ -4692,42 +4690,6 @@
                             }
                         }
 
-    async function requestPasswordReset() {
-        const email = prompt('Enter your email:');
-
-        if (!email) {
-            showToast('Email required', 'error');
-            return;
-        }
-
-        try {
-            showToast('Processing...');
-
-            // Try magic link first
-            const { error } = await supabaseClient.auth.signInWithOtp({
-                email: email
-            });
-
-            if (error) {
-                // If magic link fails, show clear message
-                console.error('Auth error:', error);
-
-                if (error.message.includes('rate limit') || error.message.includes('Coming soon')) {
-                    showToast('Email authentication needs configuration. Please contact the administrator.', 'error');
-                } else {
-                    showToast('Unable to send email. Please contact support.', 'error');
-                }
-                return;
-            }
-
-            showToast('Check your email for sign-in link');
-
-        } catch (error) {
-            console.error('Password reset error:', error);
-            showToast('System error. Please try again later.', 'error');
-        }
-    }
-
                         async function signOut() {
                             try {
                                 const { error } = await supabaseClient.auth.signOut();
@@ -4735,6 +4697,10 @@
                                     showToast('Error signing out', 'error');
                                 } else {
                                     showToast('Signed out successfully');
+                                    currentUser = null;
+                                    document.querySelectorAll('.main-nav a').forEach(navItem => {
+                                        navItem.style.display = 'none';
+                                    });
                                     showSection('login');
                                 }
                             } catch (error) {
@@ -4761,6 +4727,15 @@
                 }
             });
             console.log("✅ Supabase initialized");
+
+            // ✅ DETECT PASSWORD RECOVERY FLOW
+            supabaseClient.auth.onAuthStateChange((event, session) => {
+                if (event === 'PASSWORD_RECOVERY') {
+                    console.log('🔑 Password recovery flow detected');
+                    showSection('login');
+                    showPasswordResetModal();
+                }
+            });
 
             // ✅ CHECK FOR PUBLIC PORTFOLIO SECOND
             const viewType = urlParams.get('view');
@@ -10082,7 +10057,7 @@
                                 showToast('Error creating project: ' + error.message, 'error');
                             } finally {
                                 submitBtn.disabled = false;
-                                document.getElementById('signInText').textContent = originalText;
+                                submitBtn.textContent = originalText;
                             }
                         }
 
@@ -11227,7 +11202,7 @@
                                 showToast('Error saving reference: ' + error.message, 'error');
                             } finally {
                                 submitBtn.disabled = false;
-                                document.getElementById('signInText').textContent = originalText;
+                                submitBtn.textContent = originalText;
                             }
                         }
 
@@ -11435,9 +11410,8 @@
                                 console.error('CV request error:', error);
                                 showToast('Error sending request. Please try again.', 'error');
                             } finally {
-                                // Reset button state
                                 submitBtn.disabled = false;
-                                document.getElementById('signInText').textContent = originalText;
+                                submitBtn.textContent = originalText;
                             }
                         }
 
@@ -11604,13 +11578,94 @@
                             document.getElementById('privacyPopup').style.display = 'none';
                         }
 
-                        function requestPasswordReset() {
-                            const email = document.getElementById('email').value;
+                        async function requestPasswordReset() {
+                            const email = document.getElementById('email').value.trim();
                             if (!email) {
-                                showToast('Please enter your email address', 'error');
+                                showToast('Please enter your email address first', 'error');
                                 return;
                             }
-                            showToast('Password reset feature coming soon!');
+
+                            const link = document.querySelector('a[onclick="requestPasswordReset()"]');
+                            const originalText = link ? link.textContent : null;
+                            if (link) link.textContent = 'Sending...';
+
+                            try {
+                                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                                    redirectTo: window.location.origin + window.location.pathname
+                                });
+
+                                if (error) throw error;
+
+                                showToast('Password reset email sent — check your inbox');
+                            } catch (error) {
+                                console.error('Password reset error:', error);
+                                showToast('Could not send reset email: ' + error.message, 'error');
+                            } finally {
+                                if (link && originalText) link.textContent = originalText;
+                            }
+                        }
+
+                        function showPasswordResetModal() {
+                            const existing = document.getElementById('passwordResetModal');
+                            if (existing) existing.remove();
+
+                            const modal = document.createElement('div');
+                            modal.id = 'passwordResetModal';
+                            modal.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.5);z-index:100010;display:flex;align-items:center;justify-content:center;';
+                            modal.innerHTML = `
+                                <div style="background:#fff;border-radius:12px;padding:2rem;width:90%;max-width:400px;">
+                                    <h3 style="margin:0 0 0.5rem;">Set New Password</h3>
+                                    <p style="margin:0 0 1.5rem;color:#666;font-size:0.9rem;">Your reset link was verified. Enter a new password below.</p>
+                                    <div style="margin-bottom:1rem;">
+                                        <label style="display:block;margin-bottom:0.4rem;font-size:0.85rem;font-weight:600;">New Password</label>
+                                        <input type="password" id="newPasswordInput" placeholder="At least 6 characters"
+                                            style="width:100%;padding:0.75rem;border:1px solid #ddd;border-radius:8px;font-size:0.95rem;box-sizing:border-box;">
+                                    </div>
+                                    <div style="margin-bottom:1.5rem;">
+                                        <label style="display:block;margin-bottom:0.4rem;font-size:0.85rem;font-weight:600;">Confirm Password</label>
+                                        <input type="password" id="confirmPasswordResetInput" placeholder="Repeat new password"
+                                            style="width:100%;padding:0.75rem;border:1px solid #ddd;border-radius:8px;font-size:0.95rem;box-sizing:border-box;">
+                                    </div>
+                                    <button id="saveNewPasswordBtn" onclick="saveNewPassword()"
+                                        style="width:100%;padding:0.85rem;background:#000;color:#fff;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;">
+                                        Save New Password
+                                    </button>
+                                </div>
+                            `;
+                            document.body.appendChild(modal);
+                            setTimeout(() => document.getElementById('newPasswordInput')?.focus(), 100);
+                        }
+
+                        async function saveNewPassword() {
+                            const newPassword = document.getElementById('newPasswordInput').value;
+                            const confirmPassword = document.getElementById('confirmPasswordResetInput').value;
+
+                            if (!newPassword || newPassword.length < 6) {
+                                showToast('Password must be at least 6 characters', 'error');
+                                return;
+                            }
+                            if (newPassword !== confirmPassword) {
+                                showToast('Passwords do not match', 'error');
+                                return;
+                            }
+
+                            const btn = document.getElementById('saveNewPasswordBtn');
+                            btn.disabled = true;
+                            btn.textContent = 'Saving...';
+
+                            try {
+                                const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+                                if (error) throw error;
+
+                                showToast('Password updated successfully — please sign in');
+                                document.getElementById('passwordResetModal')?.remove();
+                                showSection('login');
+                            } catch (error) {
+                                console.error('Password update error:', error);
+                                showToast('Could not update password: ' + error.message, 'error');
+                                btn.disabled = false;
+                                btn.textContent = 'Save New Password';
+                            }
                         }
 
                         function showStyleBrowser() {
