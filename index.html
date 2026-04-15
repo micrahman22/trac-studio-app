@@ -5107,12 +5107,6 @@
                         }
 
                         // ==================== IMAGE HANDLING ====================
-                        function handleImageSelect(event) {
-                            if (event.target.files.length > 0) {
-                                handleImageFile(event.target.files[0]);
-                            }
-                        }
-
                         async function compressImage(file, maxWidth = 1200, quality = 0.7, maxFileSize = 500 * 1024) {
                             return new Promise((resolve, reject) => {
                                 const canvas = document.createElement('canvas');
@@ -6093,6 +6087,7 @@
 
                             const submitBtn = document.getElementById('eventSubmitBtn');
                             const submitText = document.getElementById('eventSubmitText');
+                            let isEdit = false;
 
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -6137,7 +6132,7 @@
                                 }
 
                                 // CHECK EDIT MODE
-                                const isEdit = event.target.dataset.mode === 'edit';
+                                isEdit = event.target.dataset.mode === 'edit';
                                 const eventId = event.target.dataset.eventId;
 
                                 if (isEdit && eventId) {
@@ -6329,7 +6324,7 @@
 
                                     <!-- ✅ EDIT/DELETE BUTTONS WITH REDUCED MOBILE SPACING -->
                                     <div class="artwork-actions" style="display: flex; gap: 0.35rem; margin-top: 1rem; flex-wrap: wrap;">
-                                        <button class="delete-btn" onclick="editEvent('${event.id}')" style="margin: 0; white-space: nowrap;">Edit</button>
+                                        <button class="btn-secondary" onclick="editEvent('${event.id}')" style="margin: 0; white-space: nowrap; padding: 0.35rem 0.75rem; font-size: 0.8rem;">Edit</button>
                                         <button class="delete-btn" onclick="deleteEvent('${event.id}')" style="margin: 0; white-space: nowrap;">Delete</button>
                                     </div>
                                 </div>
@@ -10208,53 +10203,6 @@
                                     }
                                 };
                             });
-                        }
-
-                        async function loadProjectContent(projectId) {
-                            if (!projectId) {
-                                console.error('No project ID provided');
-                                return;
-                            }
-
-                            console.log('🚀 Loading ALL content for project:', projectId);
-
-                            // ✅ CRITICAL: PERSIST PROJECT ID GLOBALLY
-                            window.currentWipProjectId = projectId;
-
-                            try {
-                                const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user) return;
-
-                                // ✅ SINGLE DATABASE CALL FOR ALL CONTENT
-                                const [moodboardData, sketchesData, notesData, connectedData] = await Promise.all([
-                                    // Moodboard items
-                                    supabaseClient.from('moodboard_items').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
-                                    // Sketches
-                                    supabaseClient.from('wip_sketches').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
-                                    // Notes
-                                    supabaseClient.from('wip_notes').select('*').eq('project_id', projectId).order('created_at', { ascending: false }),
-                                    // Connected artworks
-                                    supabaseClient.from('wip_connected_artworks').select('artwork_id, artworks(*)').eq('project_id', projectId)
-                                ]);
-
-                                // ✅ CACHE ALL DATA
-                                wipCache[projectId] = {
-                                    moodboard: moodboardData.data || [],
-                                    sketches: sketchesData.data || [],
-                                    notes: notesData.data || [],
-                                    connected: connectedData.data || []
-                                };
-
-                                console.log('✅ All project data loaded and cached');
-
-                                // ✅ LOAD CURRENT TAB FROM CACHE
-                                const activeTab = document.querySelector('.wip-tab.active')?.getAttribute('data-tab') || 'dashboard';
-                                loadCachedTabContent(activeTab, projectId);
-
-                            } catch (error) {
-                                console.error('❌ Error loading project content:', error);
-                                showToast('Error loading project content', 'error');
-                            }
                         }
 
                         async function loadProjectContent(projectId) {
