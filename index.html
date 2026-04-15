@@ -12130,6 +12130,7 @@
                                                 <label>Body Font</label>
                                                 <select id="bodyFont" class="font-select">
                                                     <option value="Space Grotesk">Space Grotesk</option>
+                                                    <option value="Inter">Inter</option>
                                                     <option value="Helvetica Neue">Helvetica Neue</option>
                                                     <option value="Georgia">Georgia</option>
                                                     <option value="Arial">Arial</option>
@@ -12903,21 +12904,47 @@
                                     if (valueSpan) valueSpan.textContent = picker.value;
                                 });
 
-                                // LAYOUTS
-                                set('gridLayout', profile.portfolio_layout || 'grid-classic');
-                                set('headerLayout', profile.header_layout || 'centered');
-                                set('footerStyle', profile.footer_style || 'minimal');
-                                set('imageSize', profile.image_size || 'medium');
-                                set('collectionTitleLayout', profile.collection_title_layout || 'centered');
+                                // LAYOUTS - use setFont-style safe setter so unknown values don't silently reset
+                                const setSelect = (id, val, fallback) => {
+                                    if (!val) val = fallback;
+                                    const el = document.getElementById(id);
+                                    if (!el) return;
+                                    const exists = Array.from(el.options).some(o => o.value === val);
+                                    if (!exists) {
+                                        const opt = document.createElement('option');
+                                        opt.value = val;
+                                        opt.textContent = val;
+                                        el.appendChild(opt);
+                                    }
+                                    el.value = val;
+                                };
+                                setSelect('gridLayout', profile.portfolio_layout, 'grid-classic');
+                                setSelect('headerLayout', profile.header_layout, 'centered');
+                                setSelect('footerStyle', profile.footer_style, 'minimal');
+                                setSelect('imageSize', profile.image_size, 'medium');
+                                setSelect('collectionTitleLayout', profile.collection_title_layout, 'centered');
 
                                 // ADVANCED TOGGLES
                                 check('showFooterContact', profile.show_footer_contact || false);
                                 text('footerContactStatus', profile.show_footer_contact ? 'Enabled' : 'Disabled');
 
-                                // FONTS
+                                // FONTS - ensure the saved value exists as an option before setting
+                                const setFont = (id, val) => {
+                                    if (!val) return;
+                                    const el = document.getElementById(id);
+                                    if (!el) return;
+                                    const exists = Array.from(el.options).some(o => o.value === val);
+                                    if (!exists) {
+                                        const opt = document.createElement('option');
+                                        opt.value = val;
+                                        opt.textContent = val;
+                                        el.appendChild(opt);
+                                    }
+                                    el.value = val;
+                                };
                                 if (profile.custom_fonts) {
-                                    set('headerFont', profile.custom_fonts.header || 'Space Grotesk');
-                                    set('bodyFont', profile.custom_fonts.body || 'Space Grotesk');
+                                    setFont('headerFont', profile.custom_fonts.header || 'Space Grotesk');
+                                    setFont('bodyFont', profile.custom_fonts.body || 'Space Grotesk');
                                     set('headerSize', parseInt(profile.custom_fonts.header_size) || 24);
                                     set('bodySize', parseInt(profile.custom_fonts.body_size) || 16);
                                 }
