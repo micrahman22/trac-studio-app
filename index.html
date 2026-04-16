@@ -4917,7 +4917,7 @@
                                 padding: 12px 20px;
                                 border-radius: 8px;
                                 font-size: 0.9rem;
-                                z-index: 10010; // HIGHEST - above everything
+                                z-index: 2147483647;
                                 box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                                 animation: slideIn 0.3s ease;
                                 max-width: 300px;
@@ -10076,7 +10076,7 @@
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                z-index: 10010;
+                                z-index: 2147483647;
                             `;
 
                             confirmDialog.innerHTML = `
@@ -10105,7 +10105,10 @@
                                     resolve(false);
                                 };
 
+                                let _deleteInProgress = false;
                                 confirmDialog.querySelector('#confirmDelete').onclick = async () => {
+                                    if (_deleteInProgress) return;
+                                    _deleteInProgress = true;
                                     document.body.removeChild(confirmDialog);
 
                                     try {
@@ -10597,7 +10600,7 @@
                                         border-radius: 8px;
                                         font-size: 0.9rem;
                                         font-weight: 500;
-                                        z-index: 10004;
+                                        z-index: 2147483647;
                                         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
                                         animation: slideInRight 0.3s ease;
                                         max-width: 300px;
@@ -10935,7 +10938,7 @@
                                 showToast(`"${name}" created successfully!`);
 
                                 // Close project creation modal
-                                document.querySelector('[style*="position: fixed"][style*="z-index: 10004"]').remove();
+                                document.querySelector('[style*="position: fixed"][style*="z-index: 2147483647"]')?.remove();
 
                                 // Reload and open project
                                 loadWipProjects();
@@ -11555,10 +11558,6 @@
                                     </div>
                                 `;
                             }).join('');
-                        }
-
-                        function hideArchivedPopup() {
-                            document.getElementById('archivedPopup').style.display = 'none';
                         }
 
     function showTermsPopup() {
@@ -12728,26 +12727,6 @@
                             console.log('✅ Saved styles applied successfully');
                         }
 
-                        function updateColorPreview(colorType, value) {
-                            const portfolioPage = document.getElementById('portfolioPage');
-                            if (!portfolioPage) return;
-
-                            switch(colorType) {
-                                case 'bgColor':
-                                    portfolioPage.style.setProperty('--bg-color', value);
-                                    break;
-                                case 'textColor':
-                                    portfolioPage.style.setProperty('--text-color', value);
-                                    break;
-                                case 'accentColor':
-                                    portfolioPage.style.setProperty('--accent-color', value);
-                                    break;
-                                case 'borderColor':
-                                    portfolioPage.style.setProperty('--border-color', value);
-                                    break;
-                            }
-                        }
-
                         function setupFontControls() {
                             const fontsTab = document.getElementById('fonts-tab');
                             if (!fontsTab) return;
@@ -13172,24 +13151,6 @@
                                     window.previewLayoutChanges[layoutType] = value;
                                     break;
                             }
-                        }
-
-                        function setupTabNavigation() {
-                            const tabs = document.querySelectorAll('.style-editor-tab');
-                            const contents = document.querySelectorAll('.style-tab-content');
-
-                            tabs.forEach(tab => {
-                                tab.addEventListener('click', () => {
-                                    // Remove active class from all tabs and contents
-                                    tabs.forEach(t => t.classList.remove('active'));
-                                    contents.forEach(c => c.classList.remove('active'));
-
-                                    // Add active class to clicked tab and corresponding content
-                                    tab.classList.add('active');
-                                    const tabId = tab.getAttribute('data-tab');
-                                    document.getElementById(`${tabId}-tab`).classList.add('active');
-                                });
-                            });
                         }
 
                         function openArtworkPopup(imageUrl, title, artwork) {
@@ -13719,26 +13680,6 @@
                                 img.setAttribute('data-artwork-year', year);
                                 img.setAttribute('data-artwork-medium', medium);
                                 img.setAttribute('data-artwork-dimensions', dimensions);
-                            });
-                        }
-
-                        // ==================== CLEAN PORTFOLIO DISPLAY ====================
-                        function cleanPortfolioDisplay() {
-                            // ONLY target portfolio section
-                            const portfolioSection = document.getElementById('portfolio-section');
-                            if (!portfolioSection || portfolioSection.style.display !== 'block') return;
-
-                            // REMOVE ARTWORK DETAILS IMMEDIATELY (NOT JUST HIDE)
-                            const artworkCards = document.querySelectorAll('#portfolioPage .artwork-card');
-                            artworkCards.forEach(card => {
-                                // EXCLUDE event cards from cleanup
-                                if (!card.classList.contains('event-card') && !card.closest('#events-section')) {
-                                    const title = card.querySelector('.artwork-title');
-                                    const details = card.querySelector('.artwork-details');
-
-                                    if (title) title.style.display = 'none';
-                                    if (details) details.style.display = 'none';
-                                }
                             });
                         }
 
