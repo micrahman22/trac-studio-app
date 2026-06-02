@@ -1,5 +1,5 @@
 -- ==================== TRAC BLOCKCHAIN TABLES ====================
--- Run this in Supabase SQL editor: https://supabase.com/dashboard/project/jxjmyaqzxabppxnhqnvo/sql
+-- Run this in Supabase SQL editor: https://supabase.com/dashboard/project/vhgsayaugbepugssyary/sql/new
 
 -- 1. COLLECTOR ACCOUNTS
 create table if not exists collector_accounts (
