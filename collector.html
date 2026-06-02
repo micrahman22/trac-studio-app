@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>TRAC Collector — Certificate of Authenticity</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23000'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial,sans-serif' font-weight='700' font-size='18' fill='%23fff'>T</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Space Grotesk', sans-serif; }
+        body { background: #fff; color: #000; line-height: 1.6; min-height: 100vh; opacity: 0; }
+        body.loaded { opacity: 1; transition: opacity 0.2s ease; }
+
+        /* NAV */
+        .c-header { border-bottom: 1px solid #e5e5e5; padding: 0 2rem; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 100; }
+        .c-logo { font-size: 1.1rem; font-weight: 600; letter-spacing: -0.02em; }
+        .c-logo span { color: #666; font-weight: 400; font-size: 0.85rem; margin-left: 0.5rem; }
+        .c-nav { display: flex; align-items: center; gap: 1rem; }
+        .c-btn { padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-family: inherit; cursor: pointer; transition: all 0.2s; }
+        .c-btn-primary { background: #000; color: white; border: none; }
+        .c-btn-primary:hover { background: #333; }
+        .c-btn-outline { background: white; color: #000; border: 1px solid #d1d1d1; }
+        .c-btn-outline:hover { border-color: #000; }
+
+        /* AUTH SCREENS */
+        .c-auth-wrap { min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 2rem; }
+        .c-auth-box { width: 100%; max-width: 420px; border: 1px solid #e5e5e5; border-radius: 16px; padding: 2.5rem; }
+        .c-auth-box h2 { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+        .c-auth-box .sub { color: #666; font-size: 0.875rem; margin-bottom: 2rem; }
+        .c-form-group { margin-bottom: 1rem; }
+        .c-form-group label { display: block; font-size: 0.83rem; font-weight: 500; margin-bottom: 0.4rem; color: #333; }
+        .c-form-group input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem; font-family: inherit; transition: border-color 0.2s; }
+        .c-form-group input:focus { outline: none; border-color: #000; }
+        .c-submit { width: 100%; padding: 0.875rem; background: #000; color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-family: inherit; font-weight: 500; cursor: pointer; margin-top: 0.5rem; }
+        .c-submit:hover { background: #333; }
+        .c-submit:disabled { background: #999; cursor: not-allowed; }
+        .c-switch { text-align: center; margin-top: 1.25rem; font-size: 0.85rem; color: #666; }
+        .c-switch a { color: #000; text-decoration: underline; cursor: pointer; }
+        .c-divider { height: 1px; background: #e5e5e5; margin: 1.5rem 0; }
+        .c-error { background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; color: #dc2626; margin-bottom: 1rem; display: none; }
+
+        /* MAIN DASHBOARD */
+        .c-main { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+        .c-page-title { margin-bottom: 2.5rem; }
+        .c-page-title h1 { font-size: 1.75rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.35rem; }
+        .c-page-title p { color: #666; font-size: 0.875rem; }
+
+        /* COA CARD */
+        .c-coa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
+        .c-coa-card { border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden; background: white; transition: box-shadow 0.2s; }
+        .c-coa-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+        .c-coa-image { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #f5f5f5; display: block; }
+        .c-coa-image-placeholder { width: 100%; aspect-ratio: 4/3; background: #f5f5f5; display: flex; align-items: center; justify-content: center; }
+        .c-coa-body { padding: 1.25rem; }
+        .c-coa-title { font-size: 1rem; font-weight: 500; margin-bottom: 0.2rem; }
+        .c-coa-meta { font-size: 0.78rem; color: #666; margin-bottom: 0.875rem; }
+        .c-coa-badges { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .c-badge { font-size: 0.68rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 500; }
+        .c-badge-green { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+        .c-badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .c-badge-gray { background: #f5f5f5; color: #666; border: 1px solid #e5e5e5; }
+        .c-coa-actions { display: flex; gap: 0.5rem; }
+        .c-coa-actions button { flex: 1; padding: 0.6rem; font-size: 0.8rem; border-radius: 8px; font-family: inherit; cursor: pointer; transition: all 0.2s; }
+
+        /* MODAL */
+        .c-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2147483647; }
+        .c-modal { background: white; border-radius: 16px; max-width: 580px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 2rem; }
+        .c-modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; }
+        .c-modal-header h3 { font-size: 1.2rem; font-weight: 500; letter-spacing: -0.02em; }
+        .c-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; }
+
+        /* COA CERTIFICATE VIEW */
+        .coa-cert { border: 2px solid #000; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; position: relative; }
+        .coa-cert::before { content: ''; position: absolute; inset: 6px; border: 1px solid #e5e5e5; border-radius: 8px; pointer-events: none; }
+        .coa-cert-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid #e5e5e5; }
+        .coa-cert-header .trac-logo { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
+        .coa-cert-header .cert-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: #666; }
+        .coa-cert-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; align-items: baseline; }
+        .coa-cert-row .key { font-size: 0.72rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; }
+        .coa-cert-row .val { font-size: 0.875rem; font-weight: 500; text-align: right; max-width: 65%; }
+        .coa-cert-hash { background: #f5f5f5; border-radius: 6px; padding: 0.625rem 0.75rem; margin-top: 1rem; }
+        .coa-cert-hash .key { font-size: 0.68rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+        .coa-cert-hash .val { font-size: 0.68rem; font-family: monospace; word-break: break-all; color: #555; }
+
+        /* TOAST */
+        #c-toast { position: fixed; top: 1.25rem; right: 1.25rem; background: #000; color: white; padding: 0.875rem 1.25rem; border-radius: 8px; font-size: 0.875rem; z-index: 9999999; display: none; max-width: 300px; }
+        #c-toast.error { background: #dc2626; }
+
+        /* EMPTY STATE */
+        .c-empty { text-align: center; padding: 4rem 2rem; color: #999; }
+        .c-empty svg { margin-bottom: 1rem; opacity: 0.3; }
+        .c-empty h3 { font-size: 1.1rem; font-weight: 500; color: #666; margin-bottom: 0.5rem; }
+        .c-empty p { font-size: 0.875rem; }
+
+        @media (max-width: 600px) {
+            .c-header { padding: 0 1rem; }
+            .c-coa-grid { grid-template-columns: 1fr; }
+            .c-auth-box { padding: 1.75rem; border: none; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div id="c-toast"></div>
+
+<!-- HEADER -->
+<header class="c-header">
+    <div class="c-logo">TRAC <span>Collector</span></div>
+    <div class="c-nav" id="c-header-nav">
+        <button class="c-btn c-btn-outline" onclick="showCollectorAuth('login')">Sign In</button>
+        <button class="c-btn c-btn-primary" onclick="showCollectorAuth('signup')">Create Account</button>
+    </div>
+</header>
+
+<!-- AUTH: LOGIN -->
+<div id="c-login-screen" style="display:none;">
+    <div class="c-auth-wrap">
+        <div class="c-auth-box">
+            <h2>Welcome back</h2>
+            <p class="sub">Sign in to view your Certificates of Authenticity.</p>
+            <div class="c-error" id="c-login-error"></div>
+            <div class="c-form-group">
+                <label>Email</label>
+                <input type="email" id="c-login-email" placeholder="your@email.com" autocomplete="email">
+            </div>
+            <div class="c-form-group">
+                <label>Password</label>
+                <input type="password" id="c-login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')collectorSignIn()">
+            </div>
+            <button class="c-submit" id="c-login-btn" onclick="collectorSignIn()">Sign In</button>
+            <div class="c-switch">Don't have an account? <a onclick="showCollectorAuth('signup')">Create one</a></div>
+            <div class="c-switch" style="margin-top:0.5rem;"><a onclick="showCollectorAuth('reset')">Forgot password?</a></div>
+        </div>
+    </div>
+</div>
+
+<!-- AUTH: SIGN UP -->
+<div id="c-signup-screen" style="display:none;">
+    <div class="c-auth-wrap">
+        <div class="c-auth-box">
+            <h2>Create your account</h2>
+            <p class="sub">Your CoAs are waiting. Set up your collector account to access them.</p>
+            <div class="c-error" id="c-signup-error"></div>
+            <div class="c-form-group">
+                <label>Full Name</label>
+                <input type="text" id="c-signup-name" placeholder="Your name" autocomplete="name">
+            </div>
+            <div class="c-form-group">
+                <label>Email</label>
+                <input type="email" id="c-signup-email" placeholder="your@email.com" autocomplete="email">
+            </div>
+            <div class="c-form-group">
+                <label>Password</label>
+                <input type="password" id="c-signup-password" placeholder="At least 8 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')collectorSignUp()">
+            </div>
+            <button class="c-submit" id="c-signup-btn" onclick="collectorSignUp()">Create Account</button>
+            <div class="c-switch">Already have an account? <a onclick="showCollectorAuth('login')">Sign in</a></div>
+        </div>
+    </div>
+</div>
+
+<!-- AUTH: RESET PASSWORD -->
+<div id="c-reset-screen" style="display:none;">
+    <div class="c-auth-wrap">
+        <div class="c-auth-box">
+            <h2>Reset password</h2>
+            <p class="sub">Enter your email and we'll send a reset link.</p>
+            <div class="c-error" id="c-reset-error"></div>
+            <div class="c-form-group">
+                <label>Email</label>
+                <input type="email" id="c-reset-email" placeholder="your@email.com">
+            </div>
+            <button class="c-submit" id="c-reset-btn" onclick="collectorResetPassword()">Send Reset Link</button>
+            <div class="c-switch"><a onclick="showCollectorAuth('login')">Back to sign in</a></div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN DASHBOARD (authenticated) -->
+<div id="c-dashboard" style="display:none;">
+    <main class="c-main">
+        <div class="c-page-title">
+            <h1 id="c-welcome-name">My Collection</h1>
+            <p>Your Certificates of Authenticity — permanently linked to your physical artworks.</p>
+        </div>
+
+        <!-- COA GRID -->
+        <div id="c-coa-grid" class="c-coa-grid">
+            <div class="c-empty" style="grid-column:1/-1;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <h3>Loading certificates…</h3>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- LANDING (not logged in, not on auth screen) -->
+<div id="c-landing" style="display:none;">
+    <div style="max-width:620px;margin:0 auto;padding:5rem 2rem;text-align:center;">
+        <div style="width:72px;height:72px;background:#f5f5f5;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <h1 style="font-size:2rem;font-weight:500;letter-spacing:-0.03em;margin-bottom:0.75rem;">TRAC Collector</h1>
+        <p style="color:#666;font-size:1rem;margin-bottom:2.5rem;line-height:1.7;">Access and manage your Certificates of Authenticity for physical artworks. If you purchased a TRAC-certified artwork, check your email for an invitation link.</p>
+        <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+            <button class="c-btn c-btn-primary" style="padding:0.875rem 2rem;font-size:0.95rem;" onclick="showCollectorAuth('signup')">Create Account</button>
+            <button class="c-btn c-btn-outline" style="padding:0.875rem 2rem;font-size:0.95rem;" onclick="showCollectorAuth('login')">Sign In</button>
+        </div>
+    </div>
+</div>
+
+<!-- SUPABASE -->
+<script src="/supabase.min.js"></script>
+<script>
+    const SUPABASE_URL = 'https://vhgsayaugbepugssyary.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoZ3NheWF1Z2JlcHVnc3N5YXJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NjA5ODMsImV4cCI6MjA3ODIzNjk4M30.2a6qJqW3BrHZxHHhM5Hm9e0sU6Bts6dXmPFW5tbrW_A';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentCollector = null;
+
+    // ==================== INIT ====================
+    supabaseClient.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'PASSWORD_RECOVERY') {
+            showCollectorAuth('newpassword');
+            return;
+        }
+        if (session?.user) {
+            currentCollector = session.user;
+            await showDashboard();
+        } else {
+            currentCollector = null;
+            showScreen('c-landing');
+            updateHeaderNav(false);
+        }
+        document.body.classList.add('loaded');
+    });
+
+    // Check existing session
+    (async () => {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            showScreen('c-landing');
+            updateHeaderNav(false);
+            document.body.classList.add('loaded');
+        }
+    })();
+
+    // ==================== SCREENS ====================
+    function showScreen(id) {
+        ['c-landing','c-login-screen','c-signup-screen','c-reset-screen','c-dashboard']
+            .forEach(s => { const el = document.getElementById(s); if (el) el.style.display = 'none'; });
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'block';
+    }
+
+    function showCollectorAuth(type) {
+        const map = { login: 'c-login-screen', signup: 'c-signup-screen', reset: 'c-reset-screen' };
+        showScreen(map[type] || 'c-login-screen');
+    }
+
+    function updateHeaderNav(isLoggedIn) {
+        const nav = document.getElementById('c-header-nav');
+        if (!nav) return;
+        if (isLoggedIn) {
+            nav.innerHTML = `<button class="c-btn c-btn-outline" onclick="collectorSignOut()">Sign Out</button>`;
+        } else {
+            nav.innerHTML = `
+                <button class="c-btn c-btn-outline" onclick="showCollectorAuth('login')">Sign In</button>
+                <button class="c-btn c-btn-primary" onclick="showCollectorAuth('signup')">Create Account</button>`;
+        }
+    }
+
+    // ==================== AUTH ====================
+    async function collectorSignIn() {
+        const email = document.getElementById('c-login-email').value.trim();
+        const password = document.getElementById('c-login-password').value;
+        const errEl = document.getElementById('c-login-error');
+        const btn = document.getElementById('c-login-btn');
+        errEl.style.display = 'none';
+        if (!email || !password) { showCError(errEl, 'Please fill in all fields.'); return; }
+        btn.disabled = true; btn.textContent = 'Signing in…';
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) { showCError(errEl, error.message); btn.disabled = false; btn.textContent = 'Sign In'; }
+    }
+
+    async function collectorSignUp() {
+        const name = document.getElementById('c-signup-name').value.trim();
+        const email = document.getElementById('c-signup-email').value.trim();
+        const password = document.getElementById('c-signup-password').value;
+        const errEl = document.getElementById('c-signup-error');
+        const btn = document.getElementById('c-signup-btn');
+        errEl.style.display = 'none';
+        if (!name || !email || !password) { showCError(errEl, 'Please fill in all fields.'); return; }
+        if (password.length < 8) { showCError(errEl, 'Password must be at least 8 characters.'); return; }
+        btn.disabled = true; btn.textContent = 'Creating account…';
+        const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
+        if (error) { showCError(errEl, error.message); btn.disabled = false; btn.textContent = 'Create Account'; return; }
+        // Link collector_accounts record to this new user
+        await supabaseClient.from('collector_accounts').upsert({
+            email: email.toLowerCase(), display_name: name,
+            supabase_user_id: data.user?.id, invite_status: 'registered'
+        }, { onConflict: 'email' });
+        showCToast('Account created! Check your email to confirm.');
+        btn.disabled = false; btn.textContent = 'Create Account';
+    }
+
+    async function collectorResetPassword() {
+        const email = document.getElementById('c-reset-email').value.trim();
+        const errEl = document.getElementById('c-reset-error');
+        const btn = document.getElementById('c-reset-btn');
+        errEl.style.display = 'none';
+        if (!email) { showCError(errEl, 'Please enter your email.'); return; }
+        btn.disabled = true; btn.textContent = 'Sending…';
+        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+            redirectTo: window.location.href
+        });
+        if (error) { showCError(errEl, error.message); }
+        else { showCToast('Password reset link sent to ' + email); }
+        btn.disabled = false; btn.textContent = 'Send Reset Link';
+    }
+
+    async function collectorSignOut() {
+        await supabaseClient.auth.signOut();
+        currentCollector = null;
+        showScreen('c-landing');
+        updateHeaderNav(false);
+    }
+
+    // ==================== DASHBOARD ====================
+    async function showDashboard() {
+        showScreen('c-dashboard');
+        updateHeaderNav(true);
+
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return;
+
+        // Set welcome name
+        const name = user.user_metadata?.full_name || user.email.split('@')[0];
+        const welcome = document.getElementById('c-welcome-name');
+        if (welcome) welcome.textContent = name + "\u2019s Collection";
+
+        // Link collector account if not already
+        await supabaseClient.from('collector_accounts').upsert({
+            email: user.email.toLowerCase(), supabase_user_id: user.id, invite_status: 'registered'
+        }, { onConflict: 'email' });
+
+        await loadCollectorCoas(user.email);
+    }
+
+    async function loadCollectorCoas(email) {
+        const grid = document.getElementById('c-coa-grid');
+        if (!grid) return;
+
+        // Find all ownership records for this email
+        const { data: ownerships } = await supabaseClient
+            .from('coa_ownership_history')
+            .select('*, blockchain_coas(*, artworks(title, year, medium, dimensions, image_url))')
+            .eq('owner_email', email.toLowerCase())
+            .order('transfer_date', { ascending: false });
+
+        // Find current ownership (latest transfer per CoA)
+        const coaMap = new Map();
+        (ownerships || []).forEach(o => {
+            const coaId = o.coa_id;
+            if (!coaMap.has(coaId) || new Date(o.transfer_date) > new Date(coaMap.get(coaId).transfer_date)) {
+                coaMap.set(coaId, o);
+            }
+        });
+        const currentCoas = [...coaMap.values()];
+
+        if (currentCoas.length === 0) {
+            grid.innerHTML = `
+            <div class="c-empty" style="grid-column:1/-1;">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <h3>No certificates yet</h3>
+                <p>When an artist issues a CoA for an artwork you purchased, it will appear here.</p>
+            </div>`;
+            return;
+        }
+
+        grid.innerHTML = currentCoas.map(o => {
+            const coa = o.blockchain_coas || {};
+            const artwork = coa.artworks || {};
+            const meta = [artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).join(' · ');
+            return `
+            <div class="c-coa-card">
+                ${artwork.image_url
+                    ? `<img class="c-coa-image" src="${artwork.image_url}" alt="${artwork.title}" loading="lazy">`
+                    : `<div class="c-coa-image-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`
+                }
+                <div class="c-coa-body">
+                    <div class="c-coa-title">${artwork.title || 'Untitled'}</div>
+                    <div class="c-coa-meta">${meta || 'Physical artwork'}</div>
+                    <div class="c-coa-badges">
+                        <span class="c-badge c-badge-green">Certified</span>
+                        <span class="c-badge c-badge-blue">${coa.royalty_pct || 0}% royalty</span>
+                        <span class="c-badge c-badge-gray">${coa.network || 'Polygon'}</span>
+                        ${o.is_original_purchase ? '<span class="c-badge c-badge-gray">Original buyer</span>' : '<span class="c-badge c-badge-gray">Secondary owner</span>'}
+                    </div>
+                    <div class="c-coa-actions">
+                        <button onclick="openCertView('${coa.id}')" style="background:white;border:1px solid #d1d1d1;color:#000;" onmouseenter="this.style.borderColor='#000'" onmouseleave="this.style.borderColor='#d1d1d1'">View CoA</button>
+                        <button onclick="openTransferModal('${coa.id}','${(artwork.title||'').replace(/'/g,"\\'")}')" style="background:#000;border:1px solid #000;color:white;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Report Sale</button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // ==================== COA CERTIFICATE VIEW ====================
+    async function openCertView(coaId) {
+        const { data: coa } = await supabaseClient
+            .from('blockchain_coas')
+            .select('*, artworks(title, year, medium, dimensions), coa_ownership_history(*)')
+            .eq('id', coaId)
+            .single();
+        if (!coa) return;
+
+        const artwork = coa.artworks || {};
+        const history = (coa.coa_ownership_history || []).sort((a,b) => new Date(a.transfer_date) - new Date(b.transfer_date));
+        const original = history.find(h => h.is_original_purchase) || {};
+        let meta; try { meta = JSON.parse(coa.metadata || '{}'); } catch { meta = {}; }
+
+        const modal = document.createElement('div');
+        modal.className = 'c-modal-overlay';
+        modal.innerHTML = `
+        <div class="c-modal">
+            <div class="c-modal-header">
+                <h3>Certificate of Authenticity</h3>
+                <button class="c-modal-close" onclick="this.closest('.c-modal-overlay').remove()">×</button>
+            </div>
+
+            <div class="coa-cert">
+                <div class="coa-cert-header">
+                    <div class="trac-logo">TRAC</div>
+                    <div class="cert-label">Certificate of Authenticity</div>
+                </div>
+                <div class="coa-cert-row">
+                    <span class="key">Artwork</span>
+                    <span class="val">${artwork.title || '—'}</span>
+                </div>
+                <div class="coa-cert-row">
+                    <span class="key">Artist</span>
+                    <span class="val">${meta.artist_name || '—'}</span>
+                </div>
+                <div class="coa-cert-row">
+                    <span class="key">Year</span>
+                    <span class="val">${artwork.year || '—'}</span>
+                </div>
+                <div class="coa-cert-row">
+                    <span class="key">Medium</span>
+                    <span class="val">${artwork.medium || '—'}</span>
+                </div>
+                <div class="coa-cert-row">
+                    <span class="key">Dimensions</span>
+                    <span class="val">${artwork.dimensions || '—'}</span>
+                </div>
+                <div class="coa-cert-row">
+                    <span class="key">Resale Royalty</span>
+                    <span class="val">${coa.royalty_pct}% (EIP-2981)</span>
+                </div>
+                <div class="coa-cert-row">
+                    <span class="key">Network</span>
+                    <span class="val">${coa.network}</span>
+                </div>
+                <div class="coa-cert-row">
+                    <span class="key">Issued</span>
+                    <span class="val">${new Date(coa.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</span>
+                </div>
+                <div class="coa-cert-hash">
+                    <div class="key">Transaction Hash</div>
+                    <div class="val">${coa.tx_hash}</div>
+                </div>
+            </div>
+
+            <!-- PROVENANCE CHAIN -->
+            <h4 style="font-size:0.875rem;font-weight:500;margin-bottom:0.875rem;letter-spacing:-0.01em;">Provenance</h4>
+            <div style="display:flex;flex-direction:column;gap:0.625rem;margin-bottom:1.5rem;">
+                ${history.map((h, i) => `
+                <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;background:#fafafa;border-radius:8px;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:${h.is_original_purchase?'#000':'#e5e5e5'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        ${h.is_original_purchase
+                            ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+                            : `<span style="font-size:0.7rem;font-weight:600;color:#666;">${i+1}</span>`}
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-size:0.83rem;font-weight:500;">${h.owner_name}</div>
+                        <div style="font-size:0.72rem;color:#666;">${h.is_original_purchase?'Original purchase':'Secondary sale'} · ${new Date(h.transfer_date).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}</div>
+                    </div>
+                    ${h.sale_price ? `<div style="font-size:0.8rem;font-weight:500;">$${Number(h.sale_price).toLocaleString()}</div>` : ''}
+                </div>`).join('')}
+            </div>
+
+            <div style="font-size:0.75rem;color:#999;text-align:center;line-height:1.5;background:#f5f5f5;border-radius:8px;padding:0.75rem;">
+                This certificate is permanently linked to the physical artwork. It cannot be transferred or sold independently. It has no value as a standalone digital asset.
+            </div>
+        </div>`;
+        modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+        document.body.appendChild(modal);
+    }
+
+    // ==================== TRANSFER / REPORT SALE ====================
+    function openTransferModal(coaId, artworkTitle) {
+        const modal = document.createElement('div');
+        modal.className = 'c-modal-overlay';
+        modal.innerHTML = `
+        <div class="c-modal">
+            <div class="c-modal-header">
+                <div>
+                    <h3>Report a Sale</h3>
+                    <p style="font-size:0.8rem;color:#666;margin-top:0.2rem;">${artworkTitle}</p>
+                </div>
+                <button class="c-modal-close" onclick="this.closest('.c-modal-overlay').remove()">×</button>
+            </div>
+
+            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:0.875rem;margin-bottom:1.5rem;font-size:0.8rem;color:#92400e;line-height:1.5;">
+                By reporting this sale, the CoA will be transferred to the new owner, and the artist will be notified to collect their resale royalty.
+            </div>
+
+            <div class="c-form-group">
+                <label>New Owner's Full Name</label>
+                <input type="text" id="t-buyer-name" placeholder="Full name">
+            </div>
+            <div class="c-form-group">
+                <label>New Owner's Email</label>
+                <input type="email" id="t-buyer-email" placeholder="their@email.com">
+            </div>
+            <div class="c-form-group">
+                <label>Sale Price</label>
+                <input type="number" id="t-sale-price" placeholder="e.g. 2500">
+            </div>
+            <div class="c-form-group">
+                <label>Notes (optional)</label>
+                <textarea id="t-notes" rows="2" placeholder="Sold at auction, gallery name, etc." style="width:100%;padding:0.75rem;border:1px solid #d1d1d1;border-radius:8px;font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+            </div>
+
+            <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+                <button onclick="this.closest('.c-modal-overlay').remove()" style="flex:1;padding:0.875rem;border:1px solid #d1d1d1;border-radius:8px;background:white;font-size:0.9rem;cursor:pointer;font-family:inherit;">Cancel</button>
+                <button id="t-submit-btn" onclick="executeTransfer('${coaId}')" style="flex:2;padding:0.875rem;background:#000;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit;font-weight:500;">Confirm Transfer</button>
+            </div>
+        </div>`;
+        modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+        document.body.appendChild(modal);
+    }
+
+    async function executeTransfer(coaId) {
+        const newName = document.getElementById('t-buyer-name').value.trim();
+        const newEmail = document.getElementById('t-buyer-email').value.trim();
+        const salePrice = document.getElementById('t-sale-price').value.trim();
+        const notes = document.getElementById('t-notes').value.trim();
+        const btn = document.getElementById('t-submit-btn');
+
+        if (!newName || !newEmail) { showCToast('Please enter the new owner\'s name and email.', 'error'); return; }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { showCToast('Please enter a valid email.', 'error'); return; }
+
+        btn.disabled = true; btn.textContent = 'Processing…';
+
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) throw new Error('Not authenticated');
+
+            const { data: coa } = await supabaseClient.from('blockchain_coas').select('artist_id, royalty_pct').eq('id', coaId).single();
+            if (!coa) throw new Error('Certificate not found');
+
+            // Add new ownership record
+            await supabaseClient.from('coa_ownership_history').insert({
+                coa_id: coaId,
+                artist_id: coa.artist_id,
+                owner_name: newName,
+                owner_email: newEmail.toLowerCase(),
+                sale_price: salePrice ? parseFloat(salePrice) : null,
+                notes: notes,
+                transfer_date: new Date().toISOString(),
+                is_original_purchase: false
+            });
+
+            // Create royalty notification for artist
+            await supabaseClient.from('royalty_notifications').insert({
+                artist_id: coa.artist_id,
+                coa_id: coaId,
+                sale_price: salePrice ? parseFloat(salePrice) : null,
+                new_owner_name: newName,
+                new_owner_email: newEmail.toLowerCase(),
+                seller_name: user.user_metadata?.full_name || user.email,
+                status: 'pending'
+            });
+
+            // Upsert collector account for new buyer
+            await supabaseClient.from('collector_accounts').upsert({
+                email: newEmail.toLowerCase(),
+                display_name: newName,
+                invited_at: new Date().toISOString(),
+                invite_status: 'pending'
+            }, { onConflict: 'email', ignoreDuplicates: false });
+
+            // Close modal and refresh
+            document.querySelector('.c-modal-overlay')?.remove();
+            showCToast('Transfer complete. The artist has been notified.');
+            await loadCollectorCoas(user.email);
+
+        } catch (err) {
+            console.error('Transfer error:', err);
+            showCToast('Error: ' + (err.message || 'Something went wrong'), 'error');
+            btn.disabled = false; btn.textContent = 'Confirm Transfer';
+        }
+    }
+
+    // ==================== UTILITIES ====================
+    function showCError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
+    function showCToast(msg, type = 'success') {
+        const t = document.getElementById('c-toast');
+        t.textContent = msg; t.className = type === 'error' ? 'error' : '';
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
+</script>
+</body>
+</html>

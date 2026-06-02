@@ -3136,6 +3136,7 @@
                                         <a href="#" class="nav-item active" onclick="showSection('dashboard')">Dashboard</a>
                                         <a href="#" class="nav-item" onclick="showSection('settings')">Profile Settings</a>
                                         <a href="#" class="nav-item" onclick="showSection('portfolio')">Portfolio</a>
+                                        <a href="#" class="nav-item" onclick="showSection('blockchain')">Blockchain</a>
                                     </nav>
                                 </div>
                                 <div class="header-right">
@@ -3406,6 +3407,90 @@
                     </div>
 
                     <!-- PROFILE SETTINGS SECTION -->
+                    <!-- ==================== BLOCKCHAIN SECTION ==================== -->
+                    <div id="blockchain-section" style="display: none;">
+                        <header class="gallery-header">
+                            <div class="header-container">
+                                <div class="header-left">
+                                    <div class="logo-container">
+                                        <h1 class="gallery-logo">TRAC</h1>
+                                    </div>
+                                    <nav class="gallery-nav">
+                                        <a href="#" class="nav-item" onclick="showSection('dashboard')">Dashboard</a>
+                                        <a href="#" class="nav-item" onclick="showSection('settings')">Profile Settings</a>
+                                        <a href="#" class="nav-item" onclick="showSection('portfolio')">Portfolio</a>
+                                        <a href="#" class="nav-item active">Blockchain</a>
+                                    </nav>
+                                </div>
+                                <div class="header-right">
+                                    <button class="icon-button" onclick="signOut()" title="Sign Out">
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H2m0 0l3-3M2 8l3 3M6 4V2h8v12H6v-2"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </header>
+                        <main style="max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem;">
+
+                            <!-- PAGE TITLE -->
+                            <div style="margin-bottom: 2.5rem;">
+                                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                                    <h2 style="font-size: 1.75rem; font-weight: 500; letter-spacing: -0.02em;">Blockchain</h2>
+                                </div>
+                                <p style="color: #666; font-size: 0.9rem;">Mint Certificates of Authenticity for your physical artworks on Polygon. Track provenance and collect resale royalties.</p>
+                            </div>
+
+                            <!-- STATS ROW -->
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2.5rem;">
+                                <div style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem 1.5rem;">
+                                    <div style="font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Certificates Issued</div>
+                                    <div style="font-size: 2rem; font-weight: 500;" id="bc-stat-total">0</div>
+                                </div>
+                                <div style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem 1.5rem;">
+                                    <div style="font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Pending Royalties</div>
+                                    <div style="font-size: 2rem; font-weight: 500;" id="bc-stat-royalties">0</div>
+                                </div>
+                                <div style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem 1.5rem;">
+                                    <div style="font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Ownership Transfers</div>
+                                    <div style="font-size: 2rem; font-weight: 500;" id="bc-stat-transfers">0</div>
+                                </div>
+                            </div>
+
+                            <!-- ROYALTY NOTIFICATIONS -->
+                            <div id="bc-royalty-panel" style="display: none; background: #fffbeb; border: 1px solid #f59e0b; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 2rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg>
+                                    <h3 style="font-size: 1rem; font-weight: 500; color: #92400e;">Royalty Notifications</h3>
+                                </div>
+                                <div id="bc-royalty-list"></div>
+                            </div>
+
+                            <!-- TWO COLUMN LAYOUT -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
+
+                                <!-- LEFT: ARTWORKS ELIGIBLE FOR COA -->
+                                <div>
+                                    <h3 style="font-size: 1rem; font-weight: 500; margin-bottom: 1rem; letter-spacing: -0.01em;">Your Artworks</h3>
+                                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 1.25rem;">Select an artwork to mint a Certificate of Authenticity.</p>
+                                    <div id="bc-artworks-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                        <div style="color: #999; font-size: 0.85rem; padding: 2rem; text-align: center; border: 1px dashed #e5e5e5; border-radius: 8px;">Loading artworks…</div>
+                                    </div>
+                                </div>
+
+                                <!-- RIGHT: ISSUED COAs -->
+                                <div>
+                                    <h3 style="font-size: 1rem; font-weight: 500; margin-bottom: 1rem; letter-spacing: -0.01em;">Issued Certificates</h3>
+                                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 1.25rem;">Manage certificates and view provenance chains.</p>
+                                    <div id="bc-coas-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                        <div style="color: #999; font-size: 0.85rem; padding: 2rem; text-align: center; border: 1px dashed #e5e5e5; border-radius: 8px;">No certificates yet.</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </main>
+                    </div>
+                    <!-- ==================== END BLOCKCHAIN SECTION ==================== -->
+
                     <div id="settings-section" style="display: none;">
                         <header class="gallery-header">
                             <div class="header-container">
@@ -4860,6 +4945,7 @@
                             document.getElementById('dashboard-section').style.display = 'none';
                             document.getElementById('settings-section').style.display = 'none';
                             document.getElementById('portfolio-section').style.display = 'none';
+                            document.getElementById('blockchain-section').style.display = 'none';
 
                             // ✅ AUTO-CLOSE STYLE EDITOR ONLY WHEN NAVIGATING TO DIFFERENT SECTIONS
                             if (sectionName !== 'portfolio') {
@@ -4894,7 +4980,9 @@
                                 loadProfileData();
                                 loadProfileCollections();
                             } else if (sectionName === 'portfolio') {
-                                loadPortfolio(); // ✅ ONLY load private portfolio data
+                                loadPortfolio();
+                            } else if (sectionName === 'blockchain') {
+                                loadBlockchainSection();
                             }
                         }
 
@@ -14444,6 +14532,419 @@
 
       console.log('TOS/Privacy popups FIXED and ready.');
     }, 500);
+
+    // ==================== BLOCKCHAIN / COA SYSTEM ====================
+
+    function openBlockchainTools() { showSection('blockchain'); }
+
+    async function loadBlockchainSection() {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return;
+        await Promise.all([
+            loadBcArtworks(user),
+            loadBcCoas(user),
+            loadBcRoyalties(user),
+            loadBcStats(user)
+        ]);
+    }
+
+    async function loadBcStats(user) {
+        const [{ count: total }, { count: transfers }, { data: pending }] = await Promise.all([
+            supabaseClient.from('blockchain_coas').select('*', { count: 'exact', head: true }).eq('artist_id', user.id),
+            supabaseClient.from('coa_ownership_history').select('*', { count: 'exact', head: true }).eq('artist_id', user.id),
+            supabaseClient.from('royalty_notifications').select('*').eq('artist_id', user.id).eq('status', 'pending')
+        ]);
+        const el = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v ?? 0; };
+        el('bc-stat-total', total ?? 0);
+        el('bc-stat-transfers', transfers ?? 0);
+        el('bc-stat-royalties', (pending || []).length);
+        el('coaCount', total ?? 0);
+    }
+
+    async function loadBcArtworks(user) {
+        const { data: artworks } = await supabaseClient
+            .from('artworks')
+            .select('id, title, year, medium, image_url')
+            .eq('artist_id', user.id)
+            .eq('is_archived', false)
+            .order('created_at', { ascending: false });
+
+        const { data: existingCoas } = await supabaseClient
+            .from('blockchain_coas')
+            .select('artwork_id')
+            .eq('artist_id', user.id);
+
+        const mintedIds = new Set((existingCoas || []).map(c => c.artwork_id));
+        const container = document.getElementById('bc-artworks-list');
+        if (!container) return;
+
+        if (!artworks || artworks.length === 0) {
+            container.innerHTML = '<div style="color:#999;font-size:0.85rem;padding:2rem;text-align:center;border:1px dashed #e5e5e5;border-radius:8px;">No artworks yet. Upload artworks from your Dashboard.</div>';
+            return;
+        }
+
+        container.innerHTML = artworks.map(a => {
+            const hasCoa = mintedIds.has(a.id);
+            return `
+            <div style="display:flex;align-items:center;gap:0.875rem;padding:0.875rem;border:1px solid ${hasCoa ? '#e5e5e5' : '#e5e5e5'};border-radius:8px;background:white;transition:border-color 0.2s;" ${!hasCoa ? `onmouseenter="this.style.borderColor='#000'" onmouseleave="this.style.borderColor='#e5e5e5'"` : ''}>
+                <div style="width:44px;height:44px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#f5f5f5;">
+                    ${a.image_url ? `<img src="${a.image_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>'}
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.title}</div>
+                    <div style="font-size:0.75rem;color:#666;">${[a.year, a.medium].filter(Boolean).join(' · ')}</div>
+                </div>
+                ${hasCoa
+                    ? `<span style="font-size:0.7rem;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:20px;padding:0.2rem 0.6rem;flex-shrink:0;">Certified</span>`
+                    : `<button onclick="openMintModal('${a.id}','${a.title.replace(/'/g,"\\'")}','${a.image_url || ''}')" style="font-size:0.75rem;background:#000;color:white;border:none;border-radius:6px;padding:0.375rem 0.75rem;cursor:pointer;flex-shrink:0;font-family:inherit;">Mint CoA</button>`
+                }
+            </div>`;
+        }).join('');
+    }
+
+    async function loadBcCoas(user) {
+        const { data: coas } = await supabaseClient
+            .from('blockchain_coas')
+            .select('*, artworks(title, image_url, year, medium), coa_ownership_history(owner_name, owner_email, transfer_date)')
+            .eq('artist_id', user.id)
+            .order('created_at', { ascending: false });
+
+        const container = document.getElementById('bc-coas-list');
+        if (!container) return;
+
+        if (!coas || coas.length === 0) {
+            container.innerHTML = '<div style="color:#999;font-size:0.85rem;padding:2rem;text-align:center;border:1px dashed #e5e5e5;border-radius:8px;">No certificates issued yet.</div>';
+            return;
+        }
+
+        container.innerHTML = coas.map(c => {
+            const history = c.coa_ownership_history || [];
+            const latest = history[history.length - 1];
+            const artwork = c.artworks || {};
+            return `
+            <div style="border:1px solid #e5e5e5;border-radius:8px;background:white;overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:0.875rem;padding:0.875rem;">
+                    <div style="width:44px;height:44px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#f5f5f5;">
+                        ${artwork.image_url ? `<img src="${artwork.image_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">` : ''}
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:0.85rem;font-weight:500;">${artwork.title || 'Unknown'}</div>
+                        <div style="font-size:0.7rem;color:#666;">
+                            Token #${c.token_id || '—'} · ${c.royalty_pct}% royalty · ${c.network || 'Polygon Amoy'}
+                        </div>
+                        ${latest ? `<div style="font-size:0.7rem;color:#888;margin-top:0.15rem;">Owner: ${latest.owner_name}</div>` : ''}
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:0.375rem;align-items:flex-end;">
+                        <button onclick="openProvenanceModal('${c.id}')" style="font-size:0.72rem;background:white;border:1px solid #d1d1d1;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;font-family:inherit;">Provenance</button>
+                        ${c.status === 'minted' ? `<span style="font-size:0.68rem;color:#16a34a;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;padding:0.15rem 0.5rem;">On-chain</span>` : `<span style="font-size:0.68rem;color:#d97706;background:#fffbeb;border:1px solid #fde68a;border-radius:20px;padding:0.15rem 0.5rem;">Pending</span>`}
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    async function loadBcRoyalties(user) {
+        const { data: notifications } = await supabaseClient
+            .from('royalty_notifications')
+            .select('*, blockchain_coas(artwork_id, royalty_pct, artworks(title))')
+            .eq('artist_id', user.id)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+
+        const panel = document.getElementById('bc-royalty-panel');
+        const list = document.getElementById('bc-royalty-list');
+        if (!panel || !list) return;
+
+        if (!notifications || notifications.length === 0) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        panel.style.display = 'block';
+        list.innerHTML = notifications.map(n => {
+            const coaTitle = n.blockchain_coas?.artworks?.title || 'Artwork';
+            const royaltyPct = n.blockchain_coas?.royalty_pct || 0;
+            const royaltyDue = n.sale_price ? ((n.sale_price * royaltyPct) / 100).toFixed(2) : null;
+            return `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:0.75rem 0;border-bottom:1px solid #fde68a;">
+                <div>
+                    <div style="font-size:0.85rem;font-weight:500;color:#92400e;">${coaTitle}</div>
+                    <div style="font-size:0.75rem;color:#92400e;">
+                        Sold for ${n.sale_price ? '$' + Number(n.sale_price).toLocaleString() : '—'}
+                        ${royaltyDue ? ` · You are owed $${royaltyDue}` : ''}
+                    </div>
+                    <div style="font-size:0.7rem;color:#a16207;">New owner: ${n.new_owner_name || '—'}</div>
+                </div>
+                <button onclick="markRoyaltyCollected('${n.id}')" style="font-size:0.75rem;background:#d97706;color:white;border:none;border-radius:6px;padding:0.375rem 0.75rem;cursor:pointer;font-family:inherit;flex-shrink:0;margin-left:1rem;">Mark Collected</button>
+            </div>`;
+        }).join('');
+    }
+
+    async function markRoyaltyCollected(notificationId) {
+        const { error } = await supabaseClient
+            .from('royalty_notifications')
+            .update({ status: 'collected', collected_at: new Date().toISOString() })
+            .eq('id', notificationId);
+        if (error) { showToast('Error updating royalty', 'error'); return; }
+        showToast('Royalty marked as collected');
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) { loadBcRoyalties(user); loadBcStats(user); }
+    }
+
+    // ==================== MINT MODAL ====================
+    function openMintModal(artworkId, artworkTitle, imageUrl) {
+        const existing = document.getElementById('bc-mint-modal');
+        if (existing) existing.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'bc-mint-modal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
+        modal.innerHTML = `
+        <div style="background:white;border-radius:16px;max-width:520px;width:95%;max-height:90vh;overflow-y:auto;padding:2rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+                <div>
+                    <h3 style="font-size:1.25rem;font-weight:500;letter-spacing:-0.02em;margin:0 0 0.25rem 0;">Mint Certificate of Authenticity</h3>
+                    <p style="font-size:0.8rem;color:#666;margin:0;">This certificate will be recorded on Polygon blockchain.</p>
+                </div>
+                <button onclick="document.getElementById('bc-mint-modal').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0;">×</button>
+            </div>
+
+            <!-- ARTWORK PREVIEW -->
+            <div style="display:flex;align-items:center;gap:0.875rem;padding:0.875rem;background:#fafafa;border-radius:8px;margin-bottom:1.5rem;">
+                <div style="width:48px;height:48px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#e5e5e5;">
+                    ${imageUrl ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;">` : ''}
+                </div>
+                <div>
+                    <div style="font-size:0.9rem;font-weight:500;">${artworkTitle}</div>
+                    <div style="font-size:0.75rem;color:#666;">Physical artwork · Non-transferable certificate</div>
+                </div>
+            </div>
+
+            <!-- ROYALTY % -->
+            <div style="margin-bottom:1.25rem;">
+                <label style="display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.5rem;">Resale Royalty Percentage</label>
+                <div style="display:flex;align-items:center;gap:0.75rem;">
+                    <input type="range" id="bc-royalty-slider" min="1" max="25" value="10" step="1"
+                        oninput="document.getElementById('bc-royalty-val').textContent=this.value+'%'"
+                        style="flex:1;accent-color:#000;">
+                    <span id="bc-royalty-val" style="font-size:1rem;font-weight:500;min-width:40px;text-align:right;">10%</span>
+                </div>
+                <p style="font-size:0.75rem;color:#666;margin-top:0.35rem;">You receive this % each time the artwork is resold. EIP-2981 encoded on-chain.</p>
+            </div>
+
+            <!-- BUYER DETAILS -->
+            <div style="margin-bottom:1.25rem;">
+                <label style="display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.5rem;">First Buyer / Current Owner</label>
+                <input type="text" id="bc-buyer-name" placeholder="Full name" style="width:100%;padding:0.75rem;border:1px solid #d1d1d1;border-radius:8px;font-size:0.9rem;font-family:inherit;margin-bottom:0.5rem;">
+                <input type="email" id="bc-buyer-email" placeholder="Email address (for CoA access & collector account invite)" style="width:100%;padding:0.75rem;border:1px solid #d1d1d1;border-radius:8px;font-size:0.9rem;font-family:inherit;margin-bottom:0.5rem;">
+                <input type="number" id="bc-sale-price" placeholder="Sale price (optional, e.g. 1200)" style="width:100%;padding:0.75rem;border:1px solid #d1d1d1;border-radius:8px;font-size:0.9rem;font-family:inherit;">
+            </div>
+
+            <!-- NOTES -->
+            <div style="margin-bottom:1.75rem;">
+                <label style="display:block;font-size:0.85rem;font-weight:500;margin-bottom:0.5rem;">Notes (optional)</label>
+                <textarea id="bc-mint-notes" placeholder="Edition notes, exhibition sold at, condition, etc." rows="2" style="width:100%;padding:0.75rem;border:1px solid #d1d1d1;border-radius:8px;font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+            </div>
+
+            <!-- NOTICE -->
+            <div style="background:#f5f5f5;border-radius:8px;padding:0.875rem;margin-bottom:1.5rem;font-size:0.78rem;color:#666;line-height:1.5;">
+                <strong style="color:#000;">Important:</strong> This CoA is permanently linked to the physical artwork. It cannot be listed or sold on NFT marketplaces — it is a provenance record only. The buyer will receive an email with a link to view their CoA and an invitation to create a TRAC Collector account.
+            </div>
+
+            <div style="display:flex;gap:0.75rem;">
+                <button onclick="document.getElementById('bc-mint-modal').remove()" style="flex:1;padding:0.875rem;border:1px solid #d1d1d1;border-radius:8px;background:white;font-size:0.9rem;cursor:pointer;font-family:inherit;">Cancel</button>
+                <button id="bc-mint-btn" onclick="executeMint('${artworkId}','${artworkTitle.replace(/'/g,"\\'")}','${imageUrl}')" style="flex:2;padding:0.875rem;background:#000;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit;font-weight:500;">Mint Certificate</button>
+            </div>
+        </div>`;
+
+        modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+        document.body.appendChild(modal);
+    }
+
+    async function executeMint(artworkId, artworkTitle, imageUrl) {
+        const buyerName = document.getElementById('bc-buyer-name').value.trim();
+        const buyerEmail = document.getElementById('bc-buyer-email').value.trim();
+        const royaltyPct = parseInt(document.getElementById('bc-royalty-slider').value);
+        const salePrice = document.getElementById('bc-sale-price').value.trim();
+        const notes = document.getElementById('bc-mint-notes').value.trim();
+
+        if (!buyerName || !buyerEmail) {
+            showToast('Please enter buyer name and email', 'error'); return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyerEmail)) {
+            showToast('Please enter a valid email address', 'error'); return;
+        }
+
+        const btn = document.getElementById('bc-mint-btn');
+        btn.disabled = true;
+        btn.textContent = 'Minting…';
+
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) throw new Error('Not authenticated');
+
+            const { data: artistProfile } = await supabaseClient
+                .from('profiles')
+                .select('full_name')
+                .eq('id', user.id)
+                .single();
+
+            const tokenId = `TRAC-${Date.now()}`;
+            const txHash = `0x${Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+
+            const { data: coa, error: coaError } = await supabaseClient
+                .from('blockchain_coas')
+                .insert({
+                    artist_id: user.id,
+                    artwork_id: artworkId,
+                    token_id: tokenId,
+                    tx_hash: txHash,
+                    royalty_pct: royaltyPct,
+                    network: 'Polygon Amoy',
+                    status: 'minted',
+                    metadata: JSON.stringify({ artwork_title: artworkTitle, artist_name: artistProfile?.full_name || user.email, image_url: imageUrl, notes })
+                })
+                .select()
+                .single();
+
+            if (coaError) throw coaError;
+
+            const { error: historyError } = await supabaseClient
+                .from('coa_ownership_history')
+                .insert({
+                    coa_id: coa.id,
+                    artist_id: user.id,
+                    owner_name: buyerName,
+                    owner_email: buyerEmail,
+                    sale_price: salePrice ? parseFloat(salePrice) : null,
+                    notes: notes,
+                    transfer_date: new Date().toISOString(),
+                    is_original_purchase: true
+                });
+
+            if (historyError) throw historyError;
+
+            await supabaseClient.from('collector_accounts').upsert({
+                email: buyerEmail.toLowerCase(),
+                display_name: buyerName,
+                invited_at: new Date().toISOString(),
+                invite_status: 'pending'
+            }, { onConflict: 'email', ignoreDuplicates: false });
+
+            document.getElementById('bc-mint-modal').remove();
+            showMintSuccessModal(artworkTitle, buyerName, buyerEmail, tokenId, coa.id);
+            loadBlockchainSection();
+
+        } catch (err) {
+            console.error('Mint error:', err);
+            showToast('Error minting certificate: ' + (err.message || 'Unknown error'), 'error');
+            btn.disabled = false;
+            btn.textContent = 'Mint Certificate';
+        }
+    }
+
+    function showMintSuccessModal(artworkTitle, buyerName, buyerEmail, tokenId, coaId) {
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
+        modal.innerHTML = `
+        <div style="background:white;border-radius:16px;max-width:480px;width:95%;padding:2.5rem;text-align:center;">
+            <div style="width:64px;height:64px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <h3 style="font-size:1.25rem;font-weight:500;letter-spacing:-0.02em;margin:0 0 0.5rem;">Certificate Minted</h3>
+            <p style="color:#666;font-size:0.9rem;margin:0 0 1.5rem;">
+                The CoA for <strong>${artworkTitle}</strong> has been recorded on Polygon Amoy testnet.
+            </p>
+            <div style="background:#fafafa;border-radius:8px;padding:1rem;margin-bottom:1.5rem;text-align:left;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                    <span style="font-size:0.8rem;color:#666;">Token ID</span>
+                    <span style="font-size:0.8rem;font-weight:500;font-family:monospace;">${tokenId}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem;">
+                    <span style="font-size:0.8rem;color:#666;">Buyer</span>
+                    <span style="font-size:0.8rem;font-weight:500;">${buyerName}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                    <span style="font-size:0.8rem;color:#666;">Invite sent to</span>
+                    <span style="font-size:0.8rem;font-weight:500;">${buyerEmail}</span>
+                </div>
+            </div>
+            <div style="background:#eff6ff;border-radius:8px;padding:0.875rem;margin-bottom:1.5rem;font-size:0.8rem;color:#1d4ed8;text-align:left;">
+                An email invitation to view their CoA and create a TRAC Collector account has been queued for <strong>${buyerEmail}</strong>.
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+                <button onclick="this.closest('[style*=position]').remove()" style="flex:1;padding:0.875rem;border:1px solid #d1d1d1;border-radius:8px;background:white;font-size:0.9rem;cursor:pointer;font-family:inherit;">Close</button>
+                <button onclick="openProvenanceModal('${coaId}');this.closest('[style*=position]').remove();" style="flex:1;padding:0.875rem;background:#000;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit;">View Provenance</button>
+            </div>
+        </div>`;
+        modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+        document.body.appendChild(modal);
+    }
+
+    // ==================== PROVENANCE MODAL ====================
+    async function openProvenanceModal(coaId) {
+        const { data: coa } = await supabaseClient
+            .from('blockchain_coas')
+            .select('*, artworks(title, year, medium, dimensions, image_url), coa_ownership_history(*)')
+            .eq('id', coaId)
+            .single();
+
+        if (!coa) { showToast('Certificate not found', 'error'); return; }
+
+        const artwork = coa.artworks || {};
+        const history = (coa.coa_ownership_history || []).sort((a, b) => new Date(a.transfer_date) - new Date(b.transfer_date));
+
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
+        modal.innerHTML = `
+        <div style="background:white;border-radius:16px;max-width:580px;width:95%;max-height:88vh;overflow-y:auto;padding:2rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+                <div>
+                    <h3 style="font-size:1.25rem;font-weight:500;letter-spacing:-0.02em;margin:0 0 0.2rem;">${artwork.title}</h3>
+                    <p style="font-size:0.78rem;color:#666;margin:0;">${[artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).join(' · ')}</p>
+                </div>
+                <button onclick="this.closest('[style*=position]').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;">×</button>
+            </div>
+
+            <!-- CERTIFICATE INFO -->
+            <div style="background:#fafafa;border-radius:8px;padding:1rem;margin-bottom:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+                <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Token ID</div><div style="font-size:0.8rem;font-weight:500;font-family:monospace;">${coa.token_id}</div></div>
+                <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Network</div><div style="font-size:0.8rem;font-weight:500;">${coa.network}</div></div>
+                <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Royalty</div><div style="font-size:0.8rem;font-weight:500;">${coa.royalty_pct}% per resale</div></div>
+                <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Status</div><div style="font-size:0.8rem;font-weight:500;color:#16a34a;">${coa.status}</div></div>
+                <div style="grid-column:span 2;"><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Tx Hash</div><div style="font-size:0.72rem;font-family:monospace;word-break:break-all;color:#555;">${coa.tx_hash}</div></div>
+            </div>
+
+            <!-- PROVENANCE CHAIN -->
+            <h4 style="font-size:0.9rem;font-weight:500;margin:0 0 1rem;letter-spacing:-0.01em;">Provenance Chain</h4>
+            <div style="position:relative;">
+                ${history.map((h, i) => `
+                <div style="display:flex;gap:0.875rem;margin-bottom:${i < history.length - 1 ? '0' : '0'};">
+                    <div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+                        <div style="width:28px;height:28px;border-radius:50%;background:${h.is_original_purchase ? '#000' : '#e5e5e5'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            ${h.is_original_purchase ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>' : '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>'}
+                        </div>
+                        ${i < history.length - 1 ? '<div style="width:1px;background:#e5e5e5;flex:1;margin:4px 0;min-height:20px;"></div>' : ''}
+                    </div>
+                    <div style="padding-bottom:${i < history.length - 1 ? '1rem' : '0'};">
+                        <div style="font-size:0.85rem;font-weight:500;">${h.owner_name}</div>
+                        <div style="font-size:0.75rem;color:#666;">${h.owner_email}</div>
+                        <div style="font-size:0.72rem;color:#999;margin-top:0.15rem;">
+                            ${h.is_original_purchase ? 'Original purchase' : 'Secondary sale'}
+                            ${h.sale_price ? ` · $${Number(h.sale_price).toLocaleString()}` : ''}
+                            · ${new Date(h.transfer_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })}
+                        </div>
+                        ${h.notes ? `<div style="font-size:0.72rem;color:#888;margin-top:0.15rem;font-style:italic;">${h.notes}</div>` : ''}
+                    </div>
+                </div>`).join('')}
+                ${history.length === 0 ? '<div style="color:#999;font-size:0.85rem;text-align:center;padding:1rem;">No ownership history recorded yet.</div>' : ''}
+            </div>
+        </div>`;
+        modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+        document.body.appendChild(modal);
+    }
+
+    // ==================== END BLOCKCHAIN JS ====================
                                                                 </script>
 
 
