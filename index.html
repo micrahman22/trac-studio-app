@@ -11470,7 +11470,7 @@ ied to public
                                     return;
                                 }
 
-                                const { error } = await supabaseClient
+                                const { data: insertData, error } = await supabaseClient
                                     .from('cv_requests')
                                     .insert([{
                                         artist_id: _cvRequestArtistId,
@@ -11480,11 +11480,23 @@ ied to public
                                         requester_phone: formData.get('phone') || null,
                                         message: formData.get('message') || null,
                                         status: 'pending'
-                                    }]);
+                                    }])
+                                    .select()
+                                    .single();
 
                                 if (error) throw error;
 
-                                showToast('✅ CV request sent! The artist will contact you soon.');
+                                // Trigger Edge Function to send CV email automatically
+                                fetch(`https://vhgsayaugbepugssyary.supabase.co/functions/v1/send-cv-email`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${supabaseKey}`
+                                    },
+                                    body: JSON.stringify({ record: insertData })
+                                }).catch(err => console.warn('CV email function error:', err));
+
+                                showToast('✅ CV request sent! Check your email shortly.');
                                 hideCVRequestForm();
 
                             } catch (error) {
