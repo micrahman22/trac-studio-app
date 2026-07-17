@@ -1,0 +1,20 @@
+# Environment & secrets
+.env
+.env.local
+.env.production
+.env*.local
+*.env
+
+# Replit internals
+.replit
+.upm/
+.cache/
+.local/
+.agents/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

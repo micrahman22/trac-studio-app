@@ -1,0 +1,30 @@
+Please do a full security audit of this project before I release it publicly. Go through each item below, check for issues, and fix anything you find. For every fix, explain in plain, non-technical language what was wrong and what you changed.
+
+1. SECRETS & KEYS
+- Scan the entire codebase (including old files) for any hardcoded API keys, passwords, or secrets that should instead be in environment variables
+- Confirm my Supabase URL, anon key, and especially the service_role key are never hardcoded in any frontend/client-side file
+- List every file where Supabase keys are referenced, and confirm the service_role key is only ever used server-side, never sent to the browser
+
+2. GIT / GITHUB SAFETY
+- Check if a .gitignore file exists and confirms it excludes .env, .env.local, and any other secret files
+- Check if any .env file or secret was ever committed to git history, even if it's deleted now
+- Tell me clearly if my GitHub repo is currently public or private
+
+3. SUPABASE DATABASE SECURITY
+- Check every table in my Supabase database and confirm Row Level Security (RLS) is enabled
+- For each table, check that RLS policies actually restrict access properly (e.g. users can only edit their own data, private artworks aren't publicly readable)
+- Flag any table where RLS is missing or set too permissively (e.g. "allow all")
+
+4. SUPABASE STORAGE
+- Check my storage buckets (for artwork/CV uploads) and confirm they are not publicly writable
+- Confirm file uploads are validated server-side for file type and size, not just in the frontend UI
+
+5. NETLIFY ENVIRONMENT VARIABLES
+- Confirm all secrets (Supabase keys, etc.) are set through Netlify's environment variables, not hardcoded anywhere in the repo
+- List what environment variables the app currently depends on, so I can cross-check them against what's set in Netlify
+
+6. GENERAL
+- Run a dependency check for any known vulnerable packages and list them
+- Check for basic input sanitization on user-submitted fields (bio, descriptions, links) to prevent XSS
+
+After the audit, give me a summary list of: what was already fine, what was broken and got fixed, and anything you couldn't fix automatically that I need to handle manually (like rotating a leaked key in the Supabase dashboard).
