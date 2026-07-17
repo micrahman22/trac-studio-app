@@ -6,26 +6,13 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "onboarding@resend.dev";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
-
   try {
     const payload = await req.json();
     const record = payload.record;
 
     if (!record?.artist_id || !record?.requester_email) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -38,31 +25,25 @@ serve(async (req) => {
 
     if (profileError || !profile?.cv_url) {
       console.error("Profile/CV error:", profileError);
-      return new Response(JSON.stringify({ error: "No CV found for this artist" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "No CV found for this artist" }), { status: 400 });
     }
 
+    // Extract storage path from the full public URL
+    // URL format: https://xxx.supabase.co/storage/v1/object/public/cv-files/userId/filename.pdf
     const cvPath = profile.cv_url.split("/cv-files/")[1];
 
     if (!cvPath) {
-      return new Response(JSON.stringify({ error: "Could not parse CV file path" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "Could not parse CV file path" }), { status: 400 });
     }
 
+    // Generate a signed URL valid for 7 days
     const { data: signedData, error: signedError } = await supabase.storage
       .from("cv-files")
       .createSignedUrl(cvPath, 604800);
 
     if (signedError || !signedData?.signedUrl) {
       console.error("Signed URL error:", signedError);
-      return new Response(JSON.stringify({ error: "Could not generate download link" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "Could not generate download link" }), { status: 500 });
     }
 
     const artistName = profile.full_name || profile.username || "the artist";
@@ -107,28 +88,20 @@ serve(async (req) => {
     if (!emailRes.ok) {
       const errText = await emailRes.text();
       console.error("Resend API error:", errText);
-      return new Response(JSON.stringify({ error: "Email failed to send", detail: errText }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "Email failed to send", detail: errText }), { status: 500 });
     }
 
+    // Mark the request as sent
     await supabase
       .from("cv_requests")
       .update({ status: "sent" })
       .eq("id", record.id);
 
     console.log(`CV email sent to ${record.requester_email} for artist ${artistName}`);
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
 
   } catch (err) {
     console.error("Unhandled error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 });
