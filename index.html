@@ -7552,7 +7552,7 @@ ied to public
                             // ✅ CV BUTTON FOR PUBLIC ONLY (NOT FOR OWNER)
                             const cvButton = (profileData.has_cv && !isOwner) ? `
                                 <span class="owner-cv-button" 
-                                      onclick="showCVRequestForm()"
+                                      onclick="showCVRequestForm('${profileData.id}', '${(profileData.full_name || profileData.username || '').replace(/'/g, "\\'")}')"
                                       title="CV available upon request">
                                     CV
                                 </span>
@@ -11438,13 +11438,20 @@ ied to public
                         }
 
                         // ==================== CV REQUEST SYSTEM ====================
-                        function showCVRequestForm() {
+                        let _cvRequestArtistId = null;
+                        let _cvRequestArtistName = null;
+
+                        function showCVRequestForm(artistId, artistName) {
+                            _cvRequestArtistId = artistId || null;
+                            _cvRequestArtistName = artistName || null;
                             document.getElementById('cvRequestModal').style.display = 'flex';
                         }
 
                         function hideCVRequestForm() {
                             document.getElementById('cvRequestModal').style.display = 'none';
                             document.getElementById('cvRequestForm').reset();
+                            _cvRequestArtistId = null;
+                            _cvRequestArtistName = null;
                         }
 
                         async function submitCVRequest(event) {
@@ -11453,51 +11460,32 @@ ied to public
                             const originalText = submitBtn.textContent;
 
                             try {
-                                // Set loading state
                                 submitBtn.disabled = true;
                                 submitBtn.innerHTML = '<span class="loading-spinner"></span> Sending...';
 
                                 const formData = new FormData(event.target);
-                                const requestData = {
-                                    name: formData.get('name'),
-                                    company: formData.get('company'),
-                                    email: formData.get('email'),
-                                    phone: formData.get('phone'),
-                                    message: formData.get('message'),
-                                    requested_at: new Date().toISOString()
-                                };
 
-                                // Get current artist info for logging
-                                const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (user) {
-                                    const { data: profile } = await supabaseClient
-                                        .from('profiles')
-                                        .select('full_name, username')
-                                        .eq('id', user.id)
-                                        .single();
-
-                                    if (profile) {
-                                        requestData.artist_name = profile.full_name || profile.username;
-                                        requestData.artist_id = user.id;
-                                    }
+                                if (!_cvRequestArtistId) {
+                                    showToast('Unable to identify artist. Please refresh and try again.', 'error');
+                                    return;
                                 }
 
-                                console.log('📋 CV Request Received:', requestData);
+                                const { error } = await supabaseClient
+                                    .from('cv_requests')
+                                    .insert([{
+                                        artist_id: _cvRequestArtistId,
+                                        requester_name: formData.get('name'),
+                                        requester_company: formData.get('company'),
+                                        requester_email: formData.get('email'),
+                                        requester_phone: formData.get('phone') || null,
+                                        message: formData.get('message') || null,
+                                        status: 'pending'
+                                    }]);
 
-                                // Simulate API call delay
-                                await new Promise(resolve => setTimeout(resolve, 1000));
+                                if (error) throw error;
 
                                 showToast('✅ CV request sent! The artist will contact you soon.');
                                 hideCVRequestForm();
-
-                                // Log activity for the artist
-                                if (user) {
-                                    await logActivity(
-                                        'cv_request', 
-                                        `CV requested by ${requestData.name} from ${requestData.company}`,
-                                        `Email: ${requestData.email}${requestData.phone ? `, Phone: ${requestData.phone}` : ''}${requestData.message ? `, Message: ${requestData.message}` : ''}`
-                                    );
-                                }
 
                             } catch (error) {
                                 console.error('CV request error:', error);
