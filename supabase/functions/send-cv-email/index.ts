@@ -150,11 +150,12 @@ serve(async (req) => {
       });
     }
 
-    // Mark as approved
+    // Mark as approved — artist_id guard repeated for defence-in-depth
     await supabase
       .from("cv_requests")
       .update({ status: "approved", approved_at: new Date().toISOString() })
-      .eq("id", request_id);
+      .eq("id", request_id)
+      .eq("artist_id", user.id);
 
     console.log(`CV approved and emailed to ${cvRequest.requester_email}`);
     return new Response(JSON.stringify({ success: true }), {
