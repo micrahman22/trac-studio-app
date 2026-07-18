@@ -11504,11 +11504,12 @@ ied to public
                         // ── CV REQUESTS PANEL (artist dashboard) ──────────────────
 
                         async function updateCVRequestsPendingCount() {
-                            if (!currentUser) return;
+                            const { data: { user } } = await supabaseClient.auth.getUser();
+                            if (!user) return;
                             const { count } = await supabaseClient
                                 .from('cv_requests')
                                 .select('id', { count: 'exact', head: true })
-                                .eq('artist_id', currentUser.id)
+                                .eq('artist_id', user.id)
                                 .eq('status', 'pending');
                             const badge = document.getElementById('cvRequestsPendingBadge');
                             if (badge) {
@@ -11531,7 +11532,9 @@ ied to public
                         }
 
                         async function loadCVRequests(status = 'pending') {
-                            if (!currentUser) return;
+                            const { data: { user } } = await supabaseClient.auth.getUser();
+                            if (!user) return;
+                            const currentUser = user;
 
                             // Update tab styles
                             ['pending','approved','denied'].forEach(s => {
@@ -11625,11 +11628,13 @@ ied to public
                         async function denyCVRequest(requestId) {
                             const card = document.getElementById(`cvRequest-${requestId}`);
                             try {
+                                const { data: { user } } = await supabaseClient.auth.getUser();
+                                if (!user) throw new Error('Not authenticated');
                                 const { error } = await supabaseClient
                                     .from('cv_requests')
                                     .update({ status: 'denied', denied_at: new Date().toISOString() })
                                     .eq('id', requestId)
-                                    .eq('artist_id', currentUser.id);
+                                    .eq('artist_id', user.id);
 
                                 if (error) throw error;
 
