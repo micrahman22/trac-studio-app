@@ -3218,22 +3218,21 @@ ied to public
                                     </div>
 
                                     <!-- CV REQUESTS CARD -->
-                                    <div class="dashboard-card" onclick="showCVRequestsPanel()" style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; text-align: left; padding: 1.5rem 2rem;">
-                                        <div style="display: flex; align-items: center; gap: 1.5rem;">
-                                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                                <polyline points="14 2 14 8 20 8"></polyline>
-                                                <line x1="9" y1="13" x2="15" y2="13"></line>
-                                                <line x1="9" y1="17" x2="12" y2="17"></line>
-                                            </svg>
-                                            <div>
-                                                <h3 style="margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 500;">CV Requests</h3>
-                                                <p style="margin: 0; color: #666; font-size: 0.85rem;">Review and approve incoming CV requests</p>
+                                    <div class="dashboard-card" onclick="showCVRequestsPanel()">
+                                        <div style="text-align: center; padding: 0.5rem;">
+                                            <div style="margin-bottom: 1rem;">
+                                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                                    <line x1="9" y1="13" x2="15" y2="13"></line>
+                                                    <line x1="9" y1="17" x2="12" y2="17"></line>
+                                                </svg>
                                             </div>
-                                        </div>
-                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                                            <span id="cvRequestsPendingBadge" style="display: none; background: #000; color: #fff; font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 999px;"></span>
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; font-weight: 500;">CV Requests</h3>
+                                            <p style="margin: 0; color: #666; font-size: 0.85rem;">Review and approve requests</p>
+                                            <div style="margin-top: 1rem; min-height: 1.2rem;">
+                                                <span id="cvRequestsPendingBadge" style="display: none; background: #000; color: #fff; font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 999px;"></span>
+                                            </div>
                                         </div>
                                     </div>
 
