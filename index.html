@@ -3217,6 +3217,26 @@ ied to public
                                         </div>
                                     </div>
 
+                                    <!-- CV REQUESTS CARD -->
+                                    <div class="dashboard-card" onclick="showCVRequestsPanel()" style="grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; text-align: left; padding: 1.5rem 2rem;">
+                                        <div style="display: flex; align-items: center; gap: 1.5rem;">
+                                            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="9" y1="13" x2="15" y2="13"></line>
+                                                <line x1="9" y1="17" x2="12" y2="17"></line>
+                                            </svg>
+                                            <div>
+                                                <h3 style="margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 500;">CV Requests</h3>
+                                                <p style="margin: 0; color: #666; font-size: 0.85rem;">Review and approve incoming CV requests</p>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                            <span id="cvRequestsPendingBadge" style="display: none; background: #000; color: #fff; font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 999px;"></span>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                                        </div>
+                                    </div>
+
                                         </div>
                                     </section>
 
@@ -3806,6 +3826,30 @@ ied to public
                                         <p>Loading history...</p>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CV REQUESTS PANEL (artist view) -->
+                    <div id="cvRequestsPanel" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 720px; width: 90%; max-height: 85vh; overflow-y: auto;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                                <div>
+                                    <h3 style="margin: 0 0 0.25rem 0;">CV Requests</h3>
+                                    <p style="margin: 0; color: #888; font-size: 0.85rem;">Approve to send a 48-hour download link. Deny to close without sharing.</p>
+                                </div>
+                                <button onclick="hideCVRequestsPanel()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; flex-shrink: 0;">×</button>
+                            </div>
+
+                            <!-- Filter tabs -->
+                            <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid #e5e5e5; padding-bottom: 1rem;">
+                                <button onclick="loadCVRequests('pending')" id="cvTab-pending" style="padding: 0.4rem 1rem; border-radius: 999px; border: 1px solid #000; background: #000; color: #fff; font-size: 0.8rem; cursor: pointer;">Pending</button>
+                                <button onclick="loadCVRequests('approved')" id="cvTab-approved" style="padding: 0.4rem 1rem; border-radius: 999px; border: 1px solid #ddd; background: white; color: #666; font-size: 0.8rem; cursor: pointer;">Approved</button>
+                                <button onclick="loadCVRequests('denied')" id="cvTab-denied" style="padding: 0.4rem 1rem; border-radius: 999px; border: 1px solid #ddd; background: white; color: #666; font-size: 0.8rem; cursor: pointer;">Denied</button>
+                            </div>
+
+                            <div id="cvRequestsList">
+                                <p style="color: #999; text-align: center; padding: 2rem 0;">Loading...</p>
                             </div>
                         </div>
                     </div>
@@ -11347,6 +11391,9 @@ ied to public
                                     console.log('❌ activitiesCount element not found');
                                 }
 
+                                // Update CV requests pending badge
+                                updateCVRequestsPendingCount();
+
                             } catch (error) {
                                 console.error('Dashboard counts error:', error);
                                 // Fallback - force set to known values
@@ -11454,6 +11501,153 @@ ied to public
                             _cvRequestArtistName = null;
                         }
 
+                        // ── CV REQUESTS PANEL (artist dashboard) ──────────────────
+
+                        async function updateCVRequestsPendingCount() {
+                            if (!currentUser) return;
+                            const { count } = await supabaseClient
+                                .from('cv_requests')
+                                .select('id', { count: 'exact', head: true })
+                                .eq('artist_id', currentUser.id)
+                                .eq('status', 'pending');
+                            const badge = document.getElementById('cvRequestsPendingBadge');
+                            if (badge) {
+                                if (count > 0) {
+                                    badge.textContent = `${count} pending`;
+                                    badge.style.display = 'inline-block';
+                                } else {
+                                    badge.style.display = 'none';
+                                }
+                            }
+                        }
+
+                        function showCVRequestsPanel() {
+                            document.getElementById('cvRequestsPanel').style.display = 'flex';
+                            loadCVRequests('pending');
+                        }
+
+                        function hideCVRequestsPanel() {
+                            document.getElementById('cvRequestsPanel').style.display = 'none';
+                        }
+
+                        async function loadCVRequests(status = 'pending') {
+                            if (!currentUser) return;
+
+                            // Update tab styles
+                            ['pending','approved','denied'].forEach(s => {
+                                const tab = document.getElementById(`cvTab-${s}`);
+                                if (!tab) return;
+                                if (s === status) {
+                                    tab.style.background = '#000';
+                                    tab.style.color = '#fff';
+                                    tab.style.borderColor = '#000';
+                                } else {
+                                    tab.style.background = 'white';
+                                    tab.style.color = '#666';
+                                    tab.style.borderColor = '#ddd';
+                                }
+                            });
+
+                            const list = document.getElementById('cvRequestsList');
+                            list.innerHTML = '<p style="color: #999; text-align: center; padding: 2rem 0;">Loading...</p>';
+
+                            const { data: requests, error } = await supabaseClient
+                                .from('cv_requests')
+                                .select('*')
+                                .eq('artist_id', currentUser.id)
+                                .eq('status', status)
+                                .order('created_at', { ascending: false });
+
+                            if (error || !requests?.length) {
+                                list.innerHTML = `<p style="color: #999; text-align: center; padding: 2rem 0;">No ${status} requests.</p>`;
+                                return;
+                            }
+
+                            list.innerHTML = requests.map(r => {
+                                const date = new Date(r.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                                const actions = status === 'pending' ? `
+                                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                        <button onclick="approveCVRequest('${r.id}')" style="flex: 1; padding: 0.6rem; background: #000; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">Approve & Send CV</button>
+                                        <button onclick="denyCVRequest('${r.id}')" style="flex: 1; padding: 0.6rem; background: white; color: #666; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Deny</button>
+                                    </div>` : `<p style="margin: 0.75rem 0 0 0; font-size: 0.78rem; color: #aaa;">${status === 'approved' ? '✓ CV sent' : '✗ Denied'} · ${date}</p>`;
+
+                                return `
+                                    <div id="cvRequest-${r.id}" style="border: 1px solid #e5e5e5; border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem;">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                            <div>
+                                                <p style="margin: 0; font-weight: 500;">${r.requester_name}</p>
+                                                <p style="margin: 0.15rem 0 0 0; color: #666; font-size: 0.85rem;">${r.requester_company || ''}</p>
+                                            </div>
+                                            <span style="font-size: 0.75rem; color: #aaa;">${date}</span>
+                                        </div>
+                                        <p style="margin: 0.25rem 0; font-size: 0.85rem; color: #555;">${r.requester_email}${r.requester_phone ? ' · ' + r.requester_phone : ''}</p>
+                                        ${r.message ? `<p style="margin: 0.75rem 0 0 0; font-size: 0.85rem; color: #444; background: #f9f9f9; padding: 0.75rem; border-radius: 6px;">"${r.message}"</p>` : ''}
+                                        ${actions}
+                                    </div>`;
+                            }).join('');
+                        }
+
+                        async function approveCVRequest(requestId) {
+                            const card = document.getElementById(`cvRequest-${requestId}`);
+                            const btn = card?.querySelector('button');
+                            if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+                            try {
+                                const { data: { session } } = await supabaseClient.auth.getSession();
+                                const res = await fetch('https://vhgsayaugbepugssyary.supabase.co/functions/v1/send-cv-email', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${session.access_token}`
+                                    },
+                                    body: JSON.stringify({ request_id: requestId })
+                                });
+
+                                const result = await res.json();
+                                if (!res.ok) throw new Error(result.error || 'Approval failed');
+
+                                showToast('✅ CV sent to requester.');
+                                if (card) card.remove();
+                                updateCVRequestsPendingCount();
+
+                                const remaining = document.querySelectorAll('#cvRequestsList [id^="cvRequest-"]');
+                                if (!remaining.length) {
+                                    document.getElementById('cvRequestsList').innerHTML =
+                                        '<p style="color: #999; text-align: center; padding: 2rem 0;">No pending requests.</p>';
+                                }
+                            } catch (err) {
+                                console.error('Approve error:', err);
+                                showToast(err.message || 'Error approving request.', 'error');
+                                if (btn) { btn.disabled = false; btn.textContent = 'Approve & Send CV'; }
+                            }
+                        }
+
+                        async function denyCVRequest(requestId) {
+                            const card = document.getElementById(`cvRequest-${requestId}`);
+                            try {
+                                const { error } = await supabaseClient
+                                    .from('cv_requests')
+                                    .update({ status: 'denied', denied_at: new Date().toISOString() })
+                                    .eq('id', requestId)
+                                    .eq('artist_id', currentUser.id);
+
+                                if (error) throw error;
+
+                                showToast('Request denied.');
+                                if (card) card.remove();
+                                updateCVRequestsPendingCount();
+
+                                const remaining = document.querySelectorAll('#cvRequestsList [id^="cvRequest-"]');
+                                if (!remaining.length) {
+                                    document.getElementById('cvRequestsList').innerHTML =
+                                        '<p style="color: #999; text-align: center; padding: 2rem 0;">No pending requests.</p>';
+                                }
+                            } catch (err) {
+                                console.error('Deny error:', err);
+                                showToast('Error denying request.', 'error');
+                            }
+                        }
+
                         async function submitCVRequest(event) {
                             event.preventDefault();
                             const submitBtn = event.target.querySelector('button[type="submit"]');
@@ -11486,17 +11680,17 @@ ied to public
 
                                 if (error) throw error;
 
-                                // Trigger Edge Function to send CV email automatically
-                                fetch(`https://vhgsayaugbepugssyary.supabase.co/functions/v1/send-cv-email`, {
+                                // Notify the artist of the new request
+                                fetch(`https://vhgsayaugbepugssyary.supabase.co/functions/v1/notify-artist`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
                                         'Authorization': `Bearer ${supabaseKey}`
                                     },
                                     body: JSON.stringify({ record: insertData })
-                                }).catch(err => console.warn('CV email function error:', err));
+                                }).catch(err => console.warn('Notify artist error:', err));
 
-                                showToast('✅ CV request sent! Check your email shortly.');
+                                showToast('✅ Request sent! The artist will review it shortly.');
                                 hideCVRequestForm();
 
                             } catch (error) {

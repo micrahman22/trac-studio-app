@@ -4,6 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "onboarding@resend.dev";
 
 const corsHeaders = {
@@ -18,50 +19,69 @@ serve(async (req) => {
   }
 
   try {
-    const payload = await req.json();
-    const record = payload.record;
+    const { request_id } = await req.json();
 
-    if (!record?.artist_id || !record?.requester_email) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+    if (!request_id) {
+      return new Response(JSON.stringify({ error: "Missing request_id" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-    // Rate limit: max 3 requests from same email to same artist in 24 hours
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { count } = await supabase
-      .from("cv_requests")
-      .select("id", { count: "exact", head: true })
-      .eq("artist_id", record.artist_id)
-      .eq("requester_email", record.requester_email)
-      .gte("created_at", since);
-
-    if ((count ?? 0) > 3) {
-      return new Response(JSON.stringify({ error: "Too many requests. Please try again tomorrow." }), {
-        status: 429,
+    // Verify the artist is authenticated via their JWT
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: { user }, error: authError } = await userClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // All data operations use service role
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+    // Fetch the request and verify it belongs to this artist and is still pending
+    const { data: cvRequest, error: requestError } = await supabase
+      .from("cv_requests")
+      .select("*")
+      .eq("id", request_id)
+      .eq("artist_id", user.id)
+      .eq("status", "pending")
+      .single();
+
+    if (requestError || !cvRequest) {
+      return new Response(JSON.stringify({ error: "Request not found or already processed" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Fetch artist profile for CV URL
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
       .select("full_name, username, cv_url")
-      .eq("id", record.artist_id)
+      .eq("id", user.id)
       .single();
 
     if (profileError || !profile?.cv_url) {
-      console.error("Profile/CV error:", profileError);
-      return new Response(JSON.stringify({ error: "No CV found for this artist" }), {
+      return new Response(JSON.stringify({ error: "No CV found. Please upload your CV in Profile Settings first." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const cvPath = profile.cv_url.split("/cv-files/")[1];
-
     if (!cvPath) {
       return new Response(JSON.stringify({ error: "Could not parse CV file path" }), {
         status: 400,
@@ -69,9 +89,10 @@ serve(async (req) => {
       });
     }
 
+    // Generate signed URL — 48 hours, server-side only, never exposed to browser
     const { data: signedData, error: signedError } = await supabase.storage
       .from("cv-files")
-      .createSignedUrl(cvPath, 604800);
+      .createSignedUrl(cvPath, 172800);
 
     if (signedError || !signedData?.signedUrl) {
       console.error("Signed URL error:", signedError);
@@ -91,15 +112,15 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: FROM_EMAIL,
-        to: record.requester_email,
+        to: cvRequest.requester_email,
         subject: `CV from ${artistName} — TRAC`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem; color: #333;">
             <h2 style="font-weight: 300; font-size: 1.8rem; margin-bottom: 1rem;">
-              Hi ${record.requester_name},
+              Hi ${cvRequest.requester_name},
             </h2>
             <p style="line-height: 1.6; margin-bottom: 1rem;">
-              Thank you for your interest. <strong>${artistName}</strong> has shared their CV with you via TRAC.
+              Thank you for your interest. <strong>${artistName}</strong> has approved your request and shared their CV with you via TRAC.
             </p>
             <div style="margin: 2rem 0; text-align: center;">
               <a href="${signedData.signedUrl}"
@@ -109,7 +130,7 @@ serve(async (req) => {
               </a>
             </div>
             <p style="color: #888; font-size: 0.85rem; margin-top: 2rem; line-height: 1.5;">
-              This download link expires in <strong>7 days</strong>. If you need a fresh link, please contact ${artistName} directly.
+              This download link expires in <strong>48 hours</strong>. If you need a fresh link, please contact ${artistName} directly.
             </p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 2rem 0;">
             <p style="color: #bbb; font-size: 0.75rem; text-align: center; margin: 0;">
@@ -129,12 +150,13 @@ serve(async (req) => {
       });
     }
 
+    // Mark as approved
     await supabase
       .from("cv_requests")
-      .update({ status: "sent" })
-      .eq("id", record.id);
+      .update({ status: "approved", approved_at: new Date().toISOString() })
+      .eq("id", request_id);
 
-    console.log(`CV email sent to ${record.requester_email} for artist ${artistName}`);
+    console.log(`CV approved and emailed to ${cvRequest.requester_email}`);
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
