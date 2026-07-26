@@ -5348,41 +5348,58 @@
                             });
                         }
 
-                        async function handleImageFile(file) {
-                            if (!file.type.startsWith('image/')) {
-                                showToast('Please select an image file', 'error');
-                                return;
-                            }
+                        // ==================== IMAGE SERVICE ====================
+                        // Consolidates the ~40-line wrapper (type check, size-gate,
+                        // File reconstruction, logging, fallback-to-original) that was
+                        // previously hand-copied at 7 call sites around compressImage().
+                        const TracImageService = {
+                            async process(file, options = {}) {
+                                const {
+                                    maxWidth = 1200,
+                                    quality = 0.8,
+                                    maxFileSize = 800 * 1024,
+                                    compressAboveBytes = 1 * 1024 * 1024,
+                                    rejectAboveBytes = 10 * 1024 * 1024,
+                                    label = 'image'
+                                } = options;
 
-                            // Show processing message for large files
-                            if (file.size > 2 * 1024 * 1024) {
-                                showToast('Processing large image...');
-                            }
+                                if (!file.type.startsWith('image/')) {
+                                    showToast('Please select an image file', 'error');
+                                    return null;
+                                }
 
-                            let processedFile = file;
+                                if (file.size <= compressAboveBytes) {
+                                    return file;
+                                }
 
-                            // Only compress if file is over 1MB
-                            if (file.size > 1 * 1024 * 1024) {
+                                if (file.size > 2 * 1024 * 1024) {
+                                    showToast('Processing large image...');
+                                }
+
                                 try {
-                                    const compressedBlob = await compressImage(file, 1200, 0.8, 800 * 1024);
-                                    processedFile = new File([compressedBlob], file.name, {
+                                    const compressedBlob = await compressImage(file, maxWidth, quality, maxFileSize);
+                                    const processedFile = new File([compressedBlob], file.name, {
                                         type: 'image/jpeg',
                                         lastModified: Date.now()
                                     });
-
-                                    console.log('✅ Image compressed:', 
-                                        Math.round(file.size / 1024) + 'KB → ' + 
-                                        Math.round(compressedBlob.size / 1024) + 'KB');
-
+                                    console.log(`✅ ${label} compressed:`,
+                                        Math.round(file.size / 1024) + 'KB → ' +
+                                        Math.round(processedFile.size / 1024) + 'KB');
+                                    return processedFile;
                                 } catch (error) {
-                                    console.error('Compression failed, using original:', error);
-                                    // If compression fails, check if file is too large
-                                    if (file.size > 10 * 1024 * 1024) {
+                                    console.error(`${label} compression failed, using original:`, error);
+                                    if (file.size > rejectAboveBytes) {
                                         showToast('Image too large. Please select a smaller file.', 'error');
-                                        return;
+                                        return null;
                                     }
+                                    return file;
                                 }
                             }
+                        };
+
+                        async function handleImageFile(file) {
+                            const processedFile = await TracImageService.process(file, { label: 'Image' });
+                            if (!processedFile) return;
 
                             selectedImageFile = processedFile;
 
@@ -5414,48 +5431,12 @@
                             }
                         }
 
-                        function handleEventImageFile(file) {
-                            if (!file.type.startsWith('image/')) {
-                                showToast('Please select an image file', 'error');
-                                return;
-                            }
+                        async function handleEventImageFile(file) {
+                            const processedFile = await TracImageService.process(file, { label: 'Event image' });
+                            if (!processedFile) return;
 
-                            // Show processing message for large files
-                            if (file.size > 2 * 1024 * 1024) {
-                                showToast('Processing large image...');
-                            }
-
-                            let processedFile = file;
-
-                            // Only compress if file is over 1MB (same logic as handleImageFile)
-                            if (file.size > 1 * 1024 * 1024) {
-                                try {
-                                    compressImage(file, 1200, 0.8, 800 * 1024).then(compressedBlob => {
-                                        processedFile = new File([compressedBlob], file.name, {
-                                            type: 'image/jpeg',
-                                            lastModified: Date.now()
-                                        });
-
-                                        console.log('✅ Event image compressed:', 
-                                            Math.round(file.size / 1024) + 'KB → ' + 
-                                            Math.round(compressedBlob.size / 1024) + 'KB');
-
-                                        selectedEventImageFile = processedFile;
-                                        updateEventImagePreview(processedFile, file);
-                                    }).catch(error => {
-                                        console.error('Compression failed, using original:', error);
-                                        selectedEventImageFile = file;
-                                        updateEventImagePreview(file, file);
-                                    });
-                                } catch (error) {
-                                    console.error('Compression error, using original:', error);
-                                    selectedEventImageFile = file;
-                                    updateEventImagePreview(file, file);
-                                }
-                            } else {
-                                selectedEventImageFile = processedFile;
-                                updateEventImagePreview(processedFile, file);
-                            }
+                            selectedEventImageFile = processedFile;
+                            updateEventImagePreview(processedFile, file);
                         }
 
                         function updateEventImagePreview(processedFile, originalFile) {
@@ -9124,47 +9105,14 @@
                             }, 100);
                         }
 
-                        function handleMoodboardImageUpload(event, modal) {
+                        async function handleMoodboardImageUpload(event, modal) {
                             const file = event.target.files[0];
                             if (!file) return;
 
-                            if (!file.type.startsWith('image/')) {
-                                showToast('Please select an image file', 'error');
-                                return;
-                            }
+                            const processedFile = await TracImageService.process(file, { label: 'Moodboard image' });
+                            if (!processedFile) return;
 
-                            // Show processing message for large files
-                            if (file.size > 2 * 1024 * 1024) {
-                                showToast('Processing large image...');
-                            }
-
-                            let processedFile = file;
-
-                            // Only compress if file is over 1MB
-                            if (file.size > 1 * 1024 * 1024) {
-                                try {
-                                    compressImage(file, 1200, 0.8, 800 * 1024).then(compressedBlob => {
-                                        processedFile = new File([compressedBlob], file.name, {
-                                            type: 'image/jpeg',
-                                            lastModified: Date.now()
-                                        });
-
-                                        console.log('✅ Moodboard image compressed:', 
-                                            Math.round(file.size / 1024) + 'KB → ' + 
-                                            Math.round(compressedBlob.size / 1024) + 'KB');
-
-                                        updateMoodboardPreview(processedFile, file, modal);
-                                    }).catch(error => {
-                                        console.error('Compression failed, using original:', error);
-                                        updateMoodboardPreview(file, file, modal);
-                                    });
-                                } catch (error) {
-                                    console.error('Compression error, using original:', error);
-                                    updateMoodboardPreview(file, file, modal);
-                                }
-                            } else {
-                                updateMoodboardPreview(processedFile, file, modal);
-                            }
+                            updateMoodboardPreview(processedFile, file, modal);
                         }
 
                         async function addReferenceToMoodboard(modal) {
@@ -9357,45 +9305,14 @@
                             }, 100);
                         }
 
-                        function handleSketchImageUpload(event, modal) {
+                        async function handleSketchImageUpload(event, modal) {
                             const file = event.target.files[0];
                             if (!file) return;
 
-                            if (!file.type.startsWith('image/')) {
-                                showToast('Please select an image file', 'error');
-                                return;
-                            }
+                            const processedFile = await TracImageService.process(file, { label: 'Sketch image' });
+                            if (!processedFile) return;
 
-                            if (file.size > 2 * 1024 * 1024) {
-                                showToast('Processing large image...');
-                            }
-
-                            let processedFile = file;
-
-                            if (file.size > 1 * 1024 * 1024) {
-                                try {
-                                    compressImage(file, 1200, 0.8, 800 * 1024).then(compressedBlob => {
-                                        processedFile = new File([compressedBlob], file.name, {
-                                            type: 'image/jpeg',
-                                            lastModified: Date.now()
-                                        });
-
-                                        console.log('✅ Sketch image compressed:', 
-                                            Math.round(file.size / 1024) + 'KB → ' + 
-                                            Math.round(compressedBlob.size / 1024) + 'KB');
-
-                                        updateSketchPreview(processedFile, file, modal);
-                                    }).catch(error => {
-                                        console.error('Compression failed, using original:', error);
-                                        updateSketchPreview(file, file, modal);
-                                    });
-                                } catch (error) {
-                                    console.error('Compression error, using original:', error);
-                                    updateSketchPreview(file, file, modal);
-                                }
-                            } else {
-                                updateSketchPreview(processedFile, file, modal);
-                            }
+                            updateSketchPreview(processedFile, file, modal);
                         }
 
                         async function uploadSketchToProject(modal) {
@@ -9418,11 +9335,9 @@
                                 let fileToUpload = originalFile;
                                 if (originalFile.size > 1 * 1024 * 1024) {
                                     showToast('Compressing image...');
-                                    const compressedBlob = await compressImage(originalFile, 800, 0.6, 300 * 1024);
-                                    fileToUpload = new File([compressedBlob], originalFile.name, {
-                                        type: 'image/jpeg',
-                                        lastModified: Date.now()
-                                    });
+                                    fileToUpload = await TracImageService.process(originalFile, {
+                                        maxWidth: 800, quality: 0.6, maxFileSize: 300 * 1024, label: 'Sketch'
+                                    }) || originalFile;
                                 }
 
                                 showToast('Uploading...');
@@ -11061,47 +10976,14 @@
                             }
                         }
 
-                        function handleImageUpload(event, modal) {
+                        async function handleImageUpload(event, modal) {
                             const file = event.target.files[0];
                             if (!file) return;
 
-                            if (!file.type.startsWith('image/')) {
-                                showToast('Please select an image file', 'error');
-                                return;
-                            }
+                            const processedFile = await TracImageService.process(file, { label: 'Image' });
+                            if (!processedFile) return;
 
-                            // Show processing message for large files
-                            if (file.size > 2 * 1024 * 1024) {
-                                showToast('Processing large image...');
-                            }
-
-                            let processedFile = file;
-
-                            // Only compress if file is over 1MB
-                            if (file.size > 1 * 1024 * 1024) {
-                                try {
-                                    compressImage(file, 1200, 0.8, 800 * 1024).then(compressedBlob => {
-                                        processedFile = new File([compressedBlob], file.name, {
-                                            type: 'image/jpeg',
-                                            lastModified: Date.now()
-                                        });
-
-                                        console.log('✅ Image compressed:', 
-                                            Math.round(file.size / 1024) + 'KB → ' + 
-                                            Math.round(compressedBlob.size / 1024) + 'KB');
-
-                                        updateGenericPreview(processedFile, file, modal);
-                                    }).catch(error => {
-                                        console.error('Compression failed, using original:', error);
-                                        updateGenericPreview(file, file, modal);
-                                    });
-                                } catch (error) {
-                                    console.error('Compression error, using original:', error);
-                                    updateGenericPreview(file, file, modal);
-                                }
-                            } else {
-                                updateGenericPreview(processedFile, file, modal);
-                            }
+                            updateGenericPreview(processedFile, file, modal);
                         }
 
                         async function createProjectFromModal() {
@@ -11194,44 +11076,11 @@
                             }
                         });
 
-                        function handleMoodboardImageFile(file) {
-                            if (!file.type.startsWith('image/')) {
-                                showToast('Please select an image file', 'error');
-                                return;
-                            }
+                        async function handleMoodboardImageFile(file) {
+                            const processedFile = await TracImageService.process(file, { label: 'Moodboard image' });
+                            if (!processedFile) return;
 
-                            // Show processing message for large files
-                            if (file.size > 2 * 1024 * 1024) {
-                                showToast('Processing large image...');
-                            }
-
-                            let processedFile = file;
-
-                            // Only compress if file is over 1MB
-                            if (file.size > 1 * 1024 * 1024) {
-                                try {
-                                    compressImage(file, 1200, 0.8, 800 * 1024).then(compressedBlob => {
-                                        processedFile = new File([compressedBlob], file.name, {
-                                            type: 'image/jpeg',
-                                            lastModified: Date.now()
-                                        });
-
-                                        console.log('✅ Moodboard image compressed:', 
-                                            Math.round(file.size / 1024) + 'KB → ' + 
-                                            Math.round(compressedBlob.size / 1024) + 'KB');
-
-                                        updateMoodboardFilePreview(processedFile, file);
-                                    }).catch(error => {
-                                        console.error('Compression failed, using original:', error);
-                                        updateMoodboardFilePreview(file, file);
-                                    });
-                                } catch (error) {
-                                    console.error('Compression error, using original:', error);
-                                    updateMoodboardFilePreview(file, file);
-                                }
-                            } else {
-                                updateMoodboardFilePreview(processedFile, file);
-                            }
+                            updateMoodboardFilePreview(processedFile, file);
                         }
 
                         function updateMoodboardPreview(processedFile, originalFile, modal) {
@@ -14267,14 +14116,17 @@
                                                                         console.log('Uploading profile photo:', file.name);
 
                                                                         try {
+                                                                            const processedFile = await TracImageService.process(file, { label: 'Profile photo' });
+                                                                            if (!processedFile) return;
+
                                                                             const { data: { user } } = await supabaseClient.auth.getUser();
                                                                             if (!user) return;
 
                                                                             // Upload to Supabase Storage
-                                                                            const fileName = `${user.id}/profile_photo_${Date.now()}_${file.name}`;
+                                                                            const fileName = `${user.id}/profile_photo_${Date.now()}_${processedFile.name}`;
                                                                             const { data, error } = await supabaseClient.storage
                                                                                 .from('artwork-images')
-                                                                                .upload(fileName, file);
+                                                                                .upload(fileName, processedFile);
 
                                                                             if (error) throw error;
 
