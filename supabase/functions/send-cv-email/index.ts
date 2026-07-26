@@ -13,6 +13,17 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Escapes a value for safe interpolation into the HTML email body below.
+function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -113,14 +124,14 @@ serve(async (req) => {
       body: JSON.stringify({
         from: FROM_EMAIL,
         to: cvRequest.requester_email,
-        subject: `CV from ${artistName} — TRAC`,
+        subject: `CV from ${escapeHtml(artistName)} — TRAC`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem; color: #333;">
             <h2 style="font-weight: 300; font-size: 1.8rem; margin-bottom: 1rem;">
-              Hi ${cvRequest.requester_name},
+              Hi ${escapeHtml(cvRequest.requester_name)},
             </h2>
             <p style="line-height: 1.6; margin-bottom: 1rem;">
-              Thank you for your interest. <strong>${artistName}</strong> has approved your request and shared their CV with you via TRAC.
+              Thank you for your interest. <strong>${escapeHtml(artistName)}</strong> has approved your request and shared their CV with you via TRAC.
             </p>
             <div style="margin: 2rem 0; text-align: center;">
               <a href="${signedData.signedUrl}"
@@ -130,7 +141,7 @@ serve(async (req) => {
               </a>
             </div>
             <p style="color: #888; font-size: 0.85rem; margin-top: 2rem; line-height: 1.5;">
-              This download link expires in <strong>48 hours</strong>. If you need a fresh link, please contact ${artistName} directly.
+              This download link expires in <strong>48 hours</strong>. If you need a fresh link, please contact ${escapeHtml(artistName)} directly.
             </p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 2rem 0;">
             <p style="color: #bbb; font-size: 0.75rem; text-align: center; margin: 0;">

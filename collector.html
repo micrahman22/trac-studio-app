@@ -220,6 +220,18 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoZ3NheWF1Z2JlcHVnc3N5YXJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NjA5ODMsImV4cCI6MjA3ODIzNjk4M30.2a6qJqW3BrHZxHHhM5Hm9e0sU6Bts6dXmPFW5tbrW_A';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Escapes a value for safe interpolation into innerHTML template
+    // literals (text nodes and double-quoted HTML attributes).
+    function escapeHtml(value) {
+        if (value === null || value === undefined) return '';
+        return String(value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
     let currentCollector = null;
 
     // ==================== INIT ====================
@@ -385,25 +397,25 @@
         grid.innerHTML = currentCoas.map(o => {
             const coa = o.blockchain_coas || {};
             const artwork = coa.artworks || {};
-            const meta = [artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).join(' · ');
+            const meta = [artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).map(escapeHtml).join(' · ');
             return `
             <div class="c-coa-card">
                 ${artwork.image_url
-                    ? `<img class="c-coa-image" src="${artwork.image_url}" alt="${artwork.title}" loading="lazy">`
+                    ? `<img class="c-coa-image" src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" loading="lazy">`
                     : `<div class="c-coa-image-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`
                 }
                 <div class="c-coa-body">
-                    <div class="c-coa-title">${artwork.title || 'Untitled'}</div>
+                    <div class="c-coa-title">${escapeHtml(artwork.title) || 'Untitled'}</div>
                     <div class="c-coa-meta">${meta || 'Physical artwork'}</div>
                     <div class="c-coa-badges">
                         <span class="c-badge c-badge-green">Certified</span>
                         <span class="c-badge c-badge-blue">${coa.royalty_pct || 0}% royalty</span>
-                        <span class="c-badge c-badge-gray">${coa.network || 'Polygon'}</span>
+                        <span class="c-badge c-badge-gray">${escapeHtml(coa.network) || 'Polygon'}</span>
                         ${o.is_original_purchase ? '<span class="c-badge c-badge-gray">Original buyer</span>' : '<span class="c-badge c-badge-gray">Secondary owner</span>'}
                     </div>
                     <div class="c-coa-actions">
                         <button onclick="openCertView('${coa.id}')" style="background:white;border:1px solid #d1d1d1;color:#000;" onmouseenter="this.style.borderColor='#000'" onmouseleave="this.style.borderColor='#d1d1d1'">View CoA</button>
-                        <button onclick="openTransferModal('${coa.id}','${(artwork.title||'').replace(/'/g,"\\'")}')" style="background:#000;border:1px solid #000;color:white;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Report Sale</button>
+                        <button data-coa-id="${coa.id}" data-artwork-title="${escapeHtml(artwork.title || '')}" onclick="openTransferModal(this.dataset.coaId, this.dataset.artworkTitle)" style="background:#000;border:1px solid #000;color:white;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Report Sale</button>
                     </div>
                 </div>
             </div>`;
@@ -440,23 +452,23 @@
                 </div>
                 <div class="coa-cert-row">
                     <span class="key">Artwork</span>
-                    <span class="val">${artwork.title || '—'}</span>
+                    <span class="val">${escapeHtml(artwork.title) || '—'}</span>
                 </div>
                 <div class="coa-cert-row">
                     <span class="key">Artist</span>
-                    <span class="val">${meta.artist_name || '—'}</span>
+                    <span class="val">${escapeHtml(meta.artist_name) || '—'}</span>
                 </div>
                 <div class="coa-cert-row">
                     <span class="key">Year</span>
-                    <span class="val">${artwork.year || '—'}</span>
+                    <span class="val">${escapeHtml(artwork.year) || '—'}</span>
                 </div>
                 <div class="coa-cert-row">
                     <span class="key">Medium</span>
-                    <span class="val">${artwork.medium || '—'}</span>
+                    <span class="val">${escapeHtml(artwork.medium) || '—'}</span>
                 </div>
                 <div class="coa-cert-row">
                     <span class="key">Dimensions</span>
-                    <span class="val">${artwork.dimensions || '—'}</span>
+                    <span class="val">${escapeHtml(artwork.dimensions) || '—'}</span>
                 </div>
                 <div class="coa-cert-row">
                     <span class="key">Resale Royalty</span>
@@ -464,7 +476,7 @@
                 </div>
                 <div class="coa-cert-row">
                     <span class="key">Network</span>
-                    <span class="val">${coa.network}</span>
+                    <span class="val">${escapeHtml(coa.network)}</span>
                 </div>
                 <div class="coa-cert-row">
                     <span class="key">Issued</span>
@@ -472,7 +484,7 @@
                 </div>
                 <div class="coa-cert-hash">
                     <div class="key">Transaction Hash</div>
-                    <div class="val">${coa.tx_hash}</div>
+                    <div class="val">${escapeHtml(coa.tx_hash)}</div>
                 </div>
             </div>
 
@@ -487,7 +499,7 @@
                             : `<span style="font-size:0.7rem;font-weight:600;color:#666;">${i+1}</span>`}
                     </div>
                     <div style="flex:1;">
-                        <div style="font-size:0.83rem;font-weight:500;">${h.owner_name}</div>
+                        <div style="font-size:0.83rem;font-weight:500;">${escapeHtml(h.owner_name)}</div>
                         <div style="font-size:0.72rem;color:#666;">${h.is_original_purchase?'Original purchase':'Secondary sale'} · ${new Date(h.transfer_date).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}</div>
                     </div>
                     ${h.sale_price ? `<div style="font-size:0.8rem;font-weight:500;">$${Number(h.sale_price).toLocaleString()}</div>` : ''}
@@ -511,7 +523,7 @@
             <div class="c-modal-header">
                 <div>
                     <h3>Report a Sale</h3>
-                    <p style="font-size:0.8rem;color:#666;margin-top:0.2rem;">${artworkTitle}</p>
+                    <p style="font-size:0.8rem;color:#666;margin-top:0.2rem;">${escapeHtml(artworkTitle)}</p>
                 </div>
                 <button class="c-modal-close" onclick="this.closest('.c-modal-overlay').remove()">×</button>
             </div>

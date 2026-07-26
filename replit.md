@@ -1,38 +1,32 @@
-# Supabase Connection Test Website
+# TRAC — Artist Career OS
 
 ## Overview
-A simple, clean HTML website that allows users to connect to Supabase and test their connection. The site features a modern UI with configuration management and visual feedback for connection testing.
+An artist-portfolio and career-management platform. Artists showcase artwork/collections/events on a public portfolio page, manage a private dashboard (uploads, CV, sketches, notes, work-in-progress projects), and can mint "blockchain COA" (certificate of authenticity) records tracked through a collector-facing companion app. Visitors can request an artist's CV via a public form without an account.
 
 ## Project Structure
 ```
-├── index.html      # Main HTML page
-├── style.css       # Styling and layout
-└── script.js       # JavaScript for Supabase integration
+├── index.html      # Main artist-facing app: public portfolio + private dashboard (single file, all CSS/JS inline)
+├── collector.html  # Collector-facing app: view/manage owned CoAs, report resales
+├── server.py       # Trivial static file server for local/Replit preview only — not a real backend
+├── schema.sql       # Blockchain COA table definitions + RLS policies
+└── supabase/
+    ├── functions/           # Edge Functions (notify-artist, send-cv-email)
+    ├── cv_requests_rls.sql  # RLS policies for the CV-request feature
+    ├── security_fixes_2026-07-26.sql  # RLS policy fixes — run against the live project
+    └── storage_cleanup.sql, storage_updates_only.sql  # one-off storage.objects migrations
 ```
 
-## Features
-- **Configuration Management**: Save and load Supabase URL and API key using localStorage
-- **Connection Testing**: Test button to verify Supabase connectivity
-- **Visual Feedback**: Color-coded status messages (success/error/info)
-- **Modern UI**: Clean, responsive design with gradient backgrounds
-- **Separate Files**: HTML, CSS, and JavaScript properly organized
-
 ## Technology Stack
-- Vanilla HTML, CSS, JavaScript
-- Supabase JavaScript Client (v2, loaded via CDN)
-- LocalStorage for configuration persistence
-
-## Setup Instructions
-1. Get your Supabase project URL and anon/public API key from your Supabase dashboard
-2. Enter the credentials in the configuration section
-3. Click "Save Configuration"
-4. Click "Test Connection" to verify the setup
-
-## Recent Changes
-- 2025-11-09: Initial project creation with all core features
+- Vanilla HTML, CSS, JavaScript — no build step, no bundler, no package.json
+- Supabase (Postgres + Row Level Security, Auth, Storage, Edge Functions) as the entire backend
+- Supabase JS client (v2) loaded from jsDelivr CDN
+- Deno-based Supabase Edge Functions (TypeScript) for server-side email sending
 
 ## Architecture
-- **Frontend Only**: No backend server required
-- **Static Site**: Can be served with any simple HTTP server
-- **Client-Side Storage**: Configuration stored in browser localStorage
-- **CDN Dependencies**: Supabase client loaded from jsDelivr CDN
+- **No custom backend**: every database/storage operation happens directly from the browser via the Supabase client, using the (intentionally public) anon key. Security relies entirely on RLS policies and Storage bucket policies, not on hiding the key.
+- **Storage bucket policies** (path-ownership, file-type/size limits for `artwork-images`/`cv-files`) are configured directly in the Supabase Dashboard and are not version-controlled in this repo — check there directly, not here.
+- **Edge Functions** hold the two secrets that must never reach the browser: `RESEND_API_KEY` and `SUPABASE_SERVICE_ROLE_KEY`.
+
+## Recent Changes
+- 2026-07-26: Security audit fixes — added HTML-escaping (`escapeHtml`) across all user-generated content rendered via `innerHTML` in both `index.html` and `collector.html` (previously exploitable stored XSS on public portfolio pages); removed an RLS policy bug (`... or true`) that exposed all `collector_accounts` rows; tightened `coa_ownership_history`/`royalty_notifications` insert policies to require a real artist/coa relationship instead of `with check (true)`; fixed `notify-artist` Edge Function to re-derive request data server-side instead of trusting the client payload, and added HTML-escaping to both Edge Functions' email templates. See `supabase/security_fixes_2026-07-26.sql` for the RLS migration.
+- 2025-11-09: Initial project creation

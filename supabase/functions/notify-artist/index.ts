@@ -13,16 +13,28 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+// Escapes a value for safe interpolation into the HTML email body below.
+function escapeHtml(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { record } = await req.json();
+    const body = await req.json();
+    const requestId = body?.id;
 
-    if (!record?.artist_id || !record?.requester_name) {
-      return new Response(JSON.stringify({ error: "Missing required fields" }), {
+    if (!requestId) {
+      return new Response(JSON.stringify({ error: "Missing id" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -30,8 +42,30 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // This function is called by anonymous public visitors submitting the
+    // "Request CV" form, so there's no user JWT to validate here (unlike
+    // send-cv-email, which is called by a logged-in artist). Instead, we
+    // never trust the client-submitted payload directly — we re-fetch the
+    // authoritative row by id and independently confirm it's a real,
+    // still-pending request. cv_requests.id is an unguessable UUID and its
+    // own RLS select policy restricts reads to the owning artist, so an
+    // attacker cannot discover someone else's request id to feed in here.
+    const { data: cvRequest, error: fetchError } = await supabase
+      .from("cv_requests")
+      .select("id, artist_id, requester_name, requester_company, requester_email, requester_phone, message, status")
+      .eq("id", requestId)
+      .eq("status", "pending")
+      .single();
+
+    if (fetchError || !cvRequest) {
+      return new Response(JSON.stringify({ error: "Request not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Get artist's email via admin API
-    const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(record.artist_id);
+    const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(cvRequest.artist_id);
     if (userError || !user?.email) {
       console.error("Could not get artist email:", userError);
       return new Response(JSON.stringify({ error: "Artist not found" }), {
@@ -43,7 +77,7 @@ serve(async (req) => {
     const { data: profile } = await supabase
       .from("profiles")
       .select("full_name, username")
-      .eq("id", record.artist_id)
+      .eq("id", cvRequest.artist_id)
       .single();
 
     const artistName = profile?.full_name || profile?.username || "there";
@@ -57,21 +91,21 @@ serve(async (req) => {
       body: JSON.stringify({
         from: FROM_EMAIL,
         to: user.email,
-        subject: `New CV request from ${record.requester_name} — TRAC`,
+        subject: `New CV request from ${escapeHtml(cvRequest.requester_name)} — TRAC`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem; color: #333;">
             <h2 style="font-weight: 300; font-size: 1.8rem; margin-bottom: 1rem;">
-              Hi ${artistName},
+              Hi ${escapeHtml(artistName)},
             </h2>
             <p style="line-height: 1.6; margin-bottom: 0.5rem;">
               Someone has requested your CV on TRAC:
             </p>
             <div style="background: #f9f9f9; border: 1px solid #e5e5e5; border-radius: 8px; padding: 1.25rem; margin: 1.5rem 0;">
-              <p style="margin: 0 0 0.5rem 0;"><strong>Name:</strong> ${record.requester_name}</p>
-              <p style="margin: 0 0 0.5rem 0;"><strong>Company / Gallery:</strong> ${record.requester_company || '—'}</p>
-              <p style="margin: 0 0 0.5rem 0;"><strong>Email:</strong> ${record.requester_email}</p>
-              ${record.requester_phone ? `<p style="margin: 0 0 0.5rem 0;"><strong>Phone:</strong> ${record.requester_phone}</p>` : ''}
-              ${record.message ? `<p style="margin: 0.75rem 0 0 0;"><strong>Message:</strong><br>${record.message}</p>` : ''}
+              <p style="margin: 0 0 0.5rem 0;"><strong>Name:</strong> ${escapeHtml(cvRequest.requester_name)}</p>
+              <p style="margin: 0 0 0.5rem 0;"><strong>Company / Gallery:</strong> ${escapeHtml(cvRequest.requester_company) || '—'}</p>
+              <p style="margin: 0 0 0.5rem 0;"><strong>Email:</strong> ${escapeHtml(cvRequest.requester_email)}</p>
+              ${cvRequest.requester_phone ? `<p style="margin: 0 0 0.5rem 0;"><strong>Phone:</strong> ${escapeHtml(cvRequest.requester_phone)}</p>` : ''}
+              ${cvRequest.message ? `<p style="margin: 0.75rem 0 0 0;"><strong>Message:</strong><br>${escapeHtml(cvRequest.message)}</p>` : ''}
             </div>
             <div style="margin: 2rem 0; text-align: center;">
               <a href="${APP_URL}"

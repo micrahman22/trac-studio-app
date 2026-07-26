@@ -61,7 +61,7 @@ create table if not exists royalty_notifications (
 alter table collector_accounts enable row level security;
 create policy "Upsert by email" on collector_accounts for insert with check (true);
 create policy "Update own record" on collector_accounts for update using (supabase_user_id = auth.uid() or supabase_user_id is null);
-create policy "Read own record" on collector_accounts for select using (supabase_user_id = auth.uid() or true);
+create policy "Read own record" on collector_accounts for select using (supabase_user_id = auth.uid());
 
 -- blockchain_coas: artists can read/write their own; collectors can read coas linked to artworks they own
 alter table blockchain_coas enable row level security;
@@ -76,9 +76,31 @@ create policy "Artists read own history" on coa_ownership_history for all using 
 create policy "Collectors read own history" on coa_ownership_history for select using (
     lower(owner_email) = lower((select email from auth.users where id = auth.uid()))
 );
-create policy "Collectors insert transfers" on coa_ownership_history for insert with check (true);
+-- insert must reference a coa/artist pair that genuinely exists — prevents forging
+-- provenance rows for an artist_id/coa_id the inserter has no real relationship to.
+-- (A stricter "must be the current owner of record" check is possible later, but
+-- requires confirming collectors always report sales under the same email their
+-- account was invited/registered with — not yet verified against real data.)
+create policy "Collectors insert transfers" on coa_ownership_history for insert
+with check (
+    auth.uid() is not null
+    and exists (
+        select 1 from blockchain_coas b
+        where b.id = coa_ownership_history.coa_id
+        and b.artist_id = coa_ownership_history.artist_id
+    )
+);
 
 -- royalty_notifications: artists only
 alter table royalty_notifications enable row level security;
 create policy "Artists manage royalties" on royalty_notifications for all using (artist_id = auth.uid());
-create policy "Collectors insert royalties" on royalty_notifications for insert with check (true);
+-- same reasoning as coa_ownership_history above
+create policy "Collectors insert royalties" on royalty_notifications for insert
+with check (
+    auth.uid() is not null
+    and exists (
+        select 1 from blockchain_coas b
+        where b.id = royalty_notifications.coa_id
+        and b.artist_id = royalty_notifications.artist_id
+    )
+);

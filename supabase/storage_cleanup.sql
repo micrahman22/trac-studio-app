@@ -1,6 +1,13 @@
 -- Run this in Supabase SQL Editor:
 -- https://supabase.com/dashboard/project/vhgsayaugbepugssyary/sql/new
 -- ⚠️ Review before running. These operations are permanent.
+--
+-- NOTE: bucket-level RLS policies for `artwork-images` and `cv-files`
+-- (path-ownership, file-type/size limits) are configured directly in the
+-- Supabase Dashboard -> Storage -> Policies and are NOT version-controlled
+-- in this repo. This file only contains one-off cleanup/migration
+-- statements against storage.objects rows, not the authoritative policy
+-- definitions — verify bucket policies directly in the dashboard.
 
 -- ============================================================
 -- 1. DELETE 15 DUPLICATE CVs — keep only the latest

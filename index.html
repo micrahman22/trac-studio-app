@@ -4387,6 +4387,21 @@ ied to public
                         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoZ3NheWF1Z2JlcHVnc3N5YXJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NjA5ODMsImV4cCI6MjA3ODIzNjk4M30.2a6qJqW3BrHZxHHhM5Hm9e0sU6Bts6dXmPFW5tbrW_A';
                         let supabaseClient;
 
+                        // Escapes a value for safe interpolation into innerHTML template
+                        // literals (text nodes and double-quoted HTML attributes). Only
+                        // apply at the point of rendering — NOT at fetch time, since the
+                        // same fields also get written into edit-form inputs via .value=,
+                        // which does not decode entities.
+                        function escapeHtml(value) {
+                            if (value === null || value === undefined) return '';
+                            return String(value)
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/"/g, '&quot;')
+                                .replace(/'/g, '&#39;');
+                        }
+
                         // Global State Management
                         let currentArtworks = [];
                         let cachedPortfolioData = null;
@@ -5122,7 +5137,7 @@ ied to public
                                 document.getElementById('imagePreview').style.display = 'block';
                                 document.getElementById('imagePreview').innerHTML = `
                                     <div style="text-align: center;">
-                                        <img src="${artwork.image_url}" alt="${artwork.title}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                                        <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
                                         <div style="margin-top: 1rem; font-size: 0.8rem; color: #666;">
                                             Current artwork - upload new image to replace
                                         </div>
@@ -5303,7 +5318,7 @@ ied to public
                                 document.getElementById('imagePreview').style.display = 'block';
                                 document.getElementById('imagePreview').innerHTML = `
                                     <div style="margin-top: 1rem; font-size: 0.8rem; color: #666;">
-                                        ${file.name} (${Math.round(processedFile.size / 1024)}KB)
+                                        ${escapeHtml(file.name)} (${Math.round(processedFile.size / 1024)}KB)
                                         ${file.size !== processedFile.size ? ' • Optimized' : ''}
                                     </div>
                                 `;
@@ -5374,7 +5389,7 @@ ied to public
                             reader.onload = function(e) {
                                 document.getElementById('eventImagePreview').innerHTML = `
                                     <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">
-                                        ${originalFile.name} (${Math.round(processedFile.size / 1024)}KB)
+                                        ${escapeHtml(originalFile.name)} (${Math.round(processedFile.size / 1024)}KB)
                                         ${originalFile.size !== processedFile.size ? ' • Optimized' : ''}
                                     </div>
                                 `;
@@ -5713,8 +5728,8 @@ ied to public
                                 if (platform && username && SOCIAL_ICONS[platform]) {
                                     const profileUrl = getSocialProfileUrl(platform, username);
                                     html += `
-                                        <a href="${profileUrl}" target="_blank" style="color: #000; text-decoration: none; transition: opacity 0.2s;" 
-                                           title="${platform}: ${username}" 
+                                        <a href="${escapeHtml(profileUrl)}" target="_blank" style="color: #000; text-decoration: none; transition: opacity 0.2s;"
+                                           title="${escapeHtml(platform)}: ${escapeHtml(username)}"
                                            onmouseover="this.style.opacity='0.7'" 
                                            onmouseout="this.style.opacity='1'">
                                             ${SOCIAL_ICONS[platform]}
@@ -5780,14 +5795,14 @@ ied to public
                             grid.innerHTML = archivedArtworks.map(artwork => `
                                 <div class="artwork-card" style="opacity: 0.8;">
                                     <div class="artwork-image">
-                                        <img src="${artwork.image_url}" alt="${artwork.title}" style="width: 100%; height: auto; display: block;">
+                                        <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width: 100%; height: auto; display: block;">
                                     </div>
                                     <div class="artwork-info">
-                                        <h3 class="artwork-title">${artwork.title || 'Untitled'}</h3>
+                                        <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
                                         <div class="artwork-details">
-                                            ${artwork.year ? `<div>${artwork.year}</div>` : ''}
-                                            ${artwork.medium ? `<div>${artwork.medium}</div>` : ''}
-                                            ${artwork.dimensions ? `<div>${artwork.dimensions}</div>` : ''}
+                                            ${artwork.year ? `<div>${escapeHtml(artwork.year)}</div>` : ''}
+                                            ${artwork.medium ? `<div>${escapeHtml(artwork.medium)}</div>` : ''}
+                                            ${artwork.dimensions ? `<div>${escapeHtml(artwork.dimensions)}</div>` : ''}
                                         </div>
                                         <div class="artwork-actions" style="margin-top: 1rem; display: flex; gap: 1rem;">
                                             <button onclick="restoreArtwork('${artwork.id}')" style="color: #4CAF50; text-decoration: underline; background: none; border: none; cursor: pointer; font-size: 0.7rem;">Restore</button>
@@ -6121,14 +6136,14 @@ ied to public
                     ${artworks.map(artwork => `
                         <div class="conveyor-item artwork-card">
                             <div class="artwork-image">
-                                <img src="${artwork.image_url}" alt="${artwork.title}" loading="lazy" decoding="async" style="width: 100%; height: auto; display: block;">
+                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" loading="lazy" decoding="async" style="width: 100%; height: auto; display: block;">
                             </div>
                             <div class="artwork-info">
-                                <h3 class="artwork-title">${artwork.title || 'Untitled'}</h3>
+                                <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
                                 <div class="artwork-details">
-                                    ${artwork.year ? `<div>${artwork.year}</div>` : ''}
-                                    ${artwork.medium ? `<div>${artwork.medium}</div>` : ''}
-                                    ${artwork.dimensions ? `<div>${artwork.dimensions}</div>` : ''}
+                                    ${artwork.year ? `<div>${escapeHtml(artwork.year)}</div>` : ''}
+                                    ${artwork.medium ? `<div>${escapeHtml(artwork.medium)}</div>` : ''}
+                                    ${artwork.dimensions ? `<div>${escapeHtml(artwork.dimensions)}</div>` : ''}
                                 </div>
                                 <!-- PORTFOLIO STATUS BADGES - REDUCED GAP -->
                                 <div style="display: flex; gap: 0.25rem; margin-top: 0.5rem; flex-wrap: wrap;">
@@ -6400,7 +6415,7 @@ ied to public
                             <div class="conveyor-item event-card" style="min-width: 320px;">
                                 <div class="artwork-image" style="height: 220px; overflow: hidden;">
                                     ${event.image_url ? `
-                                        <img src="${event.image_url}" alt="${event.title}" style="width:100%;height:100%;object-fit: cover; display:block;">
+                                        <img src="${escapeHtml(event.image_url)}" alt="${escapeHtml(event.title)}" style="width:100%;height:100%;object-fit: cover; display:block;">
                                     ` : `
                                         <div style="width:100%;height:100%;background:#f5f5f5;position:relative;display:flex;align-items:center;justify-content:center;">
                                             <svg width="60" height="60" viewBox="0 0 100 100">
@@ -6420,13 +6435,13 @@ ied to public
                                           event.event_type === 'deadline' ? 'Deadline' : 'Event'}
                                     </div>
 
-                                    <h3 class="artwork-title" style="font-size: 0.95rem; margin-bottom: 0.5rem; line-height: 1.2;">${event.title}</h3>
+                                    <h3 class="artwork-title" style="font-size: 0.95rem; margin-bottom: 0.5rem; line-height: 1.2;">${escapeHtml(event.title)}</h3>
 
                                     <div class="artwork-details" style="font-size: 0.8rem;">
-                                        <div style="margin-bottom: 0.4rem; font-weight: 500;">${formattedDate}${event.event_time ? ` • ${event.event_time}` : ''}</div>
-                                        ${event.location ? `<div style="margin-bottom: 0.5rem; color: #666;">📍 ${event.location}</div>` : ''}
+                                        <div style="margin-bottom: 0.4rem; font-weight: 500;">${formattedDate}${event.event_time ? ` • ${escapeHtml(event.event_time)}` : ''}</div>
+                                        ${event.location ? `<div style="margin-bottom: 0.5rem; color: #666;">📍 ${escapeHtml(event.location)}</div>` : ''}
                                         ${event.description ? `
-                                            <div style="color:#666;line-height:1.3;margin-top:0.5rem; font-size: 0.8rem;">${event.description}</div>
+                                            <div style="color:#666;line-height:1.3;margin-top:0.5rem; font-size: 0.8rem;">${escapeHtml(event.description)}</div>
                                         ` : ''}
                                     </div>
 
@@ -6484,7 +6499,7 @@ ied to public
                                     document.getElementById('eventUploadPlaceholder').style.display = 'none';
                                     document.getElementById('eventImagePreview').style.display = 'block';
                                     document.getElementById('eventImagePreview').innerHTML = `
-                                        <img src="${event.image_url}" alt="${event.title}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
+                                        <img src="${escapeHtml(event.image_url)}" alt="${escapeHtml(event.title)}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
                                         <div style="margin-top: 1rem; font-size: 0.8rem; color: #666;">
                                             Current event image
                                             <button type="button" onclick="clearEventImageSelection()" style="margin-left: 1rem; color: #ff4444; background: none; border: none; cursor: pointer;">
@@ -6589,7 +6604,7 @@ ied to public
 
                                 if (profile.profile_photo_url) {
                                     document.getElementById('profilePhotoPreview').innerHTML = `
-                                        <img src="${profile.profile_photo_url}" alt="Current Profile Photo" style="max-width: 200px; border-radius: 8px;">
+                                        <img src="${escapeHtml(profile.profile_photo_url)}" alt="Current Profile Photo" style="max-width: 200px; border-radius: 8px;">
                                     `;
                                 }
 
@@ -6671,7 +6686,7 @@ ied to public
                             container.innerHTML = collections.map(collection => `
                                 <div class="collection-item" style="border: 1px solid #e5e5e5; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
                                     <div style="flex: 1;">
-                                        <h4 style="margin: 0 0 0.25rem 0; font-size: 1rem; font-weight: 500;">${collection.name}</h4>
+                                        <h4 style="margin: 0 0 0.25rem 0; font-size: 1rem; font-weight: 500;">${escapeHtml(collection.name)}</h4>
                                         <p style="margin: 0; color: #666; font-size: 0.8rem;">
                                             ${collection.artwork_collections ? collection.artwork_collections.length : 0} artworks • ${collection.is_public ? 'Public' : 'Private'}
                                         </p>
@@ -6814,12 +6829,12 @@ ied to public
                                         <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; border-bottom: 1px solid #f0f0f0;">
                                             <input type="checkbox" name="artworkIds" value="${artwork.id}">
                                             <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
-                                                <img src="${artwork.image_url}" alt="${artwork.title}" 
+                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}"
                                                      style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
                                                 <div style="flex: 1;">
-                                                    <div style="font-size: 0.8rem; font-weight: 500;">${artwork.title || 'Untitled'}</div>
+                                                    <div style="font-size: 0.8rem; font-weight: 500;">${escapeHtml(artwork.title) || 'Untitled'}</div>
                                                     <div style="font-size: 0.7rem; color: #666;">
-                                                        ${artwork.year || ''} ${artwork.year && artwork.medium ? '•' : ''} ${artwork.medium || ''}
+                                                        ${escapeHtml(artwork.year) || ''} ${artwork.year && artwork.medium ? '•' : ''} ${escapeHtml(artwork.medium) || ''}
                                                     </div>
                                                 </div>
                                             </div>
@@ -6919,12 +6934,12 @@ ied to public
                                         <input type="checkbox" name="artworkIds" value="${artwork.id}" 
                                                ${collectionArtworkIds.includes(artwork.id) ? 'checked' : ''}>
                                         <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
-                                            <img src="${artwork.image_url}" alt="${artwork.title}" 
+                                            <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}"
                                                  style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
                                             <div style="flex: 1;">
-                                                <div style="font-size: 0.8rem; font-weight: 500;">${artwork.title || 'Untitled'}</div>
+                                                <div style="font-size: 0.8rem; font-weight: 500;">${escapeHtml(artwork.title) || 'Untitled'}</div>
                                                 <div style="font-size: 0.7rem; color: #666;">
-                                                    ${artwork.year || ''} ${artwork.year && artwork.medium ? '•' : ''} ${artwork.medium || ''}
+                                                    ${escapeHtml(artwork.year) || ''} ${artwork.year && artwork.medium ? '•' : ''} ${escapeHtml(artwork.medium) || ''}
                                                 </div>
                                             </div>
                                         </div>
@@ -7095,9 +7110,9 @@ ied to public
 
                             container.innerHTML = activities.map(activity => {
                                 // Customize display based on activity type
-                                let displayText = activity.title;
+                                let displayText = escapeHtml(activity.title);
                                 if (activity.description) {
-                                    displayText += ` - ${activity.description}`;
+                                    displayText += ` - ${escapeHtml(activity.description)}`;
                                 }
 
                                 return `
@@ -7383,24 +7398,24 @@ ied to public
                                             return `
                                             <div class="artwork-card">
                                                 <div class="artwork-image">
-                                                    <img src="${artwork.image_url}" alt="${artwork.title || 'Untitled'}" 
+                                                    <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title) || 'Untitled'}"
                                                          loading="${loadingType}"
                                                          decoding="async"
                                                          width="${width}"
                                                          height="${height}"
                                                          data-artwork-id="${artwork.id}"
-                                                         data-artwork-title="${artwork.title || 'Untitled'}"
-                                                         data-artwork-year="${artwork.year || ''}"
-                                                         data-artwork-medium="${artwork.medium || ''}"
-                                                         data-artwork-dimensions="${artwork.dimensions || ''}"
+                                                         data-artwork-title="${escapeHtml(artwork.title) || 'Untitled'}"
+                                                         data-artwork-year="${escapeHtml(artwork.year) || ''}"
+                                                         data-artwork-medium="${escapeHtml(artwork.medium) || ''}"
+                                                         data-artwork-dimensions="${escapeHtml(artwork.dimensions) || ''}"
                                                          style="cursor: zoom-in; width: 100%; height: auto; display: block; aspect-ratio: ${aspectRatio};">
                                                 </div>
                                                 <div class="artwork-info">
-                                                    <h3 class="artwork-title">${artwork.title || 'Untitled'}</h3>
+                                                    <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
                                                     <div class="artwork-details">
-                                                        ${artwork.year ? `<div>${artwork.year}</div>` : ''}
-                                                        ${artwork.medium ? `<div>${artwork.medium}</div>` : ''}
-                                                        ${artwork.dimensions ? `<div>${artwork.dimensions}</div>` : ''}
+                                                        ${artwork.year ? `<div>${escapeHtml(artwork.year)}</div>` : ''}
+                                                        ${artwork.medium ? `<div>${escapeHtml(artwork.medium)}</div>` : ''}
+                                                        ${artwork.dimensions ? `<div>${escapeHtml(artwork.dimensions)}</div>` : ''}
                                                     </div>
                                                 </div>
                                             </div>
@@ -7457,13 +7472,13 @@ ied to public
                                             <div style="display: grid; grid-template-columns: auto 1fr; gap: 3rem; align-items: start; max-width: 1000px; margin: 0 auto;">
                                                 ${profileData.profile_photo_url ? `
                                                     <div>
-                                                        <img src="${profileData.profile_photo_url}" alt="Profile Photo" 
+                                                        <img src="${escapeHtml(profileData.profile_photo_url)}" alt="Profile Photo"
                                                              width="300" height="300"
                                                              style="width: 300px; height: auto; display: block; border-radius: 8px;">
                                                     </div>
                                                 ` : ''}
                                                 <div style="text-align: left;">
-                                                    ${profileData.bio ? `<p style="font-size: 1.1rem; line-height: 1.6; color: #333; margin-bottom: 2rem;">${profileData.bio}</p>` : `
+                                                    ${profileData.bio ? `<p style="font-size: 1.1rem; line-height: 1.6; color: #333; margin-bottom: 2rem;">${escapeHtml(profileData.bio)}</p>` : `
                                                         <p style="color: #666; font-style: italic; margin-bottom: 2rem;">Artist profile</p>
                                                     `}
                                                 </div>
@@ -7493,7 +7508,7 @@ ied to public
                                                        <div class="artwork-card event-card" style="margin-bottom: 1.5rem; min-width: 280px;">
                                                         <div class="artwork-image" style="height: 220px; overflow: hidden;">
                                                             ${event.image_url ? `
-                                                                <img src="${event.image_url}" alt="${event.title}" 
+                                                                <img src="${escapeHtml(event.image_url)}" alt="${escapeHtml(event.title)}"
                                                                      width="400" height="220"
                                                                      style="width:100%;height:100%;object-fit: cover; display:block;">
                                                             ` : `
@@ -7515,13 +7530,13 @@ ied to public
                                                                   event.event_type === 'deadline' ? 'Deadline' : 'Event'}
                                                             </div>
 
-                                                            <h3 class="artwork-title" style="font-size: 0.95rem; margin-bottom: 0.5rem; line-height: 1.2;">${event.title}</h3>
+                                                            <h3 class="artwork-title" style="font-size: 0.95rem; margin-bottom: 0.5rem; line-height: 1.2;">${escapeHtml(event.title)}</h3>
 
                                                             <div class="artwork-details" style="font-size: 0.8rem;">
-                                                                <div style="margin-bottom: 0.4rem; font-weight: 500;">${formattedDate}${event.event_time ? ` • ${event.event_time}` : ''}</div>
-                                                                ${event.location ? `<div style="margin-bottom: 0.5rem; color: #666;">📍 ${event.location}</div>` : ''}
+                                                                <div style="margin-bottom: 0.4rem; font-weight: 500;">${formattedDate}${event.event_time ? ` • ${escapeHtml(event.event_time)}` : ''}</div>
+                                                                ${event.location ? `<div style="margin-bottom: 0.5rem; color: #666;">📍 ${escapeHtml(event.location)}</div>` : ''}
                                                                 ${event.description ? `
-                                                                    <div style="color:#666;line-height:1.3;margin-top:0.5rem; font-size: 0.8rem;">${event.description}</div>
+                                                                    <div style="color:#666;line-height:1.3;margin-top:0.5rem; font-size: 0.8rem;">${escapeHtml(event.description)}</div>
                                                                 ` : ''}
                                                             </div>
                                                         </div>
@@ -7594,8 +7609,10 @@ ied to public
 
                             // ✅ CV BUTTON FOR PUBLIC ONLY (NOT FOR OWNER)
                             const cvButton = (profileData.has_cv && !isOwner) ? `
-                                <span class="owner-cv-button" 
-                                      onclick="showCVRequestForm('${profileData.id}', '${(profileData.full_name || profileData.username || '').replace(/'/g, "\\'")}')"
+                                <span class="owner-cv-button"
+                                      data-artist-id="${profileData.id}"
+                                      data-artist-name="${escapeHtml(profileData.full_name || profileData.username || '')}"
+                                      onclick="showCVRequestForm(this.dataset.artistId, this.dataset.artistName)"
                                       title="CV available upon request">
                                     CV
                                 </span>
@@ -7776,8 +7793,8 @@ ied to public
                         }
 
                         function generateCollectionLayout(collection, titleLayout, collectionArtworks, profileData) {
-                        const title = collection.name || 'Untitled Collection';
-                        const description = collection.description || '';
+                        const title = escapeHtml(collection.name || 'Untitled Collection');
+                        const description = escapeHtml(collection.description || '');
                         const layoutClass = profileData.portfolio_layout || "grid-classic";
                         const sizeClass = profileData.image_size || 'medium';
 
@@ -7786,14 +7803,14 @@ ied to public
                                 ${collectionArtworks.map(artwork => `
                                     <div class="artwork-card">
                                         <div class="artwork-image">
-                                            <img src="${artwork.image_url}" alt="${artwork.title}" style="width:100%;height:auto;display:block;">
+                                            <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width:100%;height:auto;display:block;">
                                         </div>
                                         <div class="artwork-info">
-                                            <h3 class="artwork-title">${artwork.title || 'Untitled'}</h3>
+                                            <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
                                             <div class="artwork-details">
-                                                ${artwork.year ? `<div>${artwork.year}</div>` : ''}
-                                                ${artwork.medium ? `<div>${artwork.medium}</div>` : ''}
-                                                ${artwork.dimensions ? `<div>${artwork.dimensions}</div>` : ''}
+                                                ${artwork.year ? `<div>${escapeHtml(artwork.year)}</div>` : ''}
+                                                ${artwork.medium ? `<div>${escapeHtml(artwork.medium)}</div>` : ''}
+                                                ${artwork.dimensions ? `<div>${escapeHtml(artwork.dimensions)}</div>` : ''}
                                             </div>
                                         </div>
                                     </div>
@@ -7807,14 +7824,14 @@ ied to public
                                 <div style="max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
                                     <div style="margin-bottom: 1.5rem;">
                                         <h2 style="font-weight: 500; letter-spacing: -0.02em; text-align: left;">
-                                            ${collection.name || 'Untitled Collection'}
+                                            ${title}
                                         </h2>
                                     </div>
 
                                     ${collection.description ? `
                                         <div style="margin-bottom: 5rem; max-width: 800px;">
                                             <p style="line-height: 1.6; color: #666; text-align: left; word-wrap: break-word;">
-                                                ${collection.description}
+                                                ${description}
                                             </p>
                                         </div>
                                     ` : ''}
@@ -7994,13 +8011,13 @@ ied to public
                                                     ${collectionArtworks.map(artwork => `
                                                         <div class="artwork-card" style="flex: 0 0 auto; width: 300px; scroll-snap-align: start;">
                                                             <div class="artwork-image">
-                                                                <img src="${artwork.image_url}" alt="${artwork.title}" style="width:100%;height:200px;object-fit:cover;display:block;">
+                                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width:100%;height:200px;object-fit:cover;display:block;">
                                                             </div>
                                                             <div class="artwork-info">
-                                                                <h3 class="artwork-title">${artwork.title || 'Untitled'}</h3>
+                                                                <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
                                                                 <div class="artwork-details">
-                                                                    ${artwork.year ? `<div>${artwork.year}</div>` : ''}
-                                                                    ${artwork.medium ? `<div>${artwork.medium}</div>` : ''}
+                                                                    ${artwork.year ? `<div>${escapeHtml(artwork.year)}</div>` : ''}
+                                                                    ${artwork.medium ? `<div>${escapeHtml(artwork.medium)}</div>` : ''}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -8015,13 +8032,13 @@ ied to public
                                                     ${collectionArtworks.map(artwork => `
                                                         <div class="artwork-card">
                                                             <div class="artwork-image">
-                                                                <img src="${artwork.image_url}" alt="${artwork.title}" style="width:100%;height:auto;display:block;">
+                                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width:100%;height:auto;display:block;">
                                                             </div>
                                                             <div class="artwork-info">
-                                                                <h3 class="artwork-title">${artwork.title || 'Untitled'}</h3>
+                                                                <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
                                                                 <div class="artwork-details">
-                                                                    ${artwork.year ? `<div>${artwork.year}</div>` : ''}
-                                                                    ${artwork.medium ? `<div>${artwork.medium}</div>` : ''}
+                                                                    ${artwork.year ? `<div>${escapeHtml(artwork.year)}</div>` : ''}
+                                                                    ${artwork.medium ? `<div>${escapeHtml(artwork.medium)}</div>` : ''}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -8036,13 +8053,13 @@ ied to public
                                                     ${collectionArtworks.map(artwork => `
                                                         <div class="artwork-card">
                                                             <div class="artwork-image">
-                                                                <img src="${artwork.image_url}" alt="${artwork.title}" style="width:100%;height:auto;display:block;">
+                                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width:100%;height:auto;display:block;">
                                                             </div>
                                                             <div class="artwork-info">
-                                                                <h3 class="artwork-title">${artwork.title || 'Untitled'}</h3>
+                                                                <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
                                                                 <div class="artwork-details">
-                                                                    ${artwork.year ? `<div>${artwork.year}</div>` : ''}
-                                                                    ${artwork.medium ? `<div>${artwork.medium}</div>` : ''}
+                                                                    ${artwork.year ? `<div>${escapeHtml(artwork.year)}</div>` : ''}
+                                                                    ${artwork.medium ? `<div>${escapeHtml(artwork.medium)}</div>` : ''}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -8058,13 +8075,13 @@ ied to public
                                                 <div class="featured-artwork" style="margin-bottom: 3rem;">
                                                     <div class="artwork-card" style="max-width: 800px; margin: 0 auto;">
                                                         <div class="artwork-image">
-                                                            <img src="${featuredArtwork.image_url}" alt="${featuredArtwork.title}" style="width:100%;height:auto;display:block;">
+                                                            <img src="${escapeHtml(featuredArtwork.image_url)}" alt="${escapeHtml(featuredArtwork.title)}" style="width:100%;height:auto;display:block;">
                                                         </div>
                                                         <div class="artwork-info">
-                                                            <h3 class="artwork-title" style="font-size: 1.5rem;">${featuredArtwork.title || 'Untitled'}</h3>
+                                                            <h3 class="artwork-title" style="font-size: 1.5rem;">${escapeHtml(featuredArtwork.title) || 'Untitled'}</h3>
                                                             <div class="artwork-details">
-                                                                ${featuredArtwork.year ? `<div>${featuredArtwork.year}</div>` : ''}
-                                                                ${featuredArtwork.medium ? `<div>${featuredArtwork.medium}</div>` : ''}
+                                                                ${featuredArtwork.year ? `<div>${escapeHtml(featuredArtwork.year)}</div>` : ''}
+                                                                ${featuredArtwork.medium ? `<div>${escapeHtml(featuredArtwork.medium)}</div>` : ''}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -8074,13 +8091,13 @@ ied to public
                                                         ${otherArtworks.map(artwork => `
                                                             <div class="artwork-card">
                                                                 <div class="artwork-image">
-                                                                    <img src="${artwork.image_url}" alt="${artwork.title}" style="width:100%;height:auto;display:block;">
+                                                                    <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width:100%;height:auto;display:block;">
                                                                 </div>
                                                                 <div class="artwork-info">
-                                                                    <h3 class="artwork-title">${artwork.title || 'Untitled'}</h3>
+                                                                    <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
                                                                     <div class="artwork-details">
-                                                                        ${artwork.year ? `<div>${artwork.year}</div>` : ''}
-                                                                        ${artwork.medium ? `<div>${artwork.medium}</div>` : ''}
+                                                                        ${artwork.year ? `<div>${escapeHtml(artwork.year)}</div>` : ''}
+                                                                        ${artwork.medium ? `<div>${escapeHtml(artwork.medium)}</div>` : ''}
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -8097,14 +8114,14 @@ ied to public
                                                     ${collectionArtworks.map(artwork => `
                                                         <div class="artwork-card">
                                                             <div class="artwork-image">
-                                                                <img src="${artwork.image_url}" alt="${artwork.title}" style="width:100%;height:auto;display:block;">
+                                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width:100%;height:auto;display:block;">
                                                             </div>
                                                             <div class="artwork-info">
-                                                                <h3 class="artwork-title">${artwork.title || 'Untitled'}</h3>
+                                                                <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
                                                                 <div class="artwork-details">
-                                                                    ${artwork.year ? `<div>${artwork.year}</div>` : ''}
-                                                                    ${artwork.medium ? `<div>${artwork.medium}</div>` : ''}
-                                                                    ${artwork.dimensions ? `<div>${artwork.dimensions}</div>` : ''}
+                                                                    ${artwork.year ? `<div>${escapeHtml(artwork.year)}</div>` : ''}
+                                                                    ${artwork.medium ? `<div>${escapeHtml(artwork.medium)}</div>` : ''}
+                                                                    ${artwork.dimensions ? `<div>${escapeHtml(artwork.dimensions)}</div>` : ''}
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -8323,7 +8340,7 @@ ied to public
                                                     </div>
                                                     <div>
                                                         <h4 style="margin-bottom: 1rem; font-weight: 600;">About</h4>
-                                                        <p style="color: #666; line-height: 1.5;">${profileData.bio ? profileData.bio.substring(0, 150) + '...' : 'Artist portfolio'}</p>
+                                                        <p style="color: #666; line-height: 1.5;">${profileData.bio ? escapeHtml(profileData.bio.substring(0, 150)) + '...' : 'Artist portfolio'}</p>
                                                     </div>
                                                 </div>
                                                 <div style="text-align: center; color: var(--footer-text-color, #666); font-size: var(--footer-font-size, 14px); font-family: var(--footer-font-family, 'Space Grotesk'); border-top: 1px solid var(--border-color, #e5e5e5); padding-top: 2rem;">
@@ -9837,7 +9854,7 @@ ied to public
                                 notesList.innerHTML = notes.map(note => `
                                     <div class="note-item" style="border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; background: white;">
                                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-                                            <h4 class="note-title" style="margin: 0; font-size: 1rem; font-weight: 500;">${note.title}</h4>
+                                            <h4 class="note-title" style="margin: 0; font-size: 1rem; font-weight: 500;">${escapeHtml(note.title)}</h4>
                                             <button onclick="deleteNote('${note.id}')" style="background: none; border: none; color: #ff4444; cursor: pointer; padding: 0.5rem; border-radius: 6px;" 
                                                     onmouseover="this.style.background='#fff0f0'" 
                                                     onmouseout="this.style.background='none'">
@@ -9910,7 +9927,7 @@ ied to public
                                         </button>
 
                                         <div class="artwork-image">
-                                            <img src="${sketch.image_url}" alt="Sketch" loading="lazy" decoding="async" style="width: 100%; height: auto; display: block;">
+                                            <img src="${escapeHtml(sketch.image_url)}" alt="Sketch" loading="lazy" decoding="async" style="width: 100%; height: auto; display: block;">
                                         </div>
                                         <div class="artwork-info" style="padding: 0.75rem;">
                                             <div style="font-size: 0.75rem; color: #666;">
@@ -10027,8 +10044,8 @@ ied to public
                                 return `
                                     <div class="connected-artwork" style="border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; transition: all 0.2s ease; background: white;">
                                         <div class="connected-artwork-image" style="width: 100%; height: ${isMobile ? '100px' : '120px'}; overflow: hidden; background: #f5f5f5;">
-                                            <img src="${artwork.image_url}" 
-                                                 alt="${artwork.title || 'Artwork'}" 
+                                            <img src="${escapeHtml(artwork.image_url)}"
+                                                 alt="${escapeHtml(artwork.title) || 'Artwork'}"
                                                  style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s ease;"
                                                  onerror="this.onerror=null; this.src='${fallbackSVG}'; this.style.opacity='1'"
                                                  onload="this.style.opacity='1'"
@@ -10037,7 +10054,7 @@ ied to public
                                         </div>
                                         <div class="connected-artwork-info" style="padding: ${isMobile ? '0.5rem' : '0.75rem'};">
                                             <h5 class="connected-artwork-title" style="margin: 0; font-size: ${isMobile ? '0.75rem' : '0.8rem'}; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                                                ${artwork.title || 'Untitled'}
+                                                ${escapeHtml(artwork.title) || 'Untitled'}
                                             </h5>
                                         </div>
                                     </div>
@@ -10586,10 +10603,10 @@ ied to public
                                     return `
                                         <div class="connected-artwork">
                                             <div class="connected-artwork-image">
-                                                <img src="${artwork.image_url}" alt="${artwork.title}" style="width: 100%; height: 120px; object-fit: cover;">
+                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width: 100%; height: 120px; object-fit: cover;">
                                             </div>
                                             <div class="connected-artwork-info">
-                                                <h5 class="connected-artwork-title">${artwork.title || 'Untitled'}</h5>
+                                                <h5 class="connected-artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h5>
                                             </div>
                                         </div>
                                     `;
@@ -10634,18 +10651,19 @@ ied to public
                                          style="padding: 1rem; border: 1px solid #e5e5e5; border-radius: 8px; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.2s ease; background: ${window.currentWipProjectId === project.id ? '#f0f0f0' : 'white'};">
                                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                             <div style="flex: 1;">
-                                                <div class="wip-project-title" style="font-weight: 500; margin-bottom: 0.25rem; font-size: 0.9rem;">${project.title}</div>
+                                                <div class="wip-project-title" style="font-weight: 500; margin-bottom: 0.25rem; font-size: 0.9rem;">${escapeHtml(project.title)}</div>
                                                 <div class="wip-project-meta" style="font-size: 0.75rem; color: #666;">
-                                                    ${project.type ? project.type + ' • ' : ''}
+                                                    ${project.type ? escapeHtml(project.type) + ' • ' : ''}
                                                     ${new Date(project.created_at).toLocaleDateString()}
                                                 </div>
                                                 ${project.description ? `
                                                     <div style="font-size: 0.75rem; color: #666; margin-top: 0.25rem; line-height: 1.3;">
-                                                        ${project.description}
+                                                        ${escapeHtml(project.description)}
                                                     </div>
                                                 ` : ''}
                                             </div>
-                                            <button onclick="event.stopPropagation(); deleteWipProject('${project.id}', '${project.title.replace(/'/g, "\\'")}', event)" 
+                                            <button data-project-id="${project.id}" data-project-title="${escapeHtml(project.title)}"
+                                                    onclick="event.stopPropagation(); deleteWipProject(this.dataset.projectId, this.dataset.projectTitle, event)"
                                                     style="background: none; border: none; color: #ff4444; cursor: pointer; padding: 0.5rem; border-radius: 6px; margin-left: 0.5rem; transition: all 0.2s;"
                                                     onmouseover="this.style.background='#fff0f0'"
                                                     onmouseout="this.style.background='none'"
@@ -11179,7 +11197,7 @@ ied to public
                                 preview.innerHTML = `
                                     <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
                                     <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
-                                        ${originalFile.name} (${Math.round(processedFile.size / 1024)}KB)
+                                        ${escapeHtml(originalFile.name)} (${Math.round(processedFile.size / 1024)}KB)
                                         ${originalFile.size !== processedFile.size ? ' • Optimized' : ''}
                                     </div>
                                 `;
@@ -11196,7 +11214,7 @@ ied to public
                                 preview.innerHTML = `
                                     <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
                                     <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
-                                        ${originalFile.name} (${Math.round(processedFile.size / 1024)}KB)
+                                        ${escapeHtml(originalFile.name)} (${Math.round(processedFile.size / 1024)}KB)
                                         ${originalFile.size !== processedFile.size ? ' • Optimized' : ''}
                                     </div>
                                 `;
@@ -11213,7 +11231,7 @@ ied to public
                                 preview.innerHTML = `
                                     <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
                                     <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
-                                        ${originalFile.name} (${Math.round(processedFile.size / 1024)}KB)
+                                        ${escapeHtml(originalFile.name)} (${Math.round(processedFile.size / 1024)}KB)
                                         ${originalFile.size !== processedFile.size ? ' • Optimized' : ''}
                                     </div>
                                 `;
@@ -11229,7 +11247,7 @@ ied to public
                                 document.getElementById('moodboardImagePreview').innerHTML = `
                                     <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
                                     <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
-                                        ${originalFile.name} (${Math.round(processedFile.size / 1024)}KB)
+                                        ${escapeHtml(originalFile.name)} (${Math.round(processedFile.size / 1024)}KB)
                                         ${originalFile.size !== processedFile.size ? ' • Optimized' : ''}
                                     </div>
                                 `;
@@ -11577,13 +11595,13 @@ ied to public
                                     <div id="cvRequest-${r.id}" style="border: 1px solid #e5e5e5; border-radius: 10px; padding: 1.25rem; margin-bottom: 1rem;">
                                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
                                             <div>
-                                                <p style="margin: 0; font-weight: 500;">${r.requester_name}</p>
-                                                <p style="margin: 0.15rem 0 0 0; color: #666; font-size: 0.85rem;">${r.requester_company || ''}</p>
+                                                <p style="margin: 0; font-weight: 500;">${escapeHtml(r.requester_name)}</p>
+                                                <p style="margin: 0.15rem 0 0 0; color: #666; font-size: 0.85rem;">${escapeHtml(r.requester_company) || ''}</p>
                                             </div>
                                             <span style="font-size: 0.75rem; color: #aaa;">${date}</span>
                                         </div>
-                                        <p style="margin: 0.25rem 0; font-size: 0.85rem; color: #555;">${r.requester_email}${r.requester_phone ? ' · ' + r.requester_phone : ''}</p>
-                                        ${r.message ? `<p style="margin: 0.75rem 0 0 0; font-size: 0.85rem; color: #444; background: #f9f9f9; padding: 0.75rem; border-radius: 6px;">"${r.message}"</p>` : ''}
+                                        <p style="margin: 0.25rem 0; font-size: 0.85rem; color: #555;">${escapeHtml(r.requester_email)}${r.requester_phone ? ' · ' + escapeHtml(r.requester_phone) : ''}</p>
+                                        ${r.message ? `<p style="margin: 0.75rem 0 0 0; font-size: 0.85rem; color: #444; background: #f9f9f9; padding: 0.75rem; border-radius: 6px;">"${escapeHtml(r.message)}"</p>` : ''}
                                         ${actions}
                                     </div>`;
                             }).join('');
@@ -11691,7 +11709,7 @@ ied to public
                                         'Content-Type': 'application/json',
                                         'Authorization': `Bearer ${supabaseKey}`
                                     },
-                                    body: JSON.stringify({ record: insertData })
+                                    body: JSON.stringify({ id: insertData.id })
                                 }).catch(err => console.warn('Notify artist error:', err));
 
                                 showToast('✅ Request sent! The artist will review it shortly.');
@@ -11823,9 +11841,9 @@ ied to public
                             }
 
                             container.innerHTML = activities.map(activity => {
-                                let displayText = activity.title;
+                                let displayText = escapeHtml(activity.title);
                                 if (activity.description) {
-                                    displayText += ` - ${activity.description}`;
+                                    displayText += ` - ${escapeHtml(activity.description)}`;
                                 }
 
                                 // ✅ ADD ICONS BASED ON ACTIVITY TYPE
@@ -14787,15 +14805,15 @@ ied to public
             return `
             <div style="display:flex;align-items:center;gap:0.875rem;padding:0.875rem;border:1px solid ${hasCoa ? '#e5e5e5' : '#e5e5e5'};border-radius:8px;background:white;transition:border-color 0.2s;" ${!hasCoa ? `onmouseenter="this.style.borderColor='#000'" onmouseleave="this.style.borderColor='#e5e5e5'"` : ''}>
                 <div style="width:44px;height:44px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#f5f5f5;">
-                    ${a.image_url ? `<img src="${a.image_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>'}
+                    ${a.image_url ? `<img src="${escapeHtml(a.image_url)}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>'}
                 </div>
                 <div style="flex:1;min-width:0;">
-                    <div style="font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.title}</div>
-                    <div style="font-size:0.75rem;color:#666;">${[a.year, a.medium].filter(Boolean).join(' · ')}</div>
+                    <div style="font-size:0.85rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(a.title)}</div>
+                    <div style="font-size:0.75rem;color:#666;">${[a.year, a.medium].filter(Boolean).map(escapeHtml).join(' · ')}</div>
                 </div>
                 ${hasCoa
                     ? `<span style="font-size:0.7rem;background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0;border-radius:20px;padding:0.2rem 0.6rem;flex-shrink:0;">Certified</span>`
-                    : `<button onclick="openMintModal('${a.id}','${a.title.replace(/'/g,"\\'")}','${a.image_url || ''}')" style="font-size:0.75rem;background:#000;color:white;border:none;border-radius:6px;padding:0.375rem 0.75rem;cursor:pointer;flex-shrink:0;font-family:inherit;">Mint CoA</button>`
+                    : `<button data-artwork-id="${a.id}" data-artwork-title="${escapeHtml(a.title)}" data-artwork-image="${escapeHtml(a.image_url || '')}" onclick="openMintModal(this.dataset.artworkId, this.dataset.artworkTitle, this.dataset.artworkImage)" style="font-size:0.75rem;background:#000;color:white;border:none;border-radius:6px;padding:0.375rem 0.75rem;cursor:pointer;flex-shrink:0;font-family:inherit;">Mint CoA</button>`
                 }
             </div>`;
         }).join('');
@@ -14824,14 +14842,14 @@ ied to public
             <div style="border:1px solid #e5e5e5;border-radius:8px;background:white;overflow:hidden;">
                 <div style="display:flex;align-items:center;gap:0.875rem;padding:0.875rem;">
                     <div style="width:44px;height:44px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#f5f5f5;">
-                        ${artwork.image_url ? `<img src="${artwork.image_url}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">` : ''}
+                        ${artwork.image_url ? `<img src="${escapeHtml(artwork.image_url)}" style="width:100%;height:100%;object-fit:cover;" loading="lazy">` : ''}
                     </div>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-size:0.85rem;font-weight:500;">${artwork.title || 'Unknown'}</div>
+                        <div style="font-size:0.85rem;font-weight:500;">${escapeHtml(artwork.title) || 'Unknown'}</div>
                         <div style="font-size:0.7rem;color:#666;">
-                            Token #${c.token_id || '—'} · ${c.royalty_pct}% royalty · ${c.network || 'Polygon Amoy'}
+                            Token #${escapeHtml(c.token_id) || '—'} · ${c.royalty_pct}% royalty · ${escapeHtml(c.network) || 'Polygon Amoy'}
                         </div>
-                        ${latest ? `<div style="font-size:0.7rem;color:#888;margin-top:0.15rem;">Owner: ${latest.owner_name}</div>` : ''}
+                        ${latest ? `<div style="font-size:0.7rem;color:#888;margin-top:0.15rem;">Owner: ${escapeHtml(latest.owner_name)}</div>` : ''}
                     </div>
                     <div style="display:flex;flex-direction:column;gap:0.375rem;align-items:flex-end;">
                         <button onclick="openProvenanceModal('${c.id}')" style="font-size:0.72rem;background:white;border:1px solid #d1d1d1;border-radius:6px;padding:0.3rem 0.6rem;cursor:pointer;font-family:inherit;">Provenance</button>
@@ -14872,7 +14890,7 @@ ied to public
                         Sold for ${n.sale_price ? '$' + Number(n.sale_price).toLocaleString() : '—'}
                         ${royaltyDue ? ` · You are owed $${royaltyDue}` : ''}
                     </div>
-                    <div style="font-size:0.7rem;color:#a16207;">New owner: ${n.new_owner_name || '—'}</div>
+                    <div style="font-size:0.7rem;color:#a16207;">New owner: ${escapeHtml(n.new_owner_name) || '—'}</div>
                 </div>
                 <button onclick="markRoyaltyCollected('${n.id}')" style="font-size:0.75rem;background:#d97706;color:white;border:none;border-radius:6px;padding:0.375rem 0.75rem;cursor:pointer;font-family:inherit;flex-shrink:0;margin-left:1rem;">Mark Collected</button>
             </div>`;
@@ -14911,10 +14929,10 @@ ied to public
             <!-- ARTWORK PREVIEW -->
             <div style="display:flex;align-items:center;gap:0.875rem;padding:0.875rem;background:#fafafa;border-radius:8px;margin-bottom:1.5rem;">
                 <div style="width:48px;height:48px;border-radius:6px;overflow:hidden;flex-shrink:0;background:#e5e5e5;">
-                    ${imageUrl ? `<img src="${imageUrl}" style="width:100%;height:100%;object-fit:cover;">` : ''}
+                    ${imageUrl ? `<img src="${escapeHtml(imageUrl)}" style="width:100%;height:100%;object-fit:cover;">` : ''}
                 </div>
                 <div>
-                    <div style="font-size:0.9rem;font-weight:500;">${artworkTitle}</div>
+                    <div style="font-size:0.9rem;font-weight:500;">${escapeHtml(artworkTitle)}</div>
                     <div style="font-size:0.75rem;color:#666;">Physical artwork · Non-transferable certificate</div>
                 </div>
             </div>
@@ -14952,7 +14970,7 @@ ied to public
 
             <div style="display:flex;gap:0.75rem;">
                 <button onclick="document.getElementById('bc-mint-modal').remove()" style="flex:1;padding:0.875rem;border:1px solid #d1d1d1;border-radius:8px;background:white;font-size:0.9rem;cursor:pointer;font-family:inherit;">Cancel</button>
-                <button id="bc-mint-btn" onclick="executeMint('${artworkId}','${artworkTitle.replace(/'/g,"\\'")}','${imageUrl}')" style="flex:2;padding:0.875rem;background:#000;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit;font-weight:500;">Mint Certificate</button>
+                <button id="bc-mint-btn" data-artwork-id="${artworkId}" data-artwork-title="${escapeHtml(artworkTitle)}" data-artwork-image="${escapeHtml(imageUrl || '')}" onclick="executeMint(this.dataset.artworkId, this.dataset.artworkTitle, this.dataset.artworkImage)" style="flex:2;padding:0.875rem;background:#000;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit;font-weight:500;">Mint Certificate</button>
             </div>
         </div>`;
 
@@ -15099,19 +15117,19 @@ ied to public
         <div style="background:white;border-radius:16px;max-width:580px;width:95%;max-height:88vh;overflow-y:auto;padding:2rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
                 <div>
-                    <h3 style="font-size:1.25rem;font-weight:500;letter-spacing:-0.02em;margin:0 0 0.2rem;">${artwork.title}</h3>
-                    <p style="font-size:0.78rem;color:#666;margin:0;">${[artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).join(' · ')}</p>
+                    <h3 style="font-size:1.25rem;font-weight:500;letter-spacing:-0.02em;margin:0 0 0.2rem;">${escapeHtml(artwork.title)}</h3>
+                    <p style="font-size:0.78rem;color:#666;margin:0;">${[artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).map(escapeHtml).join(' · ')}</p>
                 </div>
                 <button onclick="this.closest('[style*=position]').remove()" style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#666;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;">×</button>
             </div>
 
             <!-- CERTIFICATE INFO -->
             <div style="background:#fafafa;border-radius:8px;padding:1rem;margin-bottom:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
-                <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Token ID</div><div style="font-size:0.8rem;font-weight:500;font-family:monospace;">${coa.token_id}</div></div>
-                <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Network</div><div style="font-size:0.8rem;font-weight:500;">${coa.network}</div></div>
+                <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Token ID</div><div style="font-size:0.8rem;font-weight:500;font-family:monospace;">${escapeHtml(coa.token_id)}</div></div>
+                <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Network</div><div style="font-size:0.8rem;font-weight:500;">${escapeHtml(coa.network)}</div></div>
                 <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Royalty</div><div style="font-size:0.8rem;font-weight:500;">${coa.royalty_pct}% per resale</div></div>
-                <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Status</div><div style="font-size:0.8rem;font-weight:500;color:#16a34a;">${coa.status}</div></div>
-                <div style="grid-column:span 2;"><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Tx Hash</div><div style="font-size:0.72rem;font-family:monospace;word-break:break-all;color:#555;">${coa.tx_hash}</div></div>
+                <div><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Status</div><div style="font-size:0.8rem;font-weight:500;color:#16a34a;">${escapeHtml(coa.status)}</div></div>
+                <div style="grid-column:span 2;"><div style="font-size:0.7rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;">Tx Hash</div><div style="font-size:0.72rem;font-family:monospace;word-break:break-all;color:#555;">${escapeHtml(coa.tx_hash)}</div></div>
             </div>
 
             <!-- PROVENANCE CHAIN -->
@@ -15126,14 +15144,14 @@ ied to public
                         ${i < history.length - 1 ? '<div style="width:1px;background:#e5e5e5;flex:1;margin:4px 0;min-height:20px;"></div>' : ''}
                     </div>
                     <div style="padding-bottom:${i < history.length - 1 ? '1rem' : '0'};">
-                        <div style="font-size:0.85rem;font-weight:500;">${h.owner_name}</div>
-                        <div style="font-size:0.75rem;color:#666;">${h.owner_email}</div>
+                        <div style="font-size:0.85rem;font-weight:500;">${escapeHtml(h.owner_name)}</div>
+                        <div style="font-size:0.75rem;color:#666;">${escapeHtml(h.owner_email)}</div>
                         <div style="font-size:0.72rem;color:#999;margin-top:0.15rem;">
                             ${h.is_original_purchase ? 'Original purchase' : 'Secondary sale'}
                             ${h.sale_price ? ` · $${Number(h.sale_price).toLocaleString()}` : ''}
                             · ${new Date(h.transfer_date).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' })}
                         </div>
-                        ${h.notes ? `<div style="font-size:0.72rem;color:#888;margin-top:0.15rem;font-style:italic;">${h.notes}</div>` : ''}
+                        ${h.notes ? `<div style="font-size:0.72rem;color:#888;margin-top:0.15rem;font-style:italic;">${escapeHtml(h.notes)}</div>` : ''}
                     </div>
                 </div>`).join('')}
                 ${history.length === 0 ? '<div style="color:#999;font-size:0.85rem;text-align:center;padding:1rem;">No ownership history recorded yet.</div>' : ''}
