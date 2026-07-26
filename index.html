@@ -4476,7 +4476,6 @@
                         };
 
                         // Global State Management
-                        let selectedImageFile = null;
                         let currentWipProjectId = null;
 
                         // Activity Types
@@ -4786,7 +4785,6 @@
                             return urls[platform] || '#';
                         }
 
-                        let favoriteStyles = [];
                         let generatedStyles = [];
 
                         // ==================== AUTHENTICATION SYSTEM ====================
@@ -5401,7 +5399,7 @@
                             const processedFile = await TracImageService.process(file, { label: 'Image' });
                             if (!processedFile) return;
 
-                            selectedImageFile = processedFile;
+                            AppState.selectedImageFile = processedFile;
 
                             const reader = new FileReader();
                             reader.onload = function(e) {
@@ -5418,7 +5416,7 @@
                         }
 
                         function clearImageSelection() {
-                            selectedImageFile = null;
+                            AppState.selectedImageFile = null;
                             document.getElementById('uploadPlaceholder').style.display = 'block';
                             document.getElementById('imagePreview').style.display = 'none';
                             document.getElementById('imagePreview').innerHTML = '';
@@ -5491,7 +5489,7 @@
                                     showToast('Please enter a title', 'error');
                                     return;
                                 }
-                                if (!isEdit && !selectedImageFile) {
+                                if (!isEdit && !AppState.selectedImageFile) {
                                     showToast('Please select an image', 'error');
                                     return;
                                 }
@@ -5503,11 +5501,11 @@
                                 let imageUrl = null;
 
                                 // Upload new image if provided (for both create and edit)
-                                if (selectedImageFile) {
-                                    const imageName = `${user.id}/${Date.now()}_${selectedImageFile.name}`;
+                                if (AppState.selectedImageFile) {
+                                    const imageName = `${user.id}/${Date.now()}_${AppState.selectedImageFile.name}`;
                                     const { data: imageData, error: uploadError } = await supabaseClient.storage
                                         .from('artwork-images')
-                                        .upload(imageName, selectedImageFile);
+                                        .upload(imageName, AppState.selectedImageFile);
 
                                     if (uploadError) throw uploadError;
 
@@ -5546,16 +5544,16 @@
                                     showToast('Artwork updated successfully');
 
                                     // Upload new image if provided
-                                    if (selectedImageFile) {
+                                    if (AppState.selectedImageFile) {
                                         // Show compression status for large files
-                                        if (selectedImageFile.size > 2 * 1024 * 1024) {
+                                        if (AppState.selectedImageFile.size > 2 * 1024 * 1024) {
                                             showToast('Uploading optimized image...');
                                         }
 
-                                        const imageName = `${user.id}/${Date.now()}_${selectedImageFile.name}`;
+                                        const imageName = `${user.id}/${Date.now()}_${AppState.selectedImageFile.name}`;
                                         const { data: imageData, error: uploadError } = await supabaseClient.storage
                                             .from('artwork-images')
-                                            .upload(imageName, selectedImageFile);
+                                            .upload(imageName, AppState.selectedImageFile);
 
                                         if (uploadError) throw uploadError;
 
@@ -11933,7 +11931,7 @@
                         }
 
                         function createStyleCard(style) {
-                            const isFavorite = favoriteStyles.includes(style.id);
+                            const isFavorite = AppState.favoriteStyles.includes(style.id);
                             const isBaseStyle = style.isBase;
                             const isCustomStyle = style.id.startsWith('custom-');
 
@@ -12045,13 +12043,13 @@
                         }
 
                         function toggleFavorite(styleId) {
-                            const index = favoriteStyles.indexOf(styleId);
+                            const index = AppState.favoriteStyles.indexOf(styleId);
                             if (index > -1) {
-                                favoriteStyles.splice(index, 1);
+                                AppState.favoriteStyles.splice(index, 1);
                             } else {
-                                favoriteStyles.push(styleId);
+                                AppState.favoriteStyles.push(styleId);
                             }
-                            localStorage.setItem('favoriteStyles', JSON.stringify(favoriteStyles));
+                            localStorage.setItem('favoriteStyles', JSON.stringify(AppState.favoriteStyles));
                             updateFavoriteHearts();
                         }
 
@@ -12063,7 +12061,7 @@
                                     const match = onclickAttr.match(/toggleFavorite\('([^']+)'\)/);
                                     if (match) {
                                         const styleId = match[1];
-                                        const isFavorite = favoriteStyles.includes(styleId);
+                                        const isFavorite = AppState.favoriteStyles.includes(styleId);
                                         // 🌙 CRESCENT MOONS - filled vs outline
                                         btn.innerHTML = isFavorite ? 
                                             '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>' :
