@@ -4476,7 +4476,6 @@
                         };
 
                         // Global State Management
-                        let currentWipProjectId = null;
 
                         // Activity Types
                         const ACTIVITY_TYPES = {
@@ -8774,7 +8773,7 @@
                                     }
 
                                     // Load content for the tab
-                                    if (window.currentWipProjectId) {
+                                    if (AppState.currentWipProjectId) {
                                         switchWipTab(tabName);
                                     }
                                 });
@@ -8980,12 +8979,12 @@
 
                         function addMoodboardItem() {
                             // ✅ SAFE PROJECT CHECK
-                            if (!window.currentWipProjectId) {
+                            if (!AppState.currentWipProjectId) {
                                 console.log('❌ No project selected for moodboard');
                                 showToast('Please select a project first', 'error');
                                 return;
                             }
-                            console.log('➕ Adding moodboard item to project:', window.currentWipProjectId);
+                            console.log('➕ Adding moodboard item to project:', AppState.currentWipProjectId);
 
                             const modal = document.createElement('div');
                             modal.style.cssText = `
@@ -9112,7 +9111,7 @@
                         async function addReferenceToMoodboard(modal) {
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user || !window.currentWipProjectId) {
+                                if (!user || !AppState.currentWipProjectId) {
                                     showToast('Please select a project', 'error');
                                     return;
                                 }
@@ -9155,7 +9154,7 @@
                                 const { data, error } = await supabaseClient
                                     .from('moodboard_items')
                                     .insert([{
-                                        project_id: window.currentWipProjectId,
+                                        project_id: AppState.currentWipProjectId,
                                         type: type,
                                         title: type === 'image' ? 'Image Reference' : 'Web Reference',
                                         description: '',
@@ -9179,8 +9178,8 @@
                                 );
 
                                 // RELOAD MOODBOARD
-                                if (window.currentWipProjectId) {
-                                    loadMoodboardItems(window.currentWipProjectId);
+                                if (AppState.currentWipProjectId) {
+                                    loadMoodboardItems(AppState.currentWipProjectId);
                                 }
 
                             } catch (error) {
@@ -9220,12 +9219,12 @@
 
                         function uploadSketch() {
                             // ✅ IMMEDIATE CHECK - NO DELAY
-                            if (!window.currentWipProjectId) {
+                            if (!AppState.currentWipProjectId) {
                                 showToast('Please select a project first', 'error');
                                 return;
                             }
 
-                            console.log('📝 Uploading sketch for project:', window.currentWipProjectId);
+                            console.log('📝 Uploading sketch for project:', AppState.currentWipProjectId);
 
                             const modal = document.createElement('div');
                             modal.style.cssText = `
@@ -9350,7 +9349,7 @@
                                 const { data, error } = await supabaseClient
                                     .from('wip_sketches')
                                     .insert([{
-                                        project_id: window.currentWipProjectId,
+                                        project_id: AppState.currentWipProjectId,
                                         title: 'Sketch',
                                         description: '',
                                         image_url: publicUrl,
@@ -9371,8 +9370,8 @@
                                     'Process work added to project'
                                 );
 
-                                if (window.currentWipProjectId) {
-                                    loadSketches(window.currentWipProjectId);
+                                if (AppState.currentWipProjectId) {
+                                    loadSketches(AppState.currentWipProjectId);
                                 }
 
                             } catch (error) {
@@ -9440,7 +9439,7 @@
                                     await logActivity(
                                         'sketch_deleted',
                                         'Deleted sketch',
-                                        `From project: ${window.currentWipProjectId || 'Unknown project'}, Created: ${new Date(sketch.created_at).toLocaleDateString()}`,
+                                        `From project: ${AppState.currentWipProjectId || 'Unknown project'}, Created: ${new Date(sketch.created_at).toLocaleDateString()}`,
                                         { 
                                             sketch_id: sketchId,
                                             project_id: sketch.project_id,
@@ -9450,7 +9449,7 @@
                                     );
 
                                     showToast('Sketch deleted');
-                                    if (window.currentWipProjectId) loadSketches(window.currentWipProjectId);
+                                    if (AppState.currentWipProjectId) loadSketches(AppState.currentWipProjectId);
 
                                     // Update dashboard counts
                                     updateDashboardCounts();
@@ -9469,12 +9468,12 @@
                         // ==================== NOTES SYSTEM ====================
 
                         function createNewNote() {
-                            if (!window.currentWipProjectId) {
+                            if (!AppState.currentWipProjectId) {
                                 showToast('Please select a project first', 'error');
                                 return;
                             }
 
-                            console.log('📋 Creating note for project:', window.currentWipProjectId);
+                            console.log('📋 Creating note for project:', AppState.currentWipProjectId);
 
                             const modal = document.createElement('div');
                             modal.style.cssText = `
@@ -9529,7 +9528,7 @@
                                 }
 
                                 const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user || !window.currentWipProjectId) {
+                                if (!user || !AppState.currentWipProjectId) {
                                     showToast('Please select a project first', 'error');
                                     return;
                                 }
@@ -9537,7 +9536,7 @@
                                 const { data, error } = await supabaseClient
                                     .from('wip_notes')
                                     .insert([{
-                                        project_id: window.currentWipProjectId,
+                                        project_id: AppState.currentWipProjectId,
                                         title: 'Note',
                                         content: content,
                                         artist_id: user.id
@@ -9557,8 +9556,8 @@
                                     'Ideas or research added to project'
                                 );
 
-                                if (window.currentWipProjectId) {
-                                    loadNotes(window.currentWipProjectId);
+                                if (AppState.currentWipProjectId) {
+                                    loadNotes(AppState.currentWipProjectId);
                                 }
 
                             } catch (error) {
@@ -9637,7 +9636,7 @@
                                     );
 
                                     showToast('Note deleted');
-                                    if (window.currentWipProjectId) loadNotes(window.currentWipProjectId);
+                                    if (AppState.currentWipProjectId) loadNotes(AppState.currentWipProjectId);
 
                                     // Update dashboard counts
                                     updateDashboardCounts();
@@ -10269,10 +10268,10 @@
                                         loadWipProjects();
 
                                         // If deleted project was currently open, show empty state
-                                        if (window.currentWipProjectId === projectId) {
+                                        if (AppState.currentWipProjectId === projectId) {
                                             document.getElementById('projectWorkspace').style.display = 'none';
                                             document.getElementById('emptyWorkspace').style.display = 'flex';
-                                            window.currentWipProjectId = null;
+                                            AppState.currentWipProjectId = null;
                                         }
 
                                     } catch (error) {
@@ -10302,7 +10301,7 @@
                             console.log('🚀 OPTIMIZED: Loading ALL content for project:', projectId);
 
                             // ✅ CRITICAL FIX: PERSIST PROJECT ID GLOBALLY
-                            window.currentWipProjectId = projectId;
+                            AppState.currentWipProjectId = projectId;
 
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -10536,7 +10535,7 @@
                                     );
 
                                     showToast('Reference deleted');
-                                    if (window.currentWipProjectId) loadMoodboardItems(window.currentWipProjectId);
+                                    if (AppState.currentWipProjectId) loadMoodboardItems(AppState.currentWipProjectId);
 
                                     // Update dashboard counts
                                     updateDashboardCounts();
@@ -10631,7 +10630,7 @@
                                 // ✅ FAST RENDER
                                 projectsList.innerHTML = projects.map(project => `
                                     <div class="wip-project-item" onclick="openProjectWorkspace('${project.id}')" 
-                                         style="padding: 1rem; border: 1px solid #e5e5e5; border-radius: 8px; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.2s ease; background: ${window.currentWipProjectId === project.id ? '#f0f0f0' : 'white'};">
+                                         style="padding: 1rem; border: 1px solid #e5e5e5; border-radius: 8px; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.2s ease; background: ${AppState.currentWipProjectId === project.id ? '#f0f0f0' : 'white'};">
                                         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                             <div style="flex: 1;">
                                                 <div class="wip-project-title" style="font-weight: 500; margin-bottom: 0.25rem; font-size: 0.9rem;">${escapeHtml(project.title)}</div>
@@ -10697,17 +10696,17 @@
                             }
 
                             // Load content for the tab
-                            if (window.currentWipProjectId) {
+                            if (AppState.currentWipProjectId) {
                                 console.log('📥 Loading content for tab:', tabName);
                                 switch(tabName) {
                                     case 'moodboard':
-                                        loadMoodboardItems(window.currentWipProjectId);
+                                        loadMoodboardItems(AppState.currentWipProjectId);
                                         break;
                                     case 'sketches':
-                                        loadSketches(window.currentWipProjectId);
+                                        loadSketches(AppState.currentWipProjectId);
                                         break;
                                     case 'notes':
-                                        loadNotes(window.currentWipProjectId);
+                                        loadNotes(AppState.currentWipProjectId);
                                         break;
                                 }
                             }
@@ -10945,12 +10944,12 @@
 
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user || !window.currentWipProjectId) return;
+                                if (!user || !AppState.currentWipProjectId) return;
 
                                 const { data, error } = await supabaseClient
                                     .from('wip_notes')
                                     .insert([{
-                                        project_id: window.currentWipProjectId,
+                                        project_id: AppState.currentWipProjectId,
                                         title: title,
                                         content: content,
                                         artist_id: user.id
@@ -11190,7 +11189,7 @@
                                 }
 
                                 // Get current project ID (we'll need to track this)
-                                const currentProjectId = window.currentWipProjectId;
+                                const currentProjectId = AppState.currentWipProjectId;
                                 if (!currentProjectId) {
                                     showToast('No project selected', 'error');
                                     return;
@@ -14446,7 +14445,7 @@
 
                                         function openProjectWorkspace(projectId) {
                                             console.log('🚀 Opening project workspace:', projectId);
-                                            window.currentWipProjectId = projectId;
+                                            AppState.currentWipProjectId = projectId;
 
                                             // Update selected project UI
                                             const projectsList = document.getElementById('wipProjectsList');
