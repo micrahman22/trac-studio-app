@@ -4476,9 +4476,7 @@
                         };
 
                         // Global State Management
-                        let currentArtworks = [];
                         let selectedImageFile = null;
-                        let selectedEventImageFile = null;
                         let currentWipProjectId = null;
 
                         // Activity Types
@@ -5437,7 +5435,7 @@
                             const processedFile = await TracImageService.process(file, { label: 'Event image' });
                             if (!processedFile) return;
 
-                            selectedEventImageFile = processedFile;
+                            AppState.selectedEventImageFile = processedFile;
                             updateEventImagePreview(processedFile, file);
                         }
 
@@ -5455,7 +5453,7 @@
                         }
 
                         function clearEventImageSelection() {
-                            selectedEventImageFile = null;
+                            AppState.selectedEventImageFile = null;
                             document.getElementById('eventImagePreview').innerHTML = '';
                         }
 
@@ -6148,13 +6146,13 @@
                                 return [];
                             }
 
-                            currentArtworks = artworks || [];
-                            displayArtworksGrid(currentArtworks);
+                            AppState.currentArtworks = artworks || [];
+                            displayArtworksGrid(AppState.currentArtworks);
 
                             loadProfileCollections();
 
                             updateStats();
-                            return currentArtworks;
+                            return AppState.currentArtworks;
 
                         } catch (error) {
                             console.error('Error fetching artworks:', error);
@@ -6295,11 +6293,11 @@
                                 let imagePath = null;
 
                                 // Upload event image if selected
-                                if (selectedEventImageFile) {
-                                    const imageName = `${user.id}/events/${Date.now()}_${selectedEventImageFile.name}`;
+                                if (AppState.selectedEventImageFile) {
+                                    const imageName = `${user.id}/events/${Date.now()}_${AppState.selectedEventImageFile.name}`;
                                     const { data: imageData, error: uploadError } = await supabaseClient.storage
                                         .from('artwork-images')
-                                        .upload(imageName, selectedEventImageFile);
+                                        .upload(imageName, AppState.selectedEventImageFile);
 
                                     if (uploadError) throw uploadError;
 
@@ -8539,7 +8537,6 @@
 
                         // ==================== WIP STUDIO & BLOCKCHAIN FUNCTIONS ====================
 
-                        let wipCache = {};
 
     function openWipStudio() {
         console.log('🎨 Opening WIP Studio...');
@@ -10332,7 +10329,7 @@
                                 ]);
 
                                 // ✅ CACHE ALL DATA
-                                wipCache[projectId] = {
+                                AppState.wipCache[projectId] = {
                                     moodboard: moodboardData.data || [],
                                     sketches: sketchesData.data || [],
                                     notes: notesData.data || [],
@@ -10346,7 +10343,7 @@
 
                                 // ✅ SPECIAL HANDLING FOR DASHBOARD TAB
                                 if (activeTab === 'dashboard') {
-                                    displayConnectedArtworks(wipCache[projectId].connected);
+                                    displayConnectedArtworks(AppState.wipCache[projectId].connected);
                                 } else {
                                     loadCachedTabContent(activeTab, projectId);
                                 }
@@ -10357,7 +10354,7 @@
                         }
 
                         function loadCachedTabContent(tabName, projectId) {
-                            if (!wipCache[projectId]) {
+                            if (!AppState.wipCache[projectId]) {
                                 console.log('No cached data, loading fresh...');
                                 loadProjectContent(projectId);
                                 return;
@@ -10367,7 +10364,7 @@
 
                             switch(tabName) {
                                 case 'moodboard':
-                                    if (wipCache[projectId].moodboard && wipCache[projectId].moodboard.length > 0) {
+                                    if (AppState.wipCache[projectId].moodboard && AppState.wipCache[projectId].moodboard.length > 0) {
                                         // Use existing loadMoodboardItems function
                                         const moodboardGrid = document.getElementById('moodboardGrid');
                                         if (moodboardGrid) {
@@ -10400,7 +10397,7 @@
                                     break;
 
                                 case 'sketches':
-                                    if (wipCache[projectId].sketches && wipCache[projectId].sketches.length > 0) {
+                                    if (AppState.wipCache[projectId].sketches && AppState.wipCache[projectId].sketches.length > 0) {
                                         // Use existing loadSketches function
                                         const sketchesGrid = document.getElementById('sketchesGrid');
                                         if (sketchesGrid) {
@@ -10432,7 +10429,7 @@
                                     break;
 
                                 case 'notes':
-                                    if (wipCache[projectId].notes && wipCache[projectId].notes.length > 0) {
+                                    if (AppState.wipCache[projectId].notes && AppState.wipCache[projectId].notes.length > 0) {
                                         loadNotes(projectId);
                                     } else {
                                         const notesList = document.getElementById('notesList');
@@ -10461,7 +10458,7 @@
 
                                 case 'dashboard':
                                     // Display connected artworks from cache
-                                    displayConnectedArtworks(wipCache[projectId].connected || []);
+                                    displayConnectedArtworks(AppState.wipCache[projectId].connected || []);
                                     break;
                             }
                         }
@@ -11334,7 +11331,7 @@
                         function updateStats() {
                             try {
                                 // Update artwork count
-                                const artworksCount = currentArtworks.length;
+                                const artworksCount = AppState.currentArtworks.length;
                                 document.getElementById('artworksCount').textContent = artworksCount;
 
                                 // Update events count
@@ -11378,7 +11375,7 @@
                             } catch (error) {
                                 console.error('Error updating stats:', error);
                                 // Fallback to basic counts
-                                document.getElementById('artworksCount').textContent = currentArtworks.length;
+                                document.getElementById('artworksCount').textContent = AppState.currentArtworks.length;
                                 document.getElementById('eventsCount').textContent = '0';
                                 document.getElementById('collectionsCount').textContent = '0';
                             }
