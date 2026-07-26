@@ -4459,16 +4459,11 @@
 
                         // Global State Management
                         let currentArtworks = [];
-                        let cachedPortfolioData = null;
-                        let cachedArtworksData = null;
-                        let cachedCollectionsData = null;
-                        let cachedEventsData = null;
                         let selectedImageFile = null;
                         let selectedEventImageFile = null;
                         let currentWipProjectId = null;
                         let currentMoodboardType = 'image';
                         let selectedMoodboardImage = null;
-                        let selectedSketchFile = null;
 
                         // Activity Types
                         const ACTIVITY_TYPES = {
@@ -4484,15 +4479,6 @@
                             EVENT_UPDATE: 'event_update',
                             EVENT_DELETE: 'event_delete',
                             CV_REQUEST: 'cv_request'
-                        };
-
-                        // Event Types Constants
-                        const EVENT_TYPES = {
-                            EXHIBITION: 'exhibition',
-                            SHOW: 'show', 
-                            DEADLINE: 'deadline',
-                            OPENING: 'opening',
-                            OTHER: 'other'
                         };
 
                         // Style Presets System
@@ -6385,8 +6371,6 @@
                                 fetchUserEvents();
                                 updateStats();
 
-                                // Clear cache to force fresh data
-                                cachedEventsData = null;
                                 if (document.getElementById('portfolio-section').style.display === 'block') {
                                     loadPortfolio();
                                 }
