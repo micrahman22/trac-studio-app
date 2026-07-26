@@ -4457,13 +4457,30 @@
                             });
                         })();
 
+                        // ==================== APP STATE ====================
+                        // Consolidates what were previously scattered top-level `let`s
+                        // (and, for currentWipProjectId, a second ad hoc `window.` global)
+                        // into one object. Migrated one variable at a time -- see git log.
+                        const AppState = {
+                            currentArtworks: [],
+                            selectedImageFile: null,
+                            selectedEventImageFile: null,
+                            currentWipProjectId: null,
+                            currentMoodboardType: 'image',
+                            selectedMoodboardImage: null,
+                            favoriteStyles: [],
+                            generatedStyles: [],
+                            wipCache: {},
+                            cvRequestArtistId: null,
+                            cvRequestArtistName: null
+                        };
+
                         // Global State Management
                         let currentArtworks = [];
                         let selectedImageFile = null;
                         let selectedEventImageFile = null;
                         let currentWipProjectId = null;
                         let currentMoodboardType = 'image';
-                        let selectedMoodboardImage = null;
 
                         // Activity Types
                         const ACTIVITY_TYPES = {
@@ -11043,7 +11060,7 @@
 
                         function resetMoodboardForm() {
                             document.getElementById('moodboardItemForm').reset();
-                            selectedMoodboardImage = null;
+                            AppState.selectedMoodboardImage = null;
                             document.getElementById('moodboardUploadPlaceholder').style.display = 'block';
                             document.getElementById('moodboardImagePreview').style.display = 'none';
                             selectMoodboardType('image');
@@ -11189,11 +11206,11 @@
                                 let imageUrl = null;
 
                                 // Handle image upload if type is image
-                                if (currentMoodboardType === 'image' && selectedMoodboardImage) {
-                                    const imageName = `${user.id}/moodboard/${Date.now()}_${selectedMoodboardImage.name}`;
+                                if (currentMoodboardType === 'image' && AppState.selectedMoodboardImage) {
+                                    const imageName = `${user.id}/moodboard/${Date.now()}_${AppState.selectedMoodboardImage.name}`;
                                     const { data: imageData, error: uploadError } = await supabaseClient.storage
                                         .from('artwork-images')
-                                        .upload(imageName, selectedMoodboardImage);
+                                        .upload(imageName, AppState.selectedMoodboardImage);
 
                                     if (uploadError) throw uploadError;
 
