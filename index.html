@@ -4785,7 +4785,6 @@
                             return urls[platform] || '#';
                         }
 
-                        let generatedStyles = [];
 
                         // ==================== AUTHENTICATION SYSTEM ====================
                         async function signIn() {
@@ -11870,7 +11869,7 @@
                         }
 
                         function previewStyle(styleId) {
-                            const style = STYLE_PRESETS[styleId] || generatedStyles.find(s => s.id === styleId);
+                            const style = STYLE_PRESETS[styleId] || AppState.generatedStyles.find(s => s.id === styleId);
                             if (!style) return;
 
                             const existing = document.getElementById('style-preview-overlay');
@@ -11912,14 +11911,14 @@
                             ).join('');
 
                             // ✅ LOAD AND DISPLAY CUSTOM PRESETS FROM LOCALSTORAGE
-                            generatedStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
-                            const customStyles = generatedStyles.map(style => createStyleCard(style)).join('');
+                            AppState.generatedStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
+                            const customStyles = AppState.generatedStyles.map(style => createStyleCard(style)).join('');
 
                             // ✅ COMBINE BOTH PRESETS AND CUSTOM STYLES
                             container.innerHTML = presetStyles + customStyles;
 
                             // If no custom styles, show message
-                            if (generatedStyles.length === 0) {
+                            if (AppState.generatedStyles.length === 0) {
                                 container.innerHTML += `
                                     <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: #666;">
                                         <p>No custom presets yet. Create one in the Style Editor!</p>
@@ -12028,8 +12027,8 @@
                             dialog.querySelector('#confirmDelete').onclick = () => {
                                 document.body.removeChild(dialog);
 
-                                generatedStyles = generatedStyles.filter(style => style.id !== styleId);
-                                localStorage.setItem('generatedStyles', JSON.stringify(generatedStyles));
+                                AppState.generatedStyles = AppState.generatedStyles.filter(style => style.id !== styleId);
+                                localStorage.setItem('generatedStyles', JSON.stringify(AppState.generatedStyles));
                                 showToast('Custom preset deleted');
                                 loadStyleBrowser();
                             };
@@ -13235,9 +13234,9 @@
                                 imageSize: document.getElementById('imageSize').value
                             };
 
-                            generatedStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
-                            generatedStyles.push(customStyle);
-                            localStorage.setItem('generatedStyles', JSON.stringify(generatedStyles));
+                            AppState.generatedStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
+                            AppState.generatedStyles.push(customStyle);
+                            localStorage.setItem('generatedStyles', JSON.stringify(AppState.generatedStyles));
 
                             showToast(`"${styleName}" saved as custom preset!`);
                             document.getElementById('newStyleName').value = '';
