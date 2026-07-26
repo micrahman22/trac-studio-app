@@ -216,9 +216,24 @@
 <!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-    const SUPABASE_URL = 'https://vhgsayaugbepugssyary.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoZ3NheWF1Z2JlcHVnc3N5YXJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NjA5ODMsImV4cCI6MjA3ODIzNjk4M30.2a6qJqW3BrHZxHHhM5Hm9e0sU6Bts6dXmPFW5tbrW_A';
+    // Supabase Configuration — picks staging vs prod by deployed hostname.
+    const TRAC_ENV = location.hostname.includes('staging') ? 'staging' : 'production';
+    const TRAC_CONFIG = {
+        production: {
+            supabaseUrl: 'https://vhgsayaugbepugssyary.supabase.co',
+            supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoZ3NheWF1Z2JlcHVnc3N5YXJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NjA5ODMsImV4cCI6MjA3ODIzNjk4M30.2a6qJqW3BrHZxHHhM5Hm9e0sU6Bts6dXmPFW5tbrW_A'
+        },
+        staging: {
+            supabaseUrl: 'https://utlgnwxulsasydqwcjgc.supabase.co',
+            supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0bGdud3h1bHNhc3lkcXdjamdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwODQxMzcsImV4cCI6MjEwMDY2MDEzN30.s0UMHbJsYSN8WQXmdbYOVQwJGSO9gXCeOG4-if0LmeA'
+        }
+    }[TRAC_ENV];
+    const SUPABASE_URL = TRAC_CONFIG.supabaseUrl;
+    const SUPABASE_ANON_KEY = TRAC_CONFIG.supabaseKey;
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    console.log(`🔧 TRAC environment: ${TRAC_ENV} (${SUPABASE_URL})`);
+    if (TRAC_ENV === 'staging') document.title = '[STAGING] ' + document.title;
 
     // Escapes a value for safe interpolation into innerHTML template
     // literals (text nodes and double-quoted HTML attributes).
