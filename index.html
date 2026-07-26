@@ -4417,6 +4417,46 @@
                                 .replace(/'/g, '&#39;');
                         }
 
+                        // ==================== GLOBAL ERROR HANDLING ====================
+                        // Last-resort safety net for errors that aren't already caught by a
+                        // local try/catch (e.g. the blockchain/CoA section's unguarded await
+                        // calls, which previously failed completely silently). This does not
+                        // replace the ~76 existing specific try/catch + showToast(...) call
+                        // sites — leave those exactly as they are.
+                        (function installGlobalErrorHandling() {
+                            let errorCount = 0;
+                            let windowStart = Date.now();
+                            const WINDOW_MS = 10000;
+                            const MAX_TOASTS_PER_WINDOW = 3;
+
+                            function reportError(kind, detail) {
+                                console.error(`[TRAC ${kind}]`, detail);
+
+                                const now = Date.now();
+                                if (now - windowStart > WINDOW_MS) {
+                                    windowStart = now;
+                                    errorCount = 0;
+                                }
+                                errorCount++;
+                                if (errorCount > MAX_TOASTS_PER_WINDOW) return;
+
+                                try {
+                                    if (typeof showToast === 'function') {
+                                        showToast('Something went wrong. Please try again.', 'error');
+                                    }
+                                } catch (_) { /* must never itself throw */ }
+                            }
+
+                            window.addEventListener('error', function (event) {
+                                reportError('error', event.error || event.message || event);
+                            });
+
+                            window.addEventListener('unhandledrejection', function (event) {
+                                reportError('unhandledrejection', event.reason);
+                                event.preventDefault();
+                            });
+                        })();
+
                         // Global State Management
                         let currentArtworks = [];
                         let cachedPortfolioData = null;

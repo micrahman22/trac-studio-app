@@ -235,6 +235,42 @@
     console.log(`🔧 TRAC environment: ${TRAC_ENV} (${SUPABASE_URL})`);
     if (TRAC_ENV === 'staging') document.title = '[STAGING] ' + document.title;
 
+    // ==================== GLOBAL ERROR HANDLING ====================
+    // Last-resort safety net for errors not already caught locally.
+    (function installGlobalErrorHandling() {
+        let errorCount = 0;
+        let windowStart = Date.now();
+        const WINDOW_MS = 10000;
+        const MAX_TOASTS_PER_WINDOW = 3;
+
+        function reportError(kind, detail) {
+            console.error(`[TRAC ${kind}]`, detail);
+
+            const now = Date.now();
+            if (now - windowStart > WINDOW_MS) {
+                windowStart = now;
+                errorCount = 0;
+            }
+            errorCount++;
+            if (errorCount > MAX_TOASTS_PER_WINDOW) return;
+
+            try {
+                if (typeof showCToast === 'function') {
+                    showCToast('Something went wrong. Please try again.', 'error');
+                }
+            } catch (_) { /* must never itself throw */ }
+        }
+
+        window.addEventListener('error', function (event) {
+            reportError('error', event.error || event.message || event);
+        });
+
+        window.addEventListener('unhandledrejection', function (event) {
+            reportError('unhandledrejection', event.reason);
+            event.preventDefault();
+        });
+    })();
+
     // Escapes a value for safe interpolation into innerHTML template
     // literals (text nodes and double-quoted HTML attributes).
     function escapeHtml(value) {
