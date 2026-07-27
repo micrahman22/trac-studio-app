@@ -28,13 +28,13 @@
                         body.loaded { opacity: 1; transition: opacity 0.2s ease; }
 
                         /* LOGIN STYLES */
-                        #login-section { 
-                            background: white; 
-                            min-height: 100vh; 
-                            display: grid; 
-                            place-items: center; 
+                        #login-section {
+                            background: white;
+                            min-height: 100vh;
+                            display: flex;
+                            align-items: center;
                             justify-content: center;
-                            padding: 2rem; 
+                            padding: 2rem;
                         }
                         .login-container { width: 100%; max-width: 440px; }
                         .login-header { text-align: center; margin-bottom: 3rem; }
@@ -5078,7 +5078,7 @@
                             // Show selected section
                             const section = document.getElementById(sectionName + '-section');
                             if (section) {
-                                section.style.display = 'block';
+                                section.style.display = sectionName === 'login' ? 'flex' : 'block';
                                 console.log("✅ Showing section:", sectionName);
                             }
 
@@ -5779,7 +5779,7 @@
                             if (!socialLinks) return '';
 
                             const platforms = socialLinks.split('\n').filter(line => line.trim());
-                            let html = '<div style="display: flex; gap: 1.5rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">';
+                            let html = '<div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap;">';
 
                             platforms.forEach(line => {
                                 const [platform, ...usernameParts] = line.split(':');
@@ -7581,26 +7581,19 @@
 
                                 <section id="profile-section" class="portfolio-tab" style="display: none;">
                                     <div class="hero-section">
-                                        <div class="hero-container">
-                                            <div style="display: grid; grid-template-columns: auto fit-content(420px); justify-content: center; gap: 3rem; align-items: start; max-width: 1000px; margin: 0 auto;">
+                                        <div class="hero-container" style="max-width: none;">
+                                            <div style="max-width: 1100px; margin: 0 auto; background: #fafafa; border-radius: 16px; padding: 2.5rem; display: flex; gap: 2rem; align-items: flex-start;">
                                                 ${profileData.profile_photo_url ? `
-                                                    <div>
-                                                        <img src="${escapeHtml(profileData.profile_photo_url)}" alt="Profile Photo"
-                                                             width="300" height="300"
-                                                             style="width: 300px; height: auto; display: block; border-radius: 8px;">
-                                                    </div>
+                                                    <img src="${escapeHtml(profileData.profile_photo_url)}" alt="Profile Photo"
+                                                         width="460" height="460"
+                                                         style="width: 460px; max-width: 45%; height: auto; display: block; border-radius: 8px; flex-shrink: 0;">
                                                 ` : ''}
-                                                <div style="text-align: left;">
-                                                    ${profileData.bio ? `<p style="font-size: 1.1rem; line-height: 1.6; color: #333; margin-bottom: 2rem;">${escapeHtml(profileData.bio)}</p>` : `
-                                                        <p style="color: #666; font-style: italic; margin-bottom: 2rem;">Artist profile</p>
+                                                <div style="text-align: left; min-width: 0; flex: 1 1 auto; overflow-wrap: break-word; word-wrap: break-word;">
+                                                    ${profileData.bio ? `<p style="font-size: 1.1rem; line-height: 1.7; color: #333; margin: 0; overflow-wrap: break-word; word-wrap: break-word;">${escapeHtml(profileData.bio)}</p>` : `
+                                                        <p style="color: #666; font-style: italic; margin: 0;">Artist profile</p>
                                                     `}
                                                 </div>
                                             </div>
-                                            ${profileData.social_links ? `
-                                                <div style="margin-top: 3rem; text-align: center;">
-                                                    ${displaySocialIcons(profileData.social_links)}
-                                                </div>
-                                            ` : ''}
                                         </div>
                                     </div>
                                 </section>
@@ -8466,10 +8459,10 @@
                                 case 'social-focused':
                                     const socialIcons = profileData.social_links ? displaySocialIcons(profileData.social_links) : '';
                                     return `
-                                        <footer style="padding: 3rem 0; border-top: 1px solid var(--border-color, #e5e5e5); background: var(--bg-color, white); text-align: center;">
-                                            <div style="max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
+                                        <footer style="padding: 1.25rem 0; border-top: 1px solid var(--border-color, #e5e5e5); background: var(--bg-color, white);">
+                                            <div style="max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
                                                 ${socialIcons}
-                                                <div style="margin-top: 2rem; color: var(--footer-text-color, #666); font-size: var(--footer-font-size, 14px); font-family: var(--footer-font-family, 'Space Grotesk');">
+                                                <div style="color: var(--footer-text-color, #666); font-size: var(--footer-font-size, 14px); font-family: var(--footer-font-family, 'Space Grotesk');">
                                                     Powered by TRAC
                                                 </div>
                                             </div>
