@@ -145,7 +145,7 @@ serve(async (req) => {
             </p>
             <hr style="border: none; border-top: 1px solid #eee; margin: 2rem 0;">
             <p style="color: #bbb; font-size: 0.75rem; text-align: center; margin: 0;">
-              Sent via <a href="https://trac.art" style="color: #bbb;">TRAC Artist Platform</a>
+              Sent via <a href="https://tracstudio.app" style="color: #bbb;">TRAC Artist Platform</a>
             </p>
           </div>
         `,
