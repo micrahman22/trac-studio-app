@@ -8473,18 +8473,6 @@
                                 <h4 id="currentProjectTitle" style="margin: 0 0 ${isMobile ? '0.25rem' : '0.25rem'} 0; font-size: ${isMobile ? '1rem' : '1.1rem'}; font-weight: 500;">Select a project</h4>
                                 <p id="currentProjectDescription" style="margin: 0; color: #666; font-size: ${isMobile ? '0.75rem' : '0.85rem'}; ${isMobile ? 'line-height: 1.3;' : ''}">Choose or create a project to start working</p>
                             </div>
-                            ${isMobile ? '' : `
-                                <div style="display: flex; gap: 0.5rem;">
-                                    <button id="aiAssistantBtn" onclick="openAIAssistant()" style="background: #000; color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
-                                            <path d="M2 17l10 5 10-5"></path>
-                                            <path d="M2 12l10 5 10-5"></path>
-                                        </svg>
-                                        AI Assistant
-                                    </button>
-                                </div>
-                            `}
                         </div>
 
                         <!-- Tabs Navigation -->
@@ -8497,7 +8485,7 @@
                         <!-- Tab Content Area -->
                         <div style="flex: 1; overflow-y: auto; background: #fafafa;">
                             <!-- Moodboard Tab -->
-                            <div id="wipMoodboardTab" class="wip-tab-content active" style="display: block; ${isMobile ? 'padding: 0.5rem;' : 'padding: 2rem;'} height: 100%; overflow-y: auto; position: relative;">
+                            <div id="wipMoodboardTab" class="wip-tab-content" style="display: none; ${isMobile ? 'padding: 0.5rem;' : 'padding: 2rem;'} height: 100%; overflow-y: auto; position: relative;">
                                 <div class="artworks-section" style="max-width: none; padding: 0; height: 100%;">
                                     <div id="moodboardGrid" class="artworks-grid portfolio-layout grid-classic ${isMobile ? 'small' : 'medium'}" style="${isMobile ? 'grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap: 1rem !important;' : ''}"></div>
                                     <!-- SIMPLE + BUTTON - BOTTOM RIGHT -->
