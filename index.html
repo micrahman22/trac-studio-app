@@ -6238,10 +6238,14 @@
                             if (!confirm('Are you sure you want to delete this artwork?')) return;
 
                             try {
+                                const { data: { user } } = await supabaseClient.auth.getUser();
+                                if (!user) throw new Error('Not authenticated');
+
                                 const { error } = await supabaseClient
                                     .from('artworks')
                                     .delete()
-                                    .eq('id', artworkId);
+                                    .eq('id', artworkId)
+                                    .eq('artist_id', user.id);
 
                                 if (error) throw error;
 
@@ -6573,6 +6577,9 @@
                             if (!confirm('Are you sure you want to delete this event?')) return;
 
                             try {
+                                const { data: { user } } = await supabaseClient.auth.getUser();
+                                if (!user) throw new Error('Not authenticated');
+
                                 // Get event title first for logging
                                 const { data: event } = await supabaseClient
                                     .from('events')
@@ -6583,7 +6590,8 @@
                                 const { error } = await supabaseClient
                                     .from('events')
                                     .delete()
-                                    .eq('id', eventId);
+                                    .eq('id', eventId)
+                                    .eq('artist_id', user.id);
 
                                 if (error) throw error;
 

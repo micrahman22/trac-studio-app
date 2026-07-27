@@ -55,6 +55,7 @@ serve(async (req) => {
       .select("id, artist_id, requester_name, requester_company, requester_email, requester_phone, message, status")
       .eq("id", requestId)
       .eq("status", "pending")
+      .is("notified_at", null)
       .single();
 
     if (fetchError || !cvRequest) {
@@ -142,6 +143,13 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Mark as notified so a replayed call with the same id can't re-trigger
+    // this email — guard checked in the query above via .is("notified_at", null).
+    await supabase
+      .from("cv_requests")
+      .update({ notified_at: new Date().toISOString() })
+      .eq("id", requestId);
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
