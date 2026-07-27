@@ -6242,37 +6242,6 @@
         `;
     }
 
-                        async function deleteArtwork(artworkId) {
-                            const confirmed = await showConfirmDialog(
-                                'Delete Artwork',
-                                'Are you sure you want to delete this artwork?',
-                                'Delete Artwork',
-                                'Keep Artwork'
-                            );
-                            if (!confirmed) return;
-
-                            try {
-                                const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user) throw new Error('Not authenticated');
-
-                                const { error } = await supabaseClient
-                                    .from('artworks')
-                                    .delete()
-                                    .eq('id', artworkId)
-                                    .eq('artist_id', user.id);
-
-                                if (error) throw error;
-
-                                showToast('Artwork deleted successfully');
-                                fetchUserArtworks();
-                                clearPortfolioCache();
-
-                            } catch (error) {
-                                console.error('Error deleting artwork:', error);
-                                showToast('Error deleting artwork', 'error');
-                            }
-                        }
-
                         async function toggleArtworkVisibility(artworkId) {
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -7183,71 +7152,6 @@
                             } catch (error) {
                                 console.error('❌ Error in logActivity:', error);
                             }
-                        }
-
-                        async function fetchActivities(limit = 10) {
-                            try {
-                                const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user) return [];
-
-                                const { data: activities, error } = await supabaseClient
-                                    .from('activities')
-                                    .select('*')
-                                    .eq('artist_id', user.id)
-                                    .order('created_at', { ascending: false })
-                                    .limit(limit);
-
-                                if (error) throw error;
-
-                                return activities || [];
-
-                            } catch (error) {
-                                console.error('Error fetching activities:', error);
-                                return [];
-                            }
-                        }
-
-                        function displayActivities(activities) {
-                            const container = document.getElementById('activitiesList');
-                            if (!container) return;
-
-                            if (!activities || activities.length === 0) {
-                                container.innerHTML = `
-                                    <div class="activity-item">
-                                        <div class="activity-dot"></div>
-                                        <div class="activity-content">
-                                            <p><strong>Welcome to TRAC</strong> - Your artist archive is ready</p>
-                                            <div class="activity-time">Just now</div>
-                                        </div>
-                                    </div>
-                                    <div class="activity-item">
-                                        <div class="activity-dot"></div>
-                                        <div class="activity-content">
-                                            <p>Upload your first artwork to start building your portfolio</p>
-                                            <div class="activity-time">Today</div>
-                                        </div>
-                                    </div>
-                                `;
-                                return;
-                            }
-
-                            container.innerHTML = activities.map(activity => {
-                                // Customize display based on activity type
-                                let displayText = escapeHtml(activity.title);
-                                if (activity.description) {
-                                    displayText += ` - ${escapeHtml(activity.description)}`;
-                                }
-
-                                return `
-                                    <div class="activity-item">
-                                        <div class="activity-dot"></div>
-                                        <div class="activity-content">
-                                            <p>${displayText}</p>
-                                            <div class="activity-time">${formatActivityTime(activity.created_at)}</div>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('');
                         }
 
                         function formatActivityTime(timestamp) {
@@ -8312,112 +8216,6 @@
                             }
                         } 
 
-                        function applyHeaderLayout(headerLayout, profileData, isOwner) {
-                            const artistName = profileData.full_name || profileData.username;
-
-                            switch(headerLayout) {
-                                case 'floating':
-                                    return `
-                                        <header class="portfolio-header" style="position: fixed; top: 2rem; left: 50%; transform: translateX(-50%); background: var(--bg-color, rgba(255,255,255,0.9)); backdrop-filter: blur(10px); border: 1px solid var(--border-color, #e5e5e5); border-radius: 12px; padding: 1rem 2rem; z-index: 1000; width: auto;">
-                                            <div class="header-container" style="max-width: none;">
-                                                <div class="header-left">
-                                                    <div class="artist-name">${artistName}</div>
-                                                    ${isOwner ? `
-                                                        <nav class="gallery-nav">
-                                                            <a href="#" class="nav-item" onclick="showSection('dashboard')">Dashboard</a>
-                                                        </nav>
-                                                    ` : ''}
-                                                </div>
-                                                <div class="header-right">
-                                                    <nav class="portfolio-nav">
-                                                        <a href="#" class="nav-item active" data-tab="works">Works</a>
-                                                        <a href="#" class="nav-item" data-tab="profile">Profile</a>
-                                                        <a href="#" class="nav-item" data-tab="events">Events</a>
-                                                    </nav>
-                                                    ${isOwner ? applyOwnerHeaderElements(profileData) : ''}
-                                                </div>
-                                            </div>
-                                        </header>
-                                        <div style="height: 120px;"></div> <!-- Spacer for fixed header -->
-                                    `;
-
-                                case 'split':
-                                    return `
-                                        <header class="portfolio-header">
-                                            <div class="header-container" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">
-                                                <div class="header-left" style="justify-self: start;">
-                                                    <div class="artist-name" style="font-size: 1.8rem; font-weight: 600;">${artistName}</div>
-                                                </div>
-                                                <div style="justify-self: center;">
-                                                    <nav class="portfolio-nav">
-                                                        <a href="#" class="nav-item active" data-tab="works">Works</a>
-                                                        <a href="#" class="nav-item" data-tab="profile">Profile</a>
-                                                        <a href="#" class="nav-item" data-tab="events">Events</a>
-                                                    </nav>
-                                                </div>
-                                                <div class="header-right" style="justify-self: end;">
-                                                    ${isOwner ? applyOwnerHeaderElements(profileData) : ''}
-                                                </div>
-                                            </div>
-                                        </header>
-                                    `;
-
-                                case 'minimal':
-                                    return `
-                                        <header class="portfolio-header" style="border: none; padding: 2rem 0 1rem;">
-                                            <div class="header-container" style="text-align: center;">
-                                                <div class="artist-name" style="font-size: 2.5rem; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 1rem;">${artistName}</div>
-                                                ${isOwner ? `
-                                                    <div style="margin-top: 1rem;">
-                                                        <a href="#" class="nav-item" onclick="showSection('dashboard')" style="font-size: 0.9rem; color: #666; text-decoration: underline;">Dashboard</a>
-                                                    </div>
-                                                ` : ''}
-                                            </div>
-                                        </header>
-                                    `;
-
-                                case 'expressive':
-                                    return `
-                                        <header class="portfolio-header" style="background: var(--accent-color, #000); color: white; padding: 4rem 0;">
-                                            <div class="header-container" style="text-align: center;">
-                                                <div class="artist-name" style="font-size: 4rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1rem;">${artistName}</div>
-                                                <nav class="portfolio-nav" style="margin-top: 2rem;">
-                                                    <a href="#" class="nav-item active" data-tab="works" style="color: white; font-size: 1.1rem;">Works</a>
-                                                    <a href="#" class="nav-item" data-tab="profile" style="color: white; font-size: 1.1rem;">Profile</a>
-                                                    <a href="#" class="nav-item" data-tab="events" style="color: white; font-size: 1.1rem;">Events</a>
-                                                </nav>
-                                                ${isOwner ? applyOwnerHeaderElements(profileData, true) : ''}
-                                            </div>
-                                        </header>
-                                    `;
-
-                                case 'left-aligned':
-                                default:
-                                    return `
-                                        <header class="portfolio-header">
-                                            <div class="header-container">
-                                                <div class="header-left">
-                                                    <div class="artist-name">${artistName}</div>
-                                                    ${isOwner ? `
-                                                        <nav class="gallery-nav">
-                                                            <a href="#" class="nav-item" onclick="showSection('dashboard')">Dashboard</a>
-                                                        </nav>
-                                                    ` : ''}
-                                                </div>
-                                                <div class="header-right">
-                                                    <nav class="portfolio-nav">
-                                                        <a href="#" class="nav-item active" data-tab="works">Works</a>
-                                                        <a href="#" class="nav-item" data-tab="profile">Profile</a>
-                                                        <a href="#" class="nav-item" data-tab="events">Events</a>
-                                                    </nav>
-                                                    ${isOwner ? applyOwnerHeaderElements(profileData) : ''}
-                                                </div>
-                                            </div>
-                                        </header>
-                                    `;
-                            }
-                        }
-
                         function applyFooterStyle(footerStyle, profileData) {
                             // ✅ FIX 1: Return empty string for 'hidden'
                             if (footerStyle === 'hidden') {
@@ -8505,40 +8303,6 @@
                                         </footer>
                                     `;
                             }
-                        }
-
-                        function applyOwnerHeaderElements(profileData, isDark = false, isOwner = true) {
-                            // ✅ REMOVE THE isOwner CHECK - MAKE CV AVAILABLE TO PUBLIC
-                            const textColor = isDark ? 'white' : 'inherit';
-                            return `
-                                ${profileData.has_cv ? `
-                                    <span style="color: ${textColor}; font-size: 0.7rem; letter-spacing: 0.1em; cursor: pointer; margin-right: 1rem; padding: 0.25rem 0.5rem; border: 1px solid ${textColor}; border-radius: 4px; opacity: 0.8;" 
-                                          onclick="showCVRequestForm()"
-                                          title="CV available upon request">
-                                        CV
-                                    </span>
-                                ` : ''}
-
-                                ${isOwner ? `
-                                    <button class="icon-button" onclick="toggleStyleEditor()" title="Customize Portfolio" style="margin-right: 0.5rem; color: ${textColor};">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                                            <path d="M8 2l2 4 4 1-2 4 2 4-4-1-2 4-2-4-4 1 2-4-2-4 4 1z"></path>
-                                        </svg>
-                                    </button>
-
-                                    <button class="icon-button" onclick="signOut()" title="Sign Out" style="color: ${textColor};">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                                            <path d="M6 14H3.333C2.98 14 2.641 13.86 2.391 13.61C2.14 13.36 2 13.02 2 12.667V3.333C2 2.98 2.14 2.641 2.391 2.391C2.641 2.14 2.98 2 3.333 2H6"></path>
-                                            <path d="M10.667 11.333L14 8l-3.333-3.333"></path>
-                                            <path d="M14 8H6"></path>
-                                        </svg>
-                                    </button>
-                                ` : ''}
-                            `;
-                        }
-
-                        function applyCollectionLayout(collectionLayout) {
-                            // Apply different collection display methods
                         }
 
                         // ==================== BRANDED ALERT SYSTEM ====================
@@ -9253,33 +9017,6 @@
                                 console.error('Error adding reference:', error);
                                 showToast('Error: ' + error.message, 'error');
                             }
-                        }
-
-                        function displayMoodboardItems(items) {
-                            const moodboardGrid = document.getElementById('moodboardGrid');
-                            if (!moodboardGrid) return;
-
-                            // Your existing display code, but using cached data
-                            if (!items || items.length === 0) {
-                                moodboardGrid.innerHTML = `
-                                    <div style="text-align: center; padding: 4rem 2rem; color: #666; grid-column: 1 / -1;">
-                                        <div style="margin-bottom: 1rem;">
-                                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                                                <polyline points="21 15 16 10 5 21"></polyline>
-                                            </svg>
-                                        </div>
-                                        <h4 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">No references yet</h4>
-                                        <p style="margin: 0; font-size: 0.9rem;">Add images, links, or notes to build your moodboard</p>
-                                    </div>
-                                `;
-                                return;
-                            }
-
-                            moodboardGrid.innerHTML = items.map(item => `
-                                <!-- Your existing moodboard item HTML -->
-                            `).join('');
                         }
 
                         // ==================== SKETCHES SYSTEM ====================
@@ -10007,17 +9744,6 @@
                             }
                         }
 
-                        function loadAvailableArtworksForConnection() {
-                            // This will load user's existing artworks for connection
-                            const artworksList = document.getElementById('availableArtworksList');
-                            // For now, show empty state
-                            artworksList.innerHTML = `
-                                <div style="text-align: center; color: #666; padding: 1rem;">
-                                    <p style="margin: 0; font-size: 0.85rem;">No artworks available to connect</p>
-                                </div>
-                            `;
-                        }
-
                         function displayConnectedArtworks(connectedArtworks) {
                             console.log('🖼️ Displaying connected artworks:', connectedArtworks);
 
@@ -10159,50 +9885,6 @@
 
                                 await handleImageFile(file);
                             }
-                        }
-
-                        // Update drag and drop handlers
-                        function setupDragAndDrop() {
-                            const uploadZone = document.getElementById('uploadZone');
-
-                            uploadZone.addEventListener('dragover', function(e) {
-                                e.preventDefault();
-                                this.classList.add('dragover');
-                            });
-
-                            uploadZone.addEventListener('dragleave', function(e) {
-                                e.preventDefault();
-                                this.classList.remove('dragover');
-                            });
-
-                            uploadZone.addEventListener('drop', async function(e) {
-                                e.preventDefault();
-                                this.classList.remove('dragover');
-
-                                if (e.dataTransfer.files.length > 0) {
-                                    const file = e.dataTransfer.files[0];
-                                    const validation = validateImageFile(file);
-
-                                    if (!validation.valid) {
-                                        showToast(validation.message, 'error');
-                                        return;
-                                    }
-
-                                    await handleImageFile(file);
-                                }
-                            });
-                        }
-
-                        function showCompressionProgress(file) {
-                            const preview = document.getElementById('imagePreview');
-                            preview.innerHTML = `
-                                <div style="text-align: center; padding: 2rem;">
-                                    <div class="loading-spinner" style="width: 30px; height: 30px; margin: 0 auto 1rem;"></div>
-                                    <div style="font-size: 0.8rem; color: #666;">
-                                        Optimizing ${(file.size / (1024 * 1024)).toFixed(1)}MB image...
-                                    </div>
-                                </div>
-                            `;
                         }
 
                         // ==================== WIP PROJECT CREATION & MANAGEMENT ====================
@@ -10526,13 +10208,6 @@
                             }
                         }
 
-                                                                                                // CLOSE PROJECT (BACK TO EMPTY STATE)
-                                                                                                function closeProject() {
-                                                                                                    document.getElementById('projectWorkspace').style.display = 'none';
-                                                                                                    document.getElementById('emptyWorkspace').style.display = 'flex';
-                                                                                                    document.getElementById('wipContentGrid').innerHTML = '';
-                                                                                                }
-
                         async function deleteMoodboardItem(itemId) {
                             const dialog = document.createElement('div');
                             dialog.style.cssText = `
@@ -10616,54 +10291,6 @@
                             dialog.onclick = (e) => { 
                                 if (e.target === dialog) document.body.removeChild(dialog); 
                             };
-                        }
-
-                        async function loadConnectedArtworks(projectId) {
-                            try {
-                                const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user) return;
-
-                                // Get artworks connected to this project
-                                const { data: connectedArtworks, error } = await supabaseClient
-                                    .from('wip_connected_artworks')
-                                    .select(`
-                                        artwork_id,
-                                        artworks (*)
-                                    `)
-                                    .eq('project_id', projectId)
-                                    .eq('artworks.artist_id', user.id);
-
-                                if (error) throw error;
-
-                                const grid = document.getElementById('connectedArtworksGrid');
-                                if (!grid) return;
-
-                                if (!connectedArtworks || connectedArtworks.length === 0) {
-                                    grid.innerHTML = `
-                                        <div style="text-align: center; padding: 2rem; color: #666; grid-column: 1 / -1;">
-                                            <p style="margin: 0; font-size: 0.9rem;">No connected artworks</p>
-                                        </div>
-                                    `;
-                                    return;
-                                }
-
-                                grid.innerHTML = connectedArtworks.map(item => {
-                                    const artwork = item.artworks;
-                                    return `
-                                        <div class="connected-artwork">
-                                            <div class="connected-artwork-image">
-                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width: 100%; height: 120px; object-fit: cover;">
-                                            </div>
-                                            <div class="connected-artwork-info">
-                                                <h5 class="connected-artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h5>
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('');
-
-                            } catch (error) {
-                                console.error('Error loading connected artworks:', error);
-                            }
                         }
 
                         async function loadWipProjects() {
@@ -10787,306 +10414,6 @@
                             }
                         }
 
-                        function showMoodboardModal() {
-                            const modal = document.createElement('div');
-                            modal.style.cssText = `
-                                position: fixed;
-                                top: 0;
-                                left: 0;
-                                width: 100%;
-                                height: 100%;
-                                background: rgba(0,0,0,0.7);
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                z-index: 2147483647;
-                            `;
-
-                            modal.innerHTML = `
-                                <div style="background: white; border-radius: 12px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto;">
-                                    <!-- HEADER -->
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid #e5e5e5; background: #fafafa;">
-                                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 500;">Add Reference</h3>
-                                        <button class="close-modal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">×</button>
-                                    </div>
-
-                                    <!-- CONTENT -->
-                                    <div style="padding: 2rem;">
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1.5rem;">
-                                            <button class="ref-type-btn active" data-type="image" style="padding: 1rem; border: 1px solid #000; background: #000; color: white; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">Image</button>
-                                            <button class="ref-type-btn" data-type="link" style="padding: 1rem; border: 1px solid #d1d1d1; background: white; color: #333; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">Web Link</button>
-                                        </div>
-
-                                        <!-- IMAGE UPLOAD SECTION -->
-                                        <div id="imageUploadSection">
-                                            <div style="margin-bottom: 1.5rem;">
-                                                <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">Upload Image</label>
-                                                <div class="upload-zone" style="border: 2px dashed #d1d1d1; border-radius: 8px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s;">
-                                                    <div id="imageUploadPlaceholder">
-                                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 1rem; opacity: 0.5;">
-                                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                            <polyline points="17 8 12 3 7 8"></polyline>
-                                                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                                                        </svg>
-                                                        <div style="font-size: 0.9rem; color: #666;">Drag & drop image or click to browse</div>
-                                                        <div style="font-size: 0.8rem; color: #999; margin-top: 0.5rem;">JPG, PNG, WebP - max 5MB</div>
-                                                    </div>
-                                                    <input type="file" id="moodboardImageInput" accept="image/*" style="display: none;">
-                                                    <div id="imagePreview" style="display: none;"></div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- LINK INPUT SECTION -->
-                                        <div id="linkInputSection" style="display: none;">
-                                            <div style="margin-bottom: 1.5rem;">
-                                                <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">Web Link</label>
-                                                <input type="url" id="referenceLink" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem;" placeholder="https://...">
-                                            </div>
-                                        </div>
-
-                                        <!-- COMMON FIELDS -->
-                                        <div style="margin-bottom: 1.5rem;">
-                                            <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">Title *</label>
-                                            <input type="text" id="referenceTitle" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem;" placeholder="Enter reference title" required>
-                                        </div>
-
-                                        <div style="margin-bottom: 2rem;">
-                                            <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.5rem;">Description</label>
-                                            <textarea id="referenceDescription" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem; min-height: 80px; resize: vertical;" placeholder="Add notes about this reference..."></textarea>
-                                        </div>
-
-                                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                                            <button class="cancel-btn" style="background: none; border: 1px solid #d1d1d1; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Cancel</button>
-                                            <button class="add-reference-btn" style="background: #000; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Add Reference</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-
-                            document.body.appendChild(modal);
-
-                            // EVENT HANDLERS
-                            setTimeout(() => {
-                                // Close buttons
-                                modal.querySelector('.close-modal').onclick = () => modal.remove();
-                                modal.querySelector('.cancel-btn').onclick = () => modal.remove();
-
-                                // Type switcher
-                                modal.querySelectorAll('.ref-type-btn').forEach(btn => {
-                                    btn.onclick = function() {
-                                        modal.querySelectorAll('.ref-type-btn').forEach(b => {
-                                            b.style.background = 'white';
-                                            b.style.color = '#333';
-                                            b.style.borderColor = '#d1d1d1';
-                                            b.classList.remove('active');
-                                        });
-                                        this.style.background = '#000';
-                                        this.style.color = 'white';
-                                        this.style.borderColor = '#000';
-                                        this.classList.add('active');
-
-                                        const type = this.dataset.type;
-                                        document.getElementById('imageUploadSection').style.display = type === 'image' ? 'block' : 'none';
-                                        document.getElementById('linkInputSection').style.display = type === 'link' ? 'block' : 'none';
-                                    };
-                                });
-
-                                // Image upload
-                                const uploadZone = modal.querySelector('.upload-zone');
-                                const fileInput = modal.querySelector('#moodboardImageInput');
-
-                                uploadZone.onclick = () => fileInput.click();
-                                fileInput.onchange = (e) => handleImageUpload(e, modal);
-
-                                // Add reference
-                                modal.querySelector('.add-reference-btn').onclick = () => addReferenceToMoodboard(modal);
-                            }, 100);
-                        }
-
-                        function showSketchModal() {
-                            const modal = document.createElement('div');
-                            modal.style.cssText = `
-                                position: fixed;
-                                top: 0;
-                                left: 0;
-                                width: 100%;
-                                height: 100%;
-                                background: rgba(0,0,0,0.7);
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                z-index: 2147483647;
-                            `;
-
-                            modal.innerHTML = `
-                                <div style="background: white; border-radius: 12px; max-width: 500px; width: 95%; max-height: 90vh; overflow-y: auto;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid #e5e5e5; background: #fafafa;">
-                                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 500;">Upload Sketch</h3>
-                                        <button class="close-modal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">×</button>
-                                    </div>
-
-                                    <div style="padding: 2rem;">
-                                        <div style="text-align: center; padding: 2rem; color: #666;">
-                                            <div style="margin-bottom: 1rem;">
-                                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5;">
-                                                    <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-                                                    <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-                                                    <path d="M2 2l7.586 7.586"></path>
-                                                    <circle cx="11" cy="11" r="2"></circle>
-                                                </svg>
-                                            </div>
-                                            <h4 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">Sketch Upload</h4>
-                                            <p style="margin: 0; font-size: 0.9rem;">Upload drawings, drafts, or process documentation</p>
-                                        </div>
-
-                                        <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem;">
-                                            <button class="cancel-btn" style="background: none; border: 1px solid #d1d1d1; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Cancel</button>
-                                            <button onclick="showToast('Sketch upload functionality coming in next update!')" style="background: #000; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Upload Sketch</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-
-                            document.body.appendChild(modal);
-
-                            setTimeout(() => {
-                                modal.querySelector('.close-modal').onclick = () => modal.remove();
-                                modal.querySelector('.cancel-btn').onclick = () => modal.remove();
-                            }, 100);
-                        }
-
-                        function showNoteModal() {
-                            const modal = document.createElement('div');
-                            modal.style.cssText = `
-                                position: fixed;
-                                top: 0;
-                                left: 0;
-                                width: 100%;
-                                height: 100%;
-                                background: rgba(0,0,0,0.7);
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                z-index: 2147483647;
-                            `;
-
-                            modal.innerHTML = `
-                                <div style="background: white; border-radius: 12px; max-width: 600px; width: 95%; max-height: 90vh; overflow-y: auto;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid #e5e5e5; background: #fafafa;">
-                                        <h3 style="margin: 0; font-size: 1.25rem; font-weight: 500;">Create Note</h3>
-                                        <button class="close-modal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">×</button>
-                                    </div>
-
-                                    <div style="padding: 2rem;">
-                                        <div style="margin-bottom: 2rem;">
-                                            <textarea id="noteContent" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem; min-height: 200px; resize: vertical; font-family: monospace;" placeholder="Write your notes, ideas, or research here..."></textarea>
-                                        </div>
-
-                                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                                            <button class="cancel-btn" style="background: none; border: 1px solid #d1d1d1; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Cancel</button>
-                                            <button class="add-note-btn" style="background: #000; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">Create Note</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-
-                            document.body.appendChild(modal);
-
-                            setTimeout(() => {
-                                modal.querySelector('.close-modal').onclick = () => modal.remove();
-                                modal.querySelector('.cancel-btn').onclick = () => modal.remove();
-                                modal.querySelector('.add-note-btn').onclick = () => addNoteToProject(modal);
-                            }, 100);
-                        }
-
-                        async function addNoteToProject(modal) {
-                            const title = modal.querySelector('#noteTitle').value.trim();
-                            const content = modal.querySelector('#noteContent').value.trim();
-
-                            if (!title) {
-                                showToast('Please enter a note title', 'error');
-                                return;
-                            }
-
-                            try {
-                                const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user || !AppState.currentWipProjectId) return;
-
-                                const { data, error } = await supabaseClient
-                                    .from('wip_notes')
-                                    .insert([{
-                                        project_id: AppState.currentWipProjectId,
-                                        title: title,
-                                        content: content,
-                                        artist_id: user.id
-                                    }])
-                                    .select()
-                                    .single();
-
-                                if (error) throw error;
-
-                                showToast('Note created successfully!');
-                                modal.remove();
-                                // loadNotes() would go here when we build the notes tab
-
-                            } catch (error) {
-                                console.error('Error creating note:', error);
-                                showToast('Error creating note', 'error');
-                            }
-                        }
-
-                        async function handleImageUpload(event, modal) {
-                            const file = event.target.files[0];
-                            if (!file) return;
-
-                            const processedFile = await TracImageService.process(file, { label: 'Image' });
-                            if (!processedFile) return;
-
-                            updateGenericPreview(processedFile, file, modal);
-                        }
-
-                        async function createProjectFromModal() {
-                            const name = document.getElementById('quickProjectName').value.trim();
-                            const description = document.getElementById('quickProjectDescription').value.trim();
-
-                            if (!name) {
-                                showToast('Please enter a project name', 'error');
-                                return;
-                            }
-
-                            try {
-                                const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user) return;
-
-                                const { data: project, error } = await supabaseClient
-                                    .from('wip_projects')
-                                    .insert([{
-                                        title: name,
-                                        description: description,
-                                        artist_id: user.id,
-                                        status: 'active'
-                                    }])
-                                    .select()
-                                    .single();
-
-                                if (error) throw error;
-
-                                // ✅ USE TOAST INSTEAD OF DIALOG
-                                showToast(`"${name}" created successfully!`);
-
-                                // Close project creation modal
-                                document.querySelector('[style*="position: fixed"][style*="z-index: 2147483647"]')?.remove();
-
-                                // Reload and open project
-                                loadWipProjects();
-                                openProjectWorkspace(project.id);
-
-                            } catch (error) {
-                                showToast('Error creating project', 'error');
-                            }
-                        }
-
                                 function closeMoodboardItemModal() {
                                     const modal = document.getElementById('moodboardItemModal');
                                     if (modal) {
@@ -11115,14 +10442,6 @@
                             // Show/hide sections
                             document.getElementById('moodboardImageSection').style.display = type === 'image' ? 'block' : 'none';
                             document.getElementById('moodboardLinkSection').style.display = type === 'link' ? 'block' : 'none';
-                        }
-
-                        function resetMoodboardForm() {
-                            document.getElementById('moodboardItemForm').reset();
-                            AppState.selectedMoodboardImage = null;
-                            document.getElementById('moodboardUploadPlaceholder').style.display = 'block';
-                            document.getElementById('moodboardImagePreview').style.display = 'none';
-                            selectMoodboardType('image');
                         }
 
                         // Moodboard image upload handling
@@ -11165,23 +10484,6 @@
                             reader.onload = function(e) {
                                 modal.querySelector('#sketchUploadPlaceholder').style.display = 'none';
                                 const preview = modal.querySelector('#sketchImagePreview');
-                                preview.style.display = 'block';
-                                preview.innerHTML = `
-                                    <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
-                                    <div style="margin-top: 0.5rem; font-size: 0.8rem; color: #666;">
-                                        ${escapeHtml(originalFile.name)} (${Math.round(processedFile.size / 1024)}KB)
-                                        ${originalFile.size !== processedFile.size ? ' • Optimized' : ''}
-                                    </div>
-                                `;
-                            };
-                            reader.readAsDataURL(processedFile);
-                        }
-
-                        function updateGenericPreview(processedFile, originalFile, modal) {
-                            const reader = new FileReader();
-                            reader.onload = function(e) {
-                                modal.querySelector('#imageUploadPlaceholder').style.display = 'none';
-                                const preview = modal.querySelector('#imagePreview');
                                 preview.style.display = 'block';
                                 preview.innerHTML = `
                                     <img src="${e.target.result}" style="max-width: 100%; max-height: 200px; border-radius: 8px;">
@@ -11319,10 +10621,6 @@
                             showToast('AI Assistant opening soon!');
                         }
 
-                        function createNote() {
-                            createNewNote(); // Redirect to the existing function
-                        }
-
                         async function updateDashboardCounts() {
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -11374,19 +10672,6 @@
 
                                 if (wipElement) wipElement.textContent = '0';
                                 if (activitiesElement) activitiesElement.textContent = '0';
-                            }
-                        }
-
-                        function updateUploadZoneText() {
-                            const uploadPlaceholder = document.getElementById('uploadPlaceholder');
-                            if (uploadPlaceholder) {
-                                uploadPlaceholder.innerHTML = `
-                                    <span>Drag & drop artwork image here</span>
-                                    <span class="upload-subtitle">
-                                        or click to browse (JPG, PNG, WebP - any size accepted)
-                                        <br><small style="color: #999;">Large images will be automatically optimized</small>
-                                    </span>
-                                `;
                             }
                         }
 
@@ -11925,9 +11210,9 @@
                             }
                         }
 
-                        function showStyleBrowser() {
+                        async function showStyleBrowser() {
                             document.getElementById('styleBrowserModal').style.display = 'flex';
-                            loadStyleBrowser();
+                            await loadStyleBrowser();
                         }
 
                         function hideStyleBrowser() {
@@ -11967,20 +11252,44 @@
                             });
                         }
 
-                        function loadStyleBrowser() {
+                        async function loadStyleBrowser() {
                             const container = document.getElementById('styleBrowserGrid');
                             if (!container) return;
 
                             // Get all preset styles
-                            const presetStyles = Object.values(STYLE_PRESETS).map(style => 
+                            const presetStyles = Object.values(STYLE_PRESETS).map(style =>
                                 createStyleCard(style)
                             ).join('');
 
-                            // ✅ LOAD AND DISPLAY CUSTOM PRESETS FROM LOCALSTORAGE
+                            // Load custom presets from Supabase
                             try {
-                                AppState.generatedStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
-                            } catch (e) {
-                                console.error('Corrupted generatedStyles in localStorage, resetting:', e);
+                                const { data: { user } } = await supabaseClient.auth.getUser();
+                                if (!user) throw new Error('Not authenticated');
+
+                                const { data: rows, error } = await supabaseClient
+                                    .from('custom_presets')
+                                    .select('*')
+                                    .eq('artist_id', user.id)
+                                    .order('created_at', { ascending: false });
+
+                                if (error) throw error;
+
+                                AppState.generatedStyles = (rows || []).map(row => ({
+                                    id: row.id,
+                                    name: row.name,
+                                    description: row.description,
+                                    layout: row.layout,
+                                    headerLayout: row.header_layout,
+                                    footerStyle: row.footer_style,
+                                    collectionTitleLayout: row.collection_title_layout,
+                                    colors: row.colors,
+                                    fonts: row.fonts,
+                                    showFooterContact: row.show_footer_contact,
+                                    imageSize: row.image_size,
+                                    isCustom: true
+                                }));
+                            } catch (error) {
+                                console.error('Error loading custom presets:', error);
                                 AppState.generatedStyles = [];
                             }
                             const customStyles = AppState.generatedStyles.map(style => createStyleCard(style)).join('');
@@ -12003,10 +11312,10 @@
                         function createStyleCard(style) {
                             const isFavorite = AppState.favoriteStyles.includes(style.id);
                             const isBaseStyle = style.isBase;
-                            const isCustomStyle = style.id.startsWith('custom-');
+                            const isCustomStyle = !!style.isCustom;
 
                             return `
-                                <div class="style-card" style="border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; transition: all 0.2s ease; position: relative;">
+                                <div class="style-card" style="border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; transition: all 0.2s ease; position: relative; display: flex; flex-direction: column; height: 100%;">
                                     ${isBaseStyle ? `
                                         <div style="position: absolute; top: -8px; left: -8px; background: #000; color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 600; z-index: 2;">
                                             BASE
@@ -12019,7 +11328,7 @@
                                         </div>
                                     ` : ''}
 
-                                    <div style="background: ${style.colors.bg}; color: ${style.colors.text}; padding: 2rem; border-radius: 8px; margin-bottom: 1rem; text-align: center; font-family: '${style.fonts.primary}', sans-serif; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s ease; min-height: 120px; display: flex; flex-direction: column; justify-content: center;" 
+                                    <div style="background: ${style.colors.bg}; color: ${style.colors.text}; padding: 2rem; border-radius: 8px; margin-bottom: 1rem; text-align: center; font-family: '${style.fonts.primary}', sans-serif; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s ease; min-height: 120px; flex: 1; display: flex; flex-direction: column; justify-content: center;"
                                          onclick="previewStyle('${style.id}')"
                                          onmouseover="this.style.borderColor='${style.colors.accent}'"
                                          onmouseout="this.style.borderColor='transparent'">
@@ -12044,15 +11353,17 @@
                                         </button>
                                     </div>
 
-                                    <button type="button" onclick="applyStyle('${style.id}')" class="btn-primary" style="width: 100%;">
-                                        Apply Style
-                                    </button>
-
-                                    ${isCustomStyle ? `
-                                        <button type="button" onclick="deleteCustomStyle('${style.id}')" class="btn-secondary" style="width: 100%; margin-top: 0.5rem; background: #ff4444; color: white; border: none;">
-                                            Delete
+                                    <div style="margin-top: auto;">
+                                        <button type="button" onclick="applyStyle('${style.id}')" class="btn-primary" style="width: 100%;">
+                                            Apply Style
                                         </button>
-                                    ` : ''}
+
+                                        ${isCustomStyle ? `
+                                            <button type="button" onclick="deleteCustomStyle('${style.id}')" class="btn-secondary" style="width: 100%; margin-top: 0.5rem; background: #ff4444; color: white; border: none;">
+                                                Delete
+                                            </button>
+                                        ` : ''}
+                                    </div>
                                 </div>
                             `;
                         }
@@ -12095,13 +11406,27 @@
                                 document.body.removeChild(dialog);
                             };
 
-                            dialog.querySelector('#confirmDelete').onclick = () => {
+                            dialog.querySelector('#confirmDelete').onclick = async () => {
                                 document.body.removeChild(dialog);
 
-                                AppState.generatedStyles = AppState.generatedStyles.filter(style => style.id !== styleId);
-                                localStorage.setItem('generatedStyles', JSON.stringify(AppState.generatedStyles));
-                                showToast('Custom preset deleted');
-                                loadStyleBrowser();
+                                try {
+                                    const { data: { user } } = await supabaseClient.auth.getUser();
+                                    if (!user) throw new Error('Not authenticated');
+
+                                    const { error } = await supabaseClient
+                                        .from('custom_presets')
+                                        .delete()
+                                        .eq('id', styleId)
+                                        .eq('artist_id', user.id);
+
+                                    if (error) throw error;
+
+                                    showToast('Custom preset deleted');
+                                    await loadStyleBrowser();
+                                } catch (error) {
+                                    console.error('Error deleting custom preset:', error);
+                                    showToast('Error deleting custom preset', 'error');
+                                }
                             };
 
                             // Close on background click
@@ -12148,14 +11473,10 @@
                             // ✅ KEEP EXISTING PRESET LOGIC EXACTLY THE SAME
                             let style = STYLE_PRESETS[styleId];
                             if (!style) {
-                                // Check custom styles - ONLY CHANGE CUSTOM STYLE HANDLING
-                                let customStyles = [];
-                                try {
-                                    customStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
-                                } catch (e) {
-                                    console.error('Corrupted generatedStyles in localStorage, resetting:', e);
-                                }
-                                style = customStyles.find(s => s.id === styleId);
+                                // Custom presets are loaded into AppState.generatedStyles by
+                                // loadStyleBrowser() before any card (and its Apply button) exists
+                                // in the DOM, so this is always fresh here.
+                                style = AppState.generatedStyles.find(s => s.id === styleId);
                             }
 
                             if (!style) {
@@ -12179,7 +11500,7 @@
                                 };
 
                                 // ✅ ONLY MODIFY CUSTOM STYLE SAVING - PRESETS STAY EXACTLY THE SAME
-                                if (styleId.startsWith('custom-')) {
+                                if (style.isCustom) {
                                     updateData.custom_colors = style.colors;
                                     updateData.custom_fonts = {
                                         header: style.fonts.primary,
@@ -12519,60 +11840,6 @@
                             });
                         }
 
-                        function setupColorControls() {
-                            const colorsTab = document.getElementById('colors-tab');
-                            if (!colorsTab) return;
-
-                            colorsTab.innerHTML = `
-                                <div class="color-controls">
-                                    <div class="color-control-group">
-                                        <label>Background Color</label>
-                                        <div class="color-picker-container">
-                                            <input type="color" id="bgColor" class="color-picker" value="#ffffff">
-                                            <span class="color-value">#ffffff</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="color-control-group">
-                                        <label>Text Color</label>
-                                        <div class="color-picker-container">
-                                            <input type="color" id="textColor" class="color-picker" value="#000000">
-                                            <span class="color-value">#000000</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="color-control-group">
-                                        <label>Accent Color</label>
-                                        <div class="color-picker-container">
-                                            <input type="color" id="accentColor" class="color-picker" value="#666666">
-                                            <span class="color-value">#666666</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="color-control-group">
-                                        <label>Border Color</label>
-                                        <div class="color-picker-container">
-                                            <input type="color" id="borderColor" class="color-picker" value="#e5e5e5">
-                                            <span class="color-value">#e5e5e5</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-
-                            // Add event listeners for color pickers
-                            const colorPickers = colorsTab.querySelectorAll('.color-picker');
-                            colorPickers.forEach(picker => {
-                                picker.addEventListener('input', function() {
-                                    const value = this.value;
-                                    const valueSpan = this.nextElementSibling;
-                                    valueSpan.textContent = value;
-
-                                    // Update preview in real-time
-                                    updateColorPreview(this.id, value);
-                                });
-                            });
-                        }
-
                         function updateColorPreview(colorType, value) {
                             const portfolioPage = document.getElementById('portfolioPage');
                             if (!portfolioPage) return;
@@ -12591,24 +11858,6 @@
                                     portfolioPage.style.setProperty('--border-color', value);
                                     break;
                             }
-                        }
-
-                        function setupTabNavigation() {
-                            const tabs = document.querySelectorAll('.style-editor-tab');
-                            const contents = document.querySelectorAll('.style-tab-content');
-
-                            tabs.forEach(tab => {
-                                tab.addEventListener('click', () => {
-                                    // Remove active class from all tabs and contents
-                                    tabs.forEach(t => t.classList.remove('active'));
-                                    contents.forEach(c => c.classList.remove('active'));
-
-                                    // Add active class to clicked tab and corresponding content
-                                    tab.classList.add('active');
-                                    const tabId = tab.getAttribute('data-tab');
-                                    document.getElementById(`${tabId}-tab`).classList.add('active');
-                                });
-                            });
                         }
 
                         // ==================== FIXED STYLE EDITOR APPLY FUNCTION ====================
@@ -12729,45 +11978,6 @@
                         }
 
                         // ==================== APPLY STYLES LOCALLY ====================
-                        function applyStyleLocallyFromEditor(styleData) {
-                            const portfolioPage = document.getElementById('portfolioPage');
-                            if (!portfolioPage) return;
-
-                            // Apply colors
-                            if (styleData.custom_colors) {
-                                portfolioPage.style.setProperty('--bg-color', styleData.custom_colors.bg);
-                                portfolioPage.style.setProperty('--text-color', styleData.custom_colors.text);
-                                portfolioPage.style.setProperty('--accent-color', styleData.custom_colors.accent);
-                                portfolioPage.style.setProperty('--border-color', styleData.custom_colors.border);
-                            }
-
-                            // Apply fonts
-                            if (styleData.custom_fonts) {
-                                portfolioPage.style.setProperty('--header-font-family', styleData.custom_fonts.header);
-                                portfolioPage.style.setProperty('--body-font-family', styleData.custom_fonts.body);
-                                portfolioPage.style.setProperty('--footer-font-family', styleData.custom_fonts.body);
-                                portfolioPage.style.setProperty('--header-font-size', styleData.custom_fonts.header_size);
-                                portfolioPage.style.setProperty('--titles-size', styleData.custom_fonts.body_size);
-                                portfolioPage.style.setProperty('--desc-size', styleData.custom_fonts.body_size);
-                            }
-
-                            // Apply layout changes
-                            const grid = portfolioPage.querySelector('.artworks-grid');
-                            if (grid && styleData.portfolio_layout) {
-                                grid.className = grid.className.replace(/portfolio-layout\s+\S+/g, '');
-                                grid.classList.add('portfolio-layout', styleData.portfolio_layout);
-                            }
-
-                            // Apply image size
-                            if (grid && styleData.image_size) {
-                                grid.className = grid.className.replace(/\b(small|medium|large)\b/g, '');
-                                grid.classList.add(styleData.image_size);
-                            }
-
-                            // Apply footer contact setting
-                            portfolioPage.style.setProperty('--show-footer-contact', styleData.show_footer_contact ? 'true' : 'false');
-                        }
-
                         // ==================== RESET FUNCTION ====================
                         function resetStylePreview() {
                             // Only reset the EDITOR controls, not the actual portfolio
@@ -12867,95 +12077,6 @@
                         }
 
                         // ==================== HELPER FUNCTION FOR DEFAULTS ====================
-                        function setDefaultEditorValues() {
-                            console.log('⚙️ Setting default editor values');
-                            const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
-
-                            // Colors
-                            set('bgColor', '#ffffff');
-                            set('textColor', '#000000');
-                            set('accentColor', '#666666');
-                            set('borderColor', '#e5e5e5');
-
-                            // Update color displays
-                            document.querySelectorAll('.color-picker').forEach(picker => {
-                                const valueSpan = picker.nextElementSibling;
-                                if (valueSpan) valueSpan.textContent = picker.value;
-                            });
-
-                            // Layouts
-                            set('gridLayout', 'grid-classic');
-                            set('headerLayout', 'centered');
-                            set('footerStyle', 'minimal');
-                            set('imageSize', 'medium');
-
-                            // Fonts
-                            set('headerSize', 24);
-                            set('bodySize', 16);
-                            set('headerFont', 'Space Grotesk');
-                            set('bodyFont', 'Space Grotesk');
-
-                            // Update font displays
-                            document.querySelectorAll('#headerSize + .size-value').forEach(span => {
-                                span.textContent = '24px';
-                            });
-                            document.querySelectorAll('#bodySize + .size-value').forEach(span => {
-                                span.textContent = '16px';
-                            });
-
-                            // Advanced
-                            const textBodyLayout = document.getElementById('textBodyLayout');
-                            if (textBodyLayout) textBodyLayout.value = 'centered';
-
-                            const showFooterContact = document.getElementById('showFooterContact');
-                            if (showFooterContact) {
-                                showFooterContact.checked = false;
-                                const statusSpan = document.getElementById('footerContactStatus');
-                                if (statusSpan) statusSpan.textContent = 'Disabled';
-                            }
-
-                            const gridGap = document.getElementById('gridGap');
-                            if (gridGap) {
-                                gridGap.value = 2;
-                                const gapDisplay = document.querySelector('#gridGap + .size-value');
-                                if (gapDisplay) gapDisplay.textContent = '2rem';
-                            }
-
-                            const cardPadding = document.getElementById('cardPadding');
-                            if (cardPadding) {
-                                cardPadding.value = 1.5;
-                                const paddingDisplay = document.querySelector('#cardPadding + .size-value');
-                                if (paddingDisplay) paddingDisplay.textContent = '1.5rem';
-                            }
-                        }
-
-
-                        // ==================== LOAD SAVED STYLES FROM DATABASE ====================
-                        async function loadSavedStyles() {
-                            try {
-                                const { data: { user } } = await supabaseClient.auth.getUser();
-                                if (!user) return null;
-
-                                const { data: profile, error } = await supabaseClient
-                                    .from('profiles')
-                                    .select('custom_colors, custom_fonts, portfolio_layout, image_size, show_footer_contact')
-                                    .eq('id', user.id)
-                                    .single();
-
-                                if (error) {
-                                    console.log('No saved styles found, using defaults');
-                                    return null;
-                                }
-
-                                console.log('📥 Loaded saved styles:', profile);
-                                return profile;
-
-                            } catch (error) {
-                                console.error('Error loading saved styles:', error);
-                                return null;
-                            }
-                        }
-
                         // ==================== APPLY SAVED STYLES TO PORTFOLIO ====================
                         function applySavedStyles(profileData) {
                             const portfolioPage = document.getElementById('portfolioPage');
@@ -12992,81 +12113,6 @@
                             }
 
                             console.log('✅ Saved styles applied successfully');
-                        }
-
-                        function setupFontControls() {
-                            const fontsTab = document.getElementById('fonts-tab');
-                            if (!fontsTab) return;
-
-                            fontsTab.innerHTML = `
-                                <div class="font-controls">
-                                    <div class="font-control-group">
-                                        <label>Header Font</label>
-                                        <select id="headerFont" class="font-select">
-                                            <option value="Space Grotesk">Space Grotesk</option>
-                                            <option value="Helvetica">Helvetica</option>
-                                            <option value="Georgia">Georgia</option>
-                                            <option value="Times New Roman">Times New Roman</option>
-                                            <option value="Arial">Arial</option>
-                                            <option value="Courier New">Courier New</option>
-                                            <option value="Garamond">Garamond</option>
-                                            <option value="Arial Rounded MT Bold">Arial Rounded</option>
-                                            <option value="Brush Script MT">Brush Script</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="font-control-group">
-                                        <label>Body Font</label>
-                                        <select id="bodyFont" class="font-select">
-                                            <option value="Space Grotesk">Space Grotesk</option>
-                                            <option value="Helvetica Neue">Helvetica Neue</option>
-                                            <option value="Georgia">Georgia</option>
-                                            <option value="Arial">Arial</option>
-                                            <option value="Courier New">Courier New</option>
-                                            <option value="Baskerville">Baskerville</option>
-                                            <option value="Palatino">Palatino</option>
-                                            <option value="Comic Sans MS">Comic Sans</option>
-                                            <option value="Papyrus">Papyrus</option>
-                                            <option value="OCR A Std">OCR A</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="font-control-group">
-                                        <label>Font Sizes</label>
-                                        <div class="font-size-controls">
-                                            <div class="size-control">
-                                                <label>Header Size</label>
-                                                <input type="range" id="headerSize" min="12" max="36" value="24" class="font-size-slider">
-                                                <span class="size-value">24px</span>
-                                            </div>
-                                            <div class="size-control">
-                                                <label>Body Size</label>
-                                                <input type="range" id="bodySize" min="12" max="24" value="16" class="font-size-slider">
-                                                <span class="size-value">16px</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-
-                            // Add event listeners for font controls
-                            const fontSelects = fontsTab.querySelectorAll('.font-select');
-                            fontSelects.forEach(select => {
-                                select.addEventListener('change', function() {
-                                    updateFontPreview(this.id, this.value);
-                                });
-                            });
-
-                            // Add event listeners for font size sliders
-                            const fontSliders = fontsTab.querySelectorAll('.font-size-slider');
-                            fontSliders.forEach(slider => {
-                                slider.addEventListener('input', function() {
-                                    const value = this.value + 'px';
-                                    const valueSpan = this.nextElementSibling;
-                                    valueSpan.textContent = value;
-                                    updateFontPreview(this.id, value);
-                                });
-                            });
                         }
 
                         function updateFontPreview(fontType, value) {
@@ -13280,119 +12326,53 @@
                             }
                         }
 
-                        function saveCustomStyle() {
+                        async function saveCustomStyle() {
                             const styleName = document.getElementById('newStyleName').value.trim();
                             if (!styleName) {
                                 showToast('Please enter a style name');
                                 return;
                             }
 
-                            // ✅ SAVE EXACT CURRENT STYLE, NOT BASED ON PREVIOUS PRESET
-                            const customStyle = {
-                                id: 'custom-' + Date.now(),
-                                name: styleName,
-                                description: 'Custom style created by user',
-                                layout: document.getElementById('gridLayout').value,
-                                headerLayout: document.getElementById('headerLayout').value,
-                                footerStyle: document.getElementById('footerStyle').value,
-                                collectionTitleLayout: document.getElementById('collectionTitleLayout').value,
-                                colors: {
-                                    bg: document.getElementById('bgColor').value,
-                                    text: document.getElementById('textColor').value,
-                                    accent: document.getElementById('accentColor').value,
-                                    border: document.getElementById('borderColor').value
-                                },
-                                fonts: {
-                                    primary: document.getElementById('headerFont').value,
-                                    secondary: document.getElementById('bodyFont').value
-                                },
-                                showFooterContact: document.getElementById('showFooterContact').checked,
-                                imageSize: document.getElementById('imageSize').value
-                            };
-
                             try {
-                                AppState.generatedStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
-                            } catch (e) {
-                                console.error('Corrupted generatedStyles in localStorage, resetting:', e);
-                                AppState.generatedStyles = [];
+                                const { data: { user } } = await supabaseClient.auth.getUser();
+                                if (!user) throw new Error('Not authenticated');
+
+                                const { error } = await supabaseClient
+                                    .from('custom_presets')
+                                    .insert([{
+                                        artist_id: user.id,
+                                        name: styleName,
+                                        description: 'Custom style created by user',
+                                        layout: document.getElementById('gridLayout').value,
+                                        header_layout: document.getElementById('headerLayout').value,
+                                        footer_style: document.getElementById('footerStyle').value,
+                                        collection_title_layout: document.getElementById('collectionTitleLayout').value,
+                                        colors: {
+                                            bg: document.getElementById('bgColor').value,
+                                            text: document.getElementById('textColor').value,
+                                            accent: document.getElementById('accentColor').value,
+                                            border: document.getElementById('borderColor').value
+                                        },
+                                        fonts: {
+                                            primary: document.getElementById('headerFont').value,
+                                            secondary: document.getElementById('bodyFont').value
+                                        },
+                                        show_footer_contact: document.getElementById('showFooterContact').checked,
+                                        image_size: document.getElementById('imageSize').value
+                                    }]);
+
+                                if (error) throw error;
+
+                                showToast(`"${styleName}" saved as custom preset!`);
+                                document.getElementById('newStyleName').value = '';
+
+                                if (document.getElementById('styleBrowserModal').style.display === 'flex') {
+                                    await loadStyleBrowser();
+                                }
+                            } catch (error) {
+                                console.error('Error saving custom preset:', error);
+                                showToast('Error saving custom preset', 'error');
                             }
-                            AppState.generatedStyles.push(customStyle);
-                            localStorage.setItem('generatedStyles', JSON.stringify(AppState.generatedStyles));
-
-                            showToast(`"${styleName}" saved as custom preset!`);
-                            document.getElementById('newStyleName').value = '';
-
-                            if (document.getElementById('styleBrowserModal').style.display === 'flex') {
-                                loadStyleBrowser();
-                            }
-                        }
-
-                        function setupLayoutControls() {
-                            const layoutsTab = document.getElementById('layouts-tab');
-                            if (!layoutsTab) return;
-
-                            layoutsTab.innerHTML = `
-                                <div class="layout-controls">
-                                    <div class="layout-control-group">
-                                        <label>Grid Layout</label>
-                                        <select id="gridLayout" class="layout-select">
-                                            <option value="grid-classic">Classic Grid</option>
-                                            <option value="grid-masonry">Masonry</option>
-                                            <option value="stacked-minimal">Stacked Minimal</option>
-                                            <option value="guerrilla-grid">Guerrilla Minimal</option>
-                                            <option value="gallery-spaced">Elegant Gallery</option>
-                                            <option value="immersive-stacked">Immersive Stacked</option>
-                                            <option value="monumental-asymmetric">Monumental Asymmetric</option>
-                                            <option value="historical-overlap">Historical Layered</option>
-                                            <option value="vibrant-mosaic">Vibrant Mosaic</option>
-                                            <option value="abstract-random">Abstract Random</option>
-                                            <option value="quilt-narrative">Storytelling Quilt</option>
-                                            <option value="digital-floating">Digital Floating</option>
-                                            <option value="archival-dossier">Archival Dossier</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="layout-control-group">
-                                        <label>Header Style</label>
-                                        <select id="headerLayout" class="layout-select">
-                                            <option value="centered">Centered</option>
-                                            <option value="floating">Floating</option>
-                                            <option value="split">Split</option>
-                                            <option value="minimal">Minimal</option>
-                                            <option value="expressive">Expressive</option>
-                                            <option value="left-aligned">Left Aligned</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="layout-control-group">
-                                        <label>Footer Style</label>
-                                        <select id="footerStyle" class="layout-select">
-                                            <option value="minimal">Minimal</option>
-                                            <option value="hidden">Hidden</option>
-                                            <option value="expanded">Expanded</option>
-                                            <option value="social-focused">Social Focused</option>
-                                            <option value="contact-prominent">Contact Prominent</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="layout-control-group">
-                                        <label>Image Size</label>
-                                        <select id="imageSize" class="layout-select">
-                                            <option value="small">Small</option>
-                                            <option value="medium">Medium</option>
-                                            <option value="large">Large</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            `;
-
-                            // Add event listeners for layout controls
-                            const layoutSelects = layoutsTab.querySelectorAll('.layout-select');
-                            layoutSelects.forEach(select => {
-                                select.addEventListener('change', function() {
-                                    updateLayoutPreview(this.id, this.value);
-                                });
-                            });
                         }
 
                         function updateLayoutPreview(layoutType, value) {
@@ -13425,270 +12405,6 @@
                             }
                         }
 
-                        function openArtworkPopup(imageUrl, title, artwork) {
-                            console.log('🖼️ Opening artwork popup:', title);
-
-                            // Create overlay
-                            const overlay = document.createElement('div');
-                            overlay.id = 'artworkPopupOverlay';
-                            overlay.style.cssText = `
-                                position: fixed;
-                                top: 0;
-                                left: 0;
-                                width: 100%;
-                                height: 100%;
-                                background: rgba(0, 0, 0, 0.95);
-                                z-index: 10000;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                padding: 2rem;
-                                backdrop-filter: blur(10px);
-                                animation: fadeIn 0.3s ease;
-                            `;
-
-                            // Create popup content
-                            const popupContent = document.createElement('div');
-                            popupContent.style.cssText = `
-                                background: white;
-                                border-radius: 16px;
-                                max-width: 90vw;
-                                max-height: 90vh;
-                                overflow: auto;
-                                display: flex;
-                                flex-direction: column;
-                                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-                                animation: scaleIn 0.3s ease;
-                            `;
-
-                            // Header with close button - REMOVED "Artwork" text
-                            const header = document.createElement('div');
-                            header.style.cssText = `
-                                display: flex;
-                                justify-content: space-between;
-                                align-items: center;
-                                padding: 1.5rem 2rem;
-                                border-bottom: 1px solid #e5e5e5;
-                                background: #fafafa;
-                                border-radius: 16px 16px 0 0;
-                            `;
-
-                            const titleElement = document.createElement('h2');
-                            titleElement.textContent = title || 'Untitled'; // Just show the actual title, no "Artwork"
-                            titleElement.style.cssText = `
-                                margin: 0;
-                                font-size: 1.5rem;
-                                font-weight: 500;
-                                letter-spacing: -0.02em;
-                                color: #000;
-                            `;
-
-                            const closeButton = document.createElement('button');
-                            closeButton.innerHTML = '×';
-                            closeButton.style.cssText = `
-                                background: none;
-                                border: none;
-                                font-size: 2rem;
-                                cursor: pointer;
-                                color: #666;
-                                width: 40px;
-                                height: 40px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                border-radius: 8px;
-                                transition: all 0.2s;
-                            `;
-                            closeButton.onmouseover = () => {
-                                closeButton.style.background = '#f0f0f0';
-                                closeButton.style.color = '#000';
-                            };
-                            closeButton.onmouseout = () => {
-                                closeButton.style.background = 'none';
-                                closeButton.style.color = '#666';
-                            };
-                            closeButton.onclick = () => {
-                                document.body.removeChild(overlay);
-                            };
-
-                            header.appendChild(titleElement);
-                            header.appendChild(closeButton);
-
-                            // Main content area
-                            const mainContent = document.createElement('div');
-                            mainContent.style.cssText = `
-                                display: grid;
-                                grid-template-columns: 1fr 1fr;
-                                gap: 0;
-                                min-height: 400px;
-                            `;
-
-                            // Image section
-                            const imageSection = document.createElement('div');
-                            imageSection.style.cssText = `
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                padding: 2rem;
-                                background: #f8f8f8;
-                                border-right: 1px solid #e5e5e5;
-                            `;
-
-                            const image = document.createElement('img');
-                            image.src = imageUrl;
-                            image.alt = title || 'Artwork';
-                            image.style.cssText = `
-                                max-width: 100%;
-                                max-height: 60vh;
-                                object-fit: contain;
-                                display: block;
-                                border-radius: 8px;
-                            `;
-
-                            imageSection.appendChild(image);
-
-                            // Details section - REMOVED "Artwork" labels
-                            const detailsSection = document.createElement('div');
-                            detailsSection.style.cssText = `
-                                padding: 2rem;
-                                display: flex;
-                                flex-direction: column;
-                                gap: 1.5rem;
-                                background: white;
-                            `;
-
-                            // Artwork details - Clean layout without labels
-                            const detailsList = document.createElement('div');
-                            detailsList.style.cssText = `
-                                display: flex;
-                                flex-direction: column;
-                                gap: 1rem;
-                            `;
-
-                            // Only add details if they exist and are not empty
-                            if (artwork.year && artwork.year.trim() !== '') {
-                                const yearItem = document.createElement('div');
-                                yearItem.style.cssText = `
-                                    font-size: 1rem;
-                                    color: #333;
-                                    line-height: 1.4;
-                                `;
-                                yearItem.textContent = artwork.year;
-                                detailsList.appendChild(yearItem);
-                            }
-
-                            if (artwork.medium && artwork.medium.trim() !== '') {
-                                const mediumItem = document.createElement('div');
-                                mediumItem.style.cssText = `
-                                    font-size: 1rem;
-                                    color: #333;
-                                    line-height: 1.4;
-                                `;
-                                mediumItem.textContent = artwork.medium;
-                                detailsList.appendChild(mediumItem);
-                            }
-
-                            if (artwork.dimensions && artwork.dimensions.trim() !== '') {
-                                const dimensionsItem = document.createElement('div');
-                                dimensionsItem.style.cssText = `
-                                    font-size: 1rem;
-                                    color: #333;
-                                    line-height: 1.4;
-                                `;
-                                dimensionsItem.textContent = artwork.dimensions;
-                                detailsList.appendChild(dimensionsItem);
-                            }
-
-                            detailsSection.appendChild(detailsList);
-
-                            // Description
-                            if (artwork.description && artwork.description.trim() !== '') {
-                                const descriptionSection = document.createElement('div');
-                                descriptionSection.style.cssText = `
-                                    border-top: 1px solid #e5e5e5;
-                                    padding-top: 1.5rem;
-                                `;
-
-                                const descriptionText = document.createElement('p');
-                                descriptionText.textContent = artwork.description;
-                                descriptionText.style.cssText = `
-                                    margin: 0;
-                                    line-height: 1.6;
-                                    color: #666;
-                                    font-size: 0.9rem;
-                                `;
-
-                                descriptionSection.appendChild(descriptionText);
-                                detailsSection.appendChild(descriptionSection);
-                            }
-
-                            // Assemble main content
-                            mainContent.appendChild(imageSection);
-                            mainContent.appendChild(detailsSection);
-
-                            // Assemble popup
-                            popupContent.appendChild(header);
-                            popupContent.appendChild(mainContent);
-                            overlay.appendChild(popupContent);
-
-                            // Add CSS animations
-                            const style = document.createElement('style');
-                            style.textContent = `
-                                @keyframes fadeIn {
-                                    from { opacity: 0; }
-                                    to { opacity: 1; }
-                                }
-                                @keyframes scaleIn {
-                                    from { transform: scale(0.9); opacity: 0; }
-                                    to { transform: scale(1); opacity: 1; }
-                                }
-                            `;
-                            document.head.appendChild(style);
-
-                            // Close on ESC key
-                            const handleEscape = (e) => {
-                                if (e.key === 'Escape') {
-                                    document.body.removeChild(overlay);
-                                    document.removeEventListener('keydown', handleEscape);
-                                }
-                            };
-
-                            // Close on overlay click
-                            overlay.addEventListener('click', (e) => {
-                                if (e.target === overlay) {
-                                    document.body.removeChild(overlay);
-                                    document.removeEventListener('keydown', handleEscape);
-                                }
-                            });
-
-                            document.addEventListener('keydown', handleEscape);
-                            document.body.appendChild(overlay);
-                        }
-
-                        function createDetailItem(label, value) {
-                            const item = document.createElement('div');
-                            item.style.cssText = `
-                                display: flex;
-                                justify-content: space-between;
-                                align-items: flex-start;
-                                gap: 1rem;
-                            `;
-
-                            // REMOVED the label element entirely
-                            const valueElement = document.createElement('span');
-                            valueElement.textContent = value;
-                            valueElement.style.cssText = `
-                                color: #333;
-                                font-size: 1rem;
-                                text-align: left;
-                                flex: 1;
-                                line-height: 1.4;
-                            `;
-
-                            item.appendChild(valueElement);
-                            return item;
-                        }
-
                                 function closeArtworkPopup() {
                                     const popup = document.getElementById('artworkPopupOverlay');
                                     if (popup) {
@@ -13702,37 +12418,6 @@
                                 }
 
                         // Update the image click handlers in the portfolio
-                        function updatePortfolioClickHandlers() {
-                            setTimeout(() => {
-                                const artworkImages = document.querySelectorAll('.artwork-image img');
-                                artworkImages.forEach(img => {
-                                    // Remove existing click handlers
-                                    img.onclick = null;
-
-                                    // Add new click handler
-                                    img.addEventListener('click', function() {
-                                        const artworkCard = this.closest('.artwork-card');
-                                        const title = artworkCard.querySelector('.artwork-title')?.textContent || 'Untitled';
-                                        const year = artworkCard.querySelector('.artwork-details div:nth-child(1)')?.textContent || '';
-                                        const medium = artworkCard.querySelector('.artwork-details div:nth-child(2)')?.textContent || '';
-                                        const dimensions = artworkCard.querySelector('.artwork-details div:nth-child(3)')?.textContent || '';
-
-                                        // Get description if available (you might need to store this in data attributes)
-                                        const description = '';
-
-                                        const artworkData = {
-                                            year: year,
-                                            medium: medium,
-                                            dimensions: dimensions,
-                                            description: description
-                                        };
-
-                                        openArtworkPopup(this.src, title, artworkData);
-                                    });
-                                });
-                            }, 1000);
-                        }
-
                                 // ==================== WORKING POPUP SYSTEM ====================
 
                         // Initialize the new popup system
@@ -13896,65 +12581,6 @@
                                         }
                                     });
                                 }
-
-                                    function testPopup() {
-                                        console.log('🧪 Testing popup...');
-
-                                        const popup = document.getElementById('artworkPopup');
-                                        console.log('Popup element:', popup);
-
-                                        if (popup) {
-                                            console.log('Popup found, displaying...');
-                                            popup.style.display = 'flex';
-
-                                            // Use your own artwork image or a working placeholder
-                                            const testImage = 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=600&h=400&fit=crop'; // Working test image
-
-                                            document.getElementById('popupImg').src = testImage;
-                                            document.getElementById('popupInfo').innerHTML = `
-                                                <div style="color: white;">
-                                                    <div style="font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem;">Test Artwork</div>
-                                                    <div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.2rem;">2024</div>
-                                                    <div style="font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.2rem;">Oil on canvas</div>
-                                                    <div style="font-size: 0.8rem; opacity: 0.8;">24 x 36 in</div>
-                                                </div>
-                                            `;
-
-                                            console.log('✅ Popup should be visible with working image');
-                                        } else {
-                                            console.log('❌ Popup element not found!');
-                                        }
-                                    }
-
-                        // ==================== DYNAMIC DATA ATTRIBUTES ====================
-                        function addDataAttributesToImages() {
-                            const images = document.querySelectorAll('.artwork-image img');
-
-                            images.forEach(img => {
-                                const card = img.closest('.artwork-card');
-                                if (!card) return;
-
-                                const title = card.querySelector('.artwork-title')?.textContent || 'Untitled';
-                                const details = card.querySelector('.artwork-details');
-
-                                let year = '', medium = '', dimensions = '';
-                                if (details) {
-                                    const divs = details.querySelectorAll('div');
-                                    for (let i = 0; i < Math.min(divs.length, 3); i++) {
-                                        const text = divs[i].textContent.trim();
-                                        if (i === 0) year = text;
-                                        if (i === 1) medium = text;
-                                        if (i === 2) dimensions = text;
-                                    }
-                                }
-
-                                // Add data attributes
-                                img.setAttribute('data-artwork-title', title);
-                                img.setAttribute('data-artwork-year', year);
-                                img.setAttribute('data-artwork-medium', medium);
-                                img.setAttribute('data-artwork-dimensions', dimensions);
-                            });
-                        }
 
                         // ==================== SAFE POPUP SYSTEM (PORTFOLIO ONLY) ====================
                         function initSafePopupHandlers() {
