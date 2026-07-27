@@ -6295,6 +6295,16 @@
 
                                 if (error) throw error;
 
+                                // Private artworks can't belong to any collection — remove any
+                                // existing memberships when an artwork goes private, since RLS
+                                // only protects the artwork's own row, not stale join links.
+                                if (artwork.is_public) {
+                                    await supabaseClient
+                                        .from('artwork_collections')
+                                        .delete()
+                                        .eq('artwork_id', artworkId);
+                                }
+
                                 showToast(`Artwork made ${!artwork.is_public ? 'public' : 'private'}`);
                                 fetchUserArtworks();
                                 clearPortfolioCache();
