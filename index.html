@@ -10851,7 +10851,7 @@
 
                             try {
                                 const { data: { session } } = await supabaseClient.auth.getSession();
-                                const res = await fetch('https://vhgsayaugbepugssyary.supabase.co/functions/v1/send-cv-email', {
+                                const res = await fetch(`${supabaseUrl}/functions/v1/send-cv-email`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -10940,7 +10940,7 @@
                                 if (error) throw error;
 
                                 // Notify the artist of the new request
-                                fetch(`https://vhgsayaugbepugssyary.supabase.co/functions/v1/notify-artist`, {
+                                fetch(`${supabaseUrl}/functions/v1/notify-artist`, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
