@@ -2042,7 +2042,7 @@
                             padding: 1rem;
                         }
 
-                        /* Force grid layout in WIP Studio */
+                        /* Force grid layout in Studio */
                         #wipMoodboardTab .artworks-grid,
                         #wipSketchesTab .artworks-grid {
                             display: grid !important;
@@ -3178,9 +3178,9 @@
                                 </div>
                             </section>
 
-                            <!-- 2×2 GRID: WIP | ACTIVITY -->
+                            <!-- 1×3 ROW: WIP | ACTIVITY | CV REQUESTS -->
                             <section class="dashboard-grid-section" style="padding: 3rem 0; border-top: 1px solid #e5e5e5;">
-                                <div class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
+                                <div class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
 
                                     <!-- ROW 2: WIP STUDIO -->
                                     <div class="dashboard-card" style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; cursor: pointer;" onclick="openWipStudio()">
@@ -3192,7 +3192,7 @@
                                                     <path d="M2 12l10 5 10-5"></path>
                                                 </svg>
                                             </div>
-                                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; font-weight: 500;">Studio WIP</h3>
+                                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; font-weight: 500;">Studio</h3>
                                             <p style="margin: 0; color: #666; font-size: 0.85rem;">Your creative workspace</p>
                                             <div style="margin-top: 1rem; font-size: 0.75rem; color: #999;">
                                                 <span id="wipCount">0</span> works in progress
@@ -3355,7 +3355,8 @@
                             </section>      
 
                             <!-- 2×2 GRID: Alerts | Blockchain -->
-                                    <div class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative;">
+                            <!-- Staging-only for now: gated off in production via TRAC_ENV, see hide check near TRAC_CONFIG -->
+                                    <div id="advancedToolsGrid" class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative;">
 
                                     <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85); z-index: 1; border-radius: 12px; pointer-events: none;"></div>
                                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; color: #666; padding: 0.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 0.9rem; pointer-events: none; white-space: nowrap;">Advanced Tools • Launching Soon</div>
@@ -4401,6 +4402,13 @@
 
                         console.log(`🔧 TRAC environment: ${TRAC_ENV} (${supabaseUrl})`);
                         if (TRAC_ENV === 'staging') document.title = '[STAGING] ' + document.title;
+
+                        // Opportunity Alerts / Blockchain Tools aren't ready for real users yet.
+                        // Keep them visible on staging for testing; hide on production until launch.
+                        if (TRAC_ENV === 'production') {
+                            const advancedToolsGrid = document.getElementById('advancedToolsGrid');
+                            if (advancedToolsGrid) advancedToolsGrid.style.display = 'none';
+                        }
 
                         // Escapes a value for safe interpolation into innerHTML template
                         // literals (text nodes and double-quoted HTML attributes). Only
@@ -8549,7 +8557,7 @@
 
 
     function openWipStudio() {
-        console.log('🎨 Opening WIP Studio...');
+        console.log('🎨 Opening Studio...');
 
         let modal = document.getElementById('wipStudioModal');
         if (!modal) {
@@ -8761,7 +8769,7 @@
             }
         });
 
-        console.log('✅ WIP Studio opened');
+        console.log('✅ Studio opened');
     }
 
                         function setupWipTabNavigation() {
@@ -8795,7 +8803,7 @@
                         }
 
                         function setupWipStudioEvents() {
-                            console.log('🔧 Setting up WIP Studio events...');
+                            console.log('🔧 Setting up Studio events...');
 
                             const existingHandler = window.handleWipStudioClicks;
                             if (existingHandler) {
@@ -8848,7 +8856,7 @@
                             };
 
                             document.addEventListener('click', window.handleWipStudioClicks);
-                            console.log('✅ WIP Studio events setup complete');
+                            console.log('✅ Studio events setup complete');
                         }
 
                         function handleWipStudioClicks(e) {
@@ -10272,7 +10280,7 @@
                                         await logActivity(
                                             'project_deleted',
                                             `Deleted project "${projectName}"`,
-                                            'Project removed from WIP Studio',
+                                            'Project removed from Studio',
                                             { project_id: projectId }
                                         );
 
@@ -10730,7 +10738,7 @@
                             const modal = document.getElementById('wipStudioModal');
                             if (modal) {
                                 modal.style.display = 'none';
-                                console.log('✅ WIP Studio closed');
+                                console.log('✅ Studio closed');
                             }
                         }
 
@@ -13746,11 +13754,11 @@
                             popupImg.src = imageSrc;
                             popupImg.alt = title || '';
 
-                            // Check if we're in WIP Studio - if so, NO TEXT
+                            // Check if we're in Studio - if so, NO TEXT
                             const isWipStudio = document.getElementById('wipStudioModal')?.style.display === 'flex';
 
                             if (isWipStudio) {
-                                // WIP Studio - NO TEXT
+                                // Studio - NO TEXT
                                 popupInfo.innerHTML = '';
                             } else {
                                 // Portfolio - show text as normal
@@ -14355,7 +14363,7 @@
                                                                 }
                                                                 });
 
-                                                                    // WIP Studio initialization
+                                                                    // Studio initialization
                                                                     setTimeout(() => {
                                                                         if (document.getElementById('wipStudioModal')) {
                                                                             initializeWipStudio();
