@@ -6243,7 +6243,13 @@
     }
 
                         async function deleteArtwork(artworkId) {
-                            if (!confirm('Are you sure you want to delete this artwork?')) return;
+                            const confirmed = await showConfirmDialog(
+                                'Delete Artwork',
+                                'Are you sure you want to delete this artwork?',
+                                'Delete Artwork',
+                                'Keep Artwork'
+                            );
+                            if (!confirmed) return;
 
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -6264,6 +6270,38 @@
                             } catch (error) {
                                 console.error('Error deleting artwork:', error);
                                 showToast('Error deleting artwork', 'error');
+                            }
+                        }
+
+                        async function toggleArtworkVisibility(artworkId) {
+                            try {
+                                const { data: { user } } = await supabaseClient.auth.getUser();
+                                if (!user) throw new Error('Not authenticated');
+
+                                const { data: artwork, error: fetchError } = await supabaseClient
+                                    .from('artworks')
+                                    .select('is_public')
+                                    .eq('id', artworkId)
+                                    .eq('artist_id', user.id)
+                                    .single();
+
+                                if (fetchError) throw fetchError;
+
+                                const { error } = await supabaseClient
+                                    .from('artworks')
+                                    .update({ is_public: !artwork.is_public })
+                                    .eq('id', artworkId)
+                                    .eq('artist_id', user.id);
+
+                                if (error) throw error;
+
+                                showToast(`Artwork made ${!artwork.is_public ? 'public' : 'private'}`);
+                                fetchUserArtworks();
+                                clearPortfolioCache();
+
+                            } catch (error) {
+                                console.error('Error updating artwork visibility:', error);
+                                showToast('Error updating artwork', 'error');
                             }
                         }
 
@@ -6327,7 +6365,7 @@
                                         title: title,
                                         event_type: eventType,
                                         event_date: eventDate,
-                                        event_time: eventTime,
+                                        event_time: eventTime || null,
                                         location: location,
                                         description: description,
                                         is_public: isPublic
@@ -6582,7 +6620,13 @@
                         }
 
                         async function deleteEvent(eventId) {
-                            if (!confirm('Are you sure you want to delete this event?')) return;
+                            const confirmed = await showConfirmDialog(
+                                'Delete Event',
+                                'Are you sure you want to delete this event?',
+                                'Delete Event',
+                                'Keep Event'
+                            );
+                            if (!confirmed) return;
 
                             try {
                                 const { data: { user } } = await supabaseClient.auth.getUser();
@@ -7538,7 +7582,7 @@
                                 <section id="profile-section" class="portfolio-tab" style="display: none;">
                                     <div class="hero-section">
                                         <div class="hero-container">
-                                            <div style="display: grid; grid-template-columns: auto 1fr; gap: 3rem; align-items: start; max-width: 1000px; margin: 0 auto;">
+                                            <div style="display: grid; grid-template-columns: auto fit-content(420px); justify-content: center; gap: 3rem; align-items: start; max-width: 1000px; margin: 0 auto;">
                                                 ${profileData.profile_photo_url ? `
                                                     <div>
                                                         <img src="${escapeHtml(profileData.profile_photo_url)}" alt="Profile Photo"
@@ -13830,6 +13874,7 @@
                                     document.addEventListener('click', function(e) {
                                         if (e.target.matches('.artwork-image img')) {
                                             const img = e.target;
+                                            if (img.closest('.event-card')) return;
 
                                             // DEBUG: Check what data attributes exist
                                             console.log('🔍 Image data attributes:', {
@@ -13920,6 +13965,7 @@
                                         console.log('❌ No card found');
                                         return;
                                     }
+                                    if (card.classList.contains('event-card')) return;
 
                                     // METHOD 1: Try to get data from attributes first
                                     let title = img.getAttribute('data-artwork-title') || '';
@@ -14190,6 +14236,7 @@
                                                                         e.preventDefault();
                                                                         const submitBtn = document.getElementById('collectionSubmitBtn');
                                                                         const submitText = document.getElementById('collectionSubmitText');
+                                                                        let isEdit = false;
 
                                                                         try {
                                                                             const { data: { user } } = await supabaseClient.auth.getUser();
@@ -14199,7 +14246,7 @@
                                                                             const title = formData.get('name');
                                                                             const statement = formData.get('statement');
                                                                             const artworkIds = formData.getAll('artworkIds');
-                                                                            const isEdit = this.dataset.mode === 'edit';
+                                                                            isEdit = this.dataset.mode === 'edit';
                                                                             const collectionId = this.dataset.collectionId;
 
                                                                             if (!title) {
