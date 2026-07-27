@@ -4462,6 +4462,7 @@
                         // (and, for currentWipProjectId, a second ad hoc `window.` global)
                         // into one object. Migrated one variable at a time -- see git log.
                         const AppState = {
+                            currentUser: null,
                             currentArtworks: [],
                             selectedImageFile: null,
                             selectedEventImageFile: null,
@@ -4926,6 +4927,8 @@
 
             // ✅ DETECT PASSWORD RECOVERY FLOW
             supabaseClient.auth.onAuthStateChange((event, session) => {
+                AppState.currentUser = session?.user || null;
+
                 if (event === 'PASSWORD_RECOVERY') {
                     console.log('🔑 Password recovery flow detected');
                     showSection('login');
@@ -4979,6 +4982,7 @@
             // Check for existing session (NORMAL APP FLOW)
             const { data: { session } } = await supabaseClient.auth.getSession();
             console.log("Session found:", !!session);
+            AppState.currentUser = session?.user || null;
 
             if (session) {
                 console.log("✅ User signed in:", session.user.email);
@@ -5468,6 +5472,17 @@
                             }
                         }
 
+                        // Strips a user-supplied filename down to safe characters and a bounded
+                        // length before it becomes part of a storage path / public URL.
+                        function sanitizeFilename(name) {
+                            const lastDot = name.lastIndexOf('.');
+                            const ext = lastDot > -1 ? name.slice(lastDot).replace(/[^a-zA-Z0-9.]/g, '').slice(0, 10) : '';
+                            const base = (lastDot > -1 ? name.slice(0, lastDot) : name)
+                                .replace(/[^a-zA-Z0-9_-]/g, '_')
+                                .slice(0, 80);
+                            return (base || 'file') + ext;
+                        }
+
                         // ==================== ARTWORK MANAGEMENT ====================
                         async function uploadArtwork() {
                             const submitBtn = document.getElementById('uploadSubmitBtn');
@@ -5475,7 +5490,7 @@
                             let isEdit = false;
 
                             try {
-                                const { data: { user } } = await supabaseClient.auth.getUser();
+                                const user = AppState.currentUser;
                                 if (!user) throw new Error('Not authenticated');
 
                                 const form = document.getElementById('artworkUploadForm');
@@ -5486,6 +5501,14 @@
                                 if (!title) {
                                     showToast('Please enter a title', 'error');
                                     return;
+                                }
+                                const yearValue = document.getElementById('year').value;
+                                if (yearValue) {
+                                    const yearNum = Number(yearValue);
+                                    if (!Number.isInteger(yearNum) || yearNum < 1900 || yearNum > 2030) {
+                                        showToast('Please enter a valid year (1900–2030)', 'error');
+                                        return;
+                                    }
                                 }
                                 if (!isEdit && !AppState.selectedImageFile) {
                                     showToast('Please select an image', 'error');
@@ -5500,7 +5523,7 @@
 
                                 // Upload new image if provided (for both create and edit)
                                 if (AppState.selectedImageFile) {
-                                    const imageName = `${user.id}/${Date.now()}_${AppState.selectedImageFile.name}`;
+                                    const imageName = `${user.id}/${Date.now()}_${sanitizeFilename(AppState.selectedImageFile.name)}`;
                                     const { data: imageData, error: uploadError } = await supabaseClient.storage
                                         .from('artwork-images')
                                         .upload(imageName, AppState.selectedImageFile);
@@ -5540,27 +5563,6 @@
 
                                     await logActivity(ACTIVITY_TYPES.ARTWORK_UPDATE, `Updated artwork: ${title}`);
                                     showToast('Artwork updated successfully');
-
-                                    // Upload new image if provided
-                                    if (AppState.selectedImageFile) {
-                                        // Show compression status for large files
-                                        if (AppState.selectedImageFile.size > 2 * 1024 * 1024) {
-                                            showToast('Uploading optimized image...');
-                                        }
-
-                                        const imageName = `${user.id}/${Date.now()}_${AppState.selectedImageFile.name}`;
-                                        const { data: imageData, error: uploadError } = await supabaseClient.storage
-                                            .from('artwork-images')
-                                            .upload(imageName, AppState.selectedImageFile);
-
-                                        if (uploadError) throw uploadError;
-
-                                        const { data: { publicUrl } } = supabaseClient.storage
-                                            .from('artwork-images')
-                                            .getPublicUrl(imageData.path);
-
-                                        imageUrl = publicUrl;
-                                    }
 
                                 } else {
                                     // CREATE NEW ARTWORK
@@ -5619,7 +5621,7 @@
                                 }
 
                                 // Upload to Supabase Storage
-                                const cvFileName = `${user.id}/cv_${Date.now()}_${cvFile.name}`;
+                                const cvFileName = `${user.id}/cv_${Date.now()}_${sanitizeFilename(cvFile.name)}`;
                                 const { data: cvData, error: cvError } = await supabaseClient.storage
                                     .from('cv-files')
                                     .upload(cvFileName, cvFile);
@@ -6126,7 +6128,7 @@
 
                     async function fetchUserArtworks() {
                         try {
-                            const { data: { user } } = await supabaseClient.auth.getUser();
+                            const user = AppState.currentUser;
                             if (!user) return [];
 
                             // ONLY fetch NON-ARCHIVED artworks for dashboard
@@ -6400,7 +6402,7 @@
 
                         async function fetchUserEvents() {
                             try {
-                                const { data: { user } } = await supabaseClient.auth.getUser();
+                                const user = AppState.currentUser;
                                 if (!user) return [];
 
                                 // Show ALL events in dashboard (not just future ones)
@@ -6698,7 +6700,7 @@
                         // ==================== PROFILE COLLECTIONS MANAGEMENT ====================
                     async function loadProfileCollections() {
                         try {
-                            const { data: { user } } = await supabaseClient.auth.getUser();
+                            const user = AppState.currentUser;
                             if (!user) return;
 
                             const { data: collections, error } = await supabaseClient
@@ -7030,32 +7032,36 @@
                                     return false;
                                 }
 
-                                const { data: artworks } = await supabaseClient
-                                    .from('artworks')
-                                    .select('*')
-                                    .eq('artist_id', profile.id)
-                                    .eq('is_public', true)
-                                    .eq('is_archived', false)
-                                    .order('created_at', { ascending: false });
-
-                                const { data: collections } = await supabaseClient
-                                    .from('collections')
-                                    .select(`
-                                        *,
-                                        artwork_collections (
-                                            artworks (*)
-                                        )
-                                    `)
-                                    .eq('artist_id', profile.id)
-                                    .eq('is_public', true)
-                                    .order('created_at', { ascending: false });
-
-                                const { data: events } = await supabaseClient
-                                    .from('events')
-                                    .select('*')
-                                    .eq('artist_id', profile.id)
-                                    .eq('is_public', true)
-                                    .order('event_date', { ascending: true });
+                                const [
+                                    { data: artworks },
+                                    { data: collections },
+                                    { data: events }
+                                ] = await Promise.all([
+                                    supabaseClient
+                                        .from('artworks')
+                                        .select('*')
+                                        .eq('artist_id', profile.id)
+                                        .eq('is_public', true)
+                                        .eq('is_archived', false)
+                                        .order('created_at', { ascending: false }),
+                                    supabaseClient
+                                        .from('collections')
+                                        .select(`
+                                            *,
+                                            artwork_collections (
+                                                artworks (*)
+                                            )
+                                        `)
+                                        .eq('artist_id', profile.id)
+                                        .eq('is_public', true)
+                                        .order('created_at', { ascending: false }),
+                                    supabaseClient
+                                        .from('events')
+                                        .select('*')
+                                        .eq('artist_id', profile.id)
+                                        .eq('is_public', true)
+                                        .order('event_date', { ascending: true })
+                                ]);
 
                                 displayPortfolio(profile, artworks || [], collections || [], events || [], false);
                                 setTimeout(() => updateFooterContactDisplay(profile), 100);
@@ -11918,7 +11924,12 @@
                             ).join('');
 
                             // ✅ LOAD AND DISPLAY CUSTOM PRESETS FROM LOCALSTORAGE
-                            AppState.generatedStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
+                            try {
+                                AppState.generatedStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
+                            } catch (e) {
+                                console.error('Corrupted generatedStyles in localStorage, resetting:', e);
+                                AppState.generatedStyles = [];
+                            }
                             const customStyles = AppState.generatedStyles.map(style => createStyleCard(style)).join('');
 
                             // ✅ COMBINE BOTH PRESETS AND CUSTOM STYLES
@@ -12085,7 +12096,12 @@
                             let style = STYLE_PRESETS[styleId];
                             if (!style) {
                                 // Check custom styles - ONLY CHANGE CUSTOM STYLE HANDLING
-                                const customStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
+                                let customStyles = [];
+                                try {
+                                    customStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
+                                } catch (e) {
+                                    console.error('Corrupted generatedStyles in localStorage, resetting:', e);
+                                }
                                 style = customStyles.find(s => s.id === styleId);
                             }
 
@@ -13241,7 +13257,12 @@
                                 imageSize: document.getElementById('imageSize').value
                             };
 
-                            AppState.generatedStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
+                            try {
+                                AppState.generatedStyles = JSON.parse(localStorage.getItem('generatedStyles') || '[]');
+                            } catch (e) {
+                                console.error('Corrupted generatedStyles in localStorage, resetting:', e);
+                                AppState.generatedStyles = [];
+                            }
                             AppState.generatedStyles.push(customStyle);
                             localStorage.setItem('generatedStyles', JSON.stringify(AppState.generatedStyles));
 
