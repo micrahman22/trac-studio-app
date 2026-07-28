@@ -1,6 +1,7 @@
 # Preserve pretty-URL access to the real app and collector app.
 # Placed before the username wildcard below so it always wins.
 /app        /app.html         200
+/dashboard  /app.html         200
 /collector  /collector.html   200
 
 # Clean public portfolio links: tracstudio.app/username rewrites (not

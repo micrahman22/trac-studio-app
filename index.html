@@ -322,6 +322,123 @@
   @media (max-width: 640px) {
     footer .foot-top { flex-direction: column; }
   }
+
+  /* ---------- Auth modal ---------- */
+  /* Same visual language as the rest of this page (Space Grotesk, black/
+     white/gray, 6px radii), not carried over from app.html's older visual
+     style. Class names are fresh (not reused from app.html) since this is
+     the single canonical copy going forward. */
+  .auth-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(13,13,12,0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow-y: auto;
+  }
+  .auth-overlay.open { display: flex; }
+  .auth-card {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 420px;
+    padding: 36px 32px;
+    position: relative;
+    box-shadow: 0 20px 60px rgba(13,13,12,0.25);
+    margin: auto;
+  }
+  .auth-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 32px; height: 32px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+  }
+  .auth-close:hover { background: var(--bg-soft); color: var(--ink); }
+  .auth-head { text-align: center; margin-bottom: 28px; }
+  .auth-head h2 { font-size: 1.35rem; font-weight: 500; margin: 0 0 6px; }
+  .auth-head p { color: var(--muted); font-size: 0.88rem; margin: 0; }
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label { display: block; font-size: 0.8rem; font-weight: 500; margin-bottom: 6px; color: var(--ink-soft); }
+  .auth-field input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    background: #fff;
+    color: var(--ink);
+  }
+  .auth-field input:focus { outline: none; border-color: var(--black); }
+  .auth-field-pw { position: relative; }
+  .auth-field-pw button {
+    position: absolute;
+    right: 10px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--muted); padding: 4px;
+    display: flex;
+  }
+  .auth-submit {
+    width: 100%;
+    background: var(--black);
+    color: #fff;
+    border: 1px solid var(--black);
+    padding: 13px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    border-radius: 6px;
+    cursor: pointer;
+    margin: 6px 0 16px;
+    transition: opacity 0.15s ease;
+  }
+  .auth-submit:hover { opacity: 0.88; }
+  .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  .auth-forgot { text-align: center; margin: 4px 0 16px; }
+  .auth-forgot a { font-size: 0.8rem; color: var(--muted); text-decoration: underline; }
+  .auth-switch { text-align: center; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+  .auth-switch a { color: var(--ink); text-decoration: underline; font-weight: 500; }
+  .auth-terms { display: flex; align-items: flex-start; gap: 10px; margin: 18px 0; padding: 14px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 0.8rem; color: var(--ink-soft); }
+  .auth-terms input { margin-top: 3px; }
+  .auth-terms a { color: var(--ink); text-decoration: underline; }
+  .auth-msg { margin-top: 10px; font-size: 0.82rem; text-align: center; }
+  .auth-msg.error { color: var(--critical, #b23a2e); }
+
+  .legal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(13,13,12,0.55);
+    z-index: 1001;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .legal-overlay.open { display: flex; }
+  .legal-card {
+    background: #fff;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 80vh;
+    padding: 32px;
+    overflow-y: auto;
+  }
+  .legal-card h3 { font-size: 1.15rem; font-weight: 500; margin: 0 0 18px; }
+  .legal-card h4 { font-size: 0.92rem; font-weight: 600; margin: 18px 0 6px; }
+  .legal-card p { font-size: 0.88rem; color: var(--ink-soft); line-height: 1.6; margin: 0 0 10px; }
+  .legal-back { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--muted); margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -502,6 +619,346 @@
     </div>
   </div>
 </footer>
+
+<!--
+  ============================================================================
+  AUTH MODAL — single canonical sign-in/sign-up UI for the whole product.
+  ============================================================================
+  This used to be a full-page section inside app.html. It's been moved
+  here, not copied — app.html no longer has its own login form at all (see
+  the comments in that file). Landing on tracstudio.app while logged out
+  now means seeing this modal, not a page navigation. On successful sign
+  in, this redirects to /dashboard, which app.html already knows how to
+  render (it checks for a session and shows the dashboard automatically —
+  no new logic was needed there for that part).
+-->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <button class="auth-close" id="authCloseBtn" aria-label="Close">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+
+    <!-- Sign In -->
+    <div id="authSignInPane">
+      <div class="auth-head">
+        <h2>Welcome back</h2>
+        <p>Sign in to your dashboard</p>
+      </div>
+      <div class="auth-field">
+        <label for="authEmail">Email</label>
+        <input type="email" id="authEmail" placeholder="Enter your email" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label for="authPassword">Password</label>
+        <div class="auth-field-pw">
+          <input type="password" id="authPassword" placeholder="Enter your password" autocomplete="current-password">
+          <button type="button" onclick="togglePassword('authPassword')" aria-label="Show password">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
+        </div>
+      </div>
+      <button id="authSignInBtn" class="auth-submit" onclick="signIn()">Sign in</button>
+      <div class="auth-forgot"><a href="#" onclick="requestPasswordReset(); return false;">Forgot your password?</a></div>
+      <div class="auth-switch">Don't have an account? <a href="#" onclick="showAuthTab('signup'); return false;">Sign up</a></div>
+      <div id="authSignInMsg" class="auth-msg"></div>
+    </div>
+
+    <!-- Sign Up -->
+    <div id="authSignUpPane" style="display:none;">
+      <div class="auth-head">
+        <h2>Create your account</h2>
+        <p>Join TRAC as an artist to manage your work</p>
+      </div>
+      <div class="auth-field">
+        <label for="authSignupName">Full name</label>
+        <input type="text" id="authSignupName" placeholder="Enter your full name" autocomplete="name">
+      </div>
+      <div class="auth-field">
+        <label for="authSignupEmail">Email</label>
+        <input type="email" id="authSignupEmail" placeholder="Enter your email" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label for="authSignupPassword">Password</label>
+        <div class="auth-field-pw">
+          <input type="password" id="authSignupPassword" placeholder="Enter your password" autocomplete="new-password">
+          <button type="button" onclick="togglePassword('authSignupPassword')" aria-label="Show password">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
+        </div>
+      </div>
+      <div class="auth-field">
+        <label for="authConfirmPassword">Confirm password</label>
+        <div class="auth-field-pw">
+          <input type="password" id="authConfirmPassword" placeholder="Confirm your password" autocomplete="new-password">
+          <button type="button" onclick="togglePassword('authConfirmPassword')" aria-label="Show password">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          </button>
+        </div>
+      </div>
+      <div class="auth-terms">
+        <input type="checkbox" id="authAgreeTerms">
+        <label for="authAgreeTerms">I agree to the <a href="#" onclick="showTermsPopup(); return false;">Terms of Service</a> and <a href="#" onclick="showPrivacyPopup(); return false;">Privacy Policy</a></label>
+      </div>
+      <button id="authSignUpBtn" class="auth-submit" onclick="signUp()">Create account</button>
+      <div class="auth-switch">Already have an account? <a href="#" onclick="showAuthTab('signin'); return false;">Sign in</a></div>
+      <div id="authSignUpMsg" class="auth-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!--
+  Terms of Service / Privacy Policy. Consolidated to one definition. The
+  app.html version of this had three separate, disagreeing copies (static
+  HTML, a set of plain functions, and a setTimeout-based override that
+  deleted and rebuilt the whole thing 500ms after load to fix a bug in the
+  other two) — that mess stays there as something to clean up separately;
+  this is a single clean copy using the same real policy text.
+-->
+<div class="legal-overlay" id="termsOverlay">
+  <div class="legal-card">
+    <button class="legal-back" onclick="hideTermsPopup()" aria-label="Back">←</button>
+    <h3>Terms of Service</h3>
+    <h4>1. Artist Ownership &amp; Rights</h4>
+    <p>You retain all copyright and intellectual property rights to your artwork. TRAC serves as a portfolio and archival platform only.</p>
+    <h4>2. Portfolio Service</h4>
+    <p>TRAC provides artists with a professional portfolio platform to showcase work to galleries, collectors, and the public. We do not claim any ownership or commercial rights to your content.</p>
+    <h4>3. Content Responsibility</h4>
+    <p>You are responsible for all artwork, images, and content you upload. You confirm you have the rights to publish this content.</p>
+    <h4>4. Future Services (Planned)</h4>
+    <p>TRAC may introduce additional services including artwork registration and certification, resale royalty tracking, exhibition management, and other features. Additional terms will apply for premium features.</p>
+    <h4>5. Platform Usage</h4>
+    <p>TRAC is provided "as is" for artistic portfolio purposes. We reserve the right to remove content that violates these terms.</p>
+    <h4>6. AI Training Prohibition</h4>
+    <p>TRAC will never use your artwork, images, or content to train artificial intelligence models, machine learning algorithms, or any AI systems. Your creative work remains exclusively for portfolio presentation and future TRAC services you explicitly opt into.</p>
+  </div>
+</div>
+
+<div class="legal-overlay" id="privacyOverlay">
+  <div class="legal-card">
+    <button class="legal-back" onclick="hidePrivacyPopup()" aria-label="Back">←</button>
+    <h3>Privacy Policy</h3>
+    <h4>1. Information We Collect</h4>
+    <p>Account information (email, name), artwork images and metadata, portfolio content and artist statements, and usage data for platform improvement.</p>
+    <h4>2. How We Use Your Information</h4>
+    <p>To display your public portfolio, provide artist dashboard services, maintain and improve the platform, and develop future features.</p>
+    <h4>3. Data Sharing</h4>
+    <p>Your public portfolio is visible to anyone with the link. We do not sell your personal data. Gallery/collector requests may be forwarded with consent. We comply with legal requirements when required.</p>
+    <h4>4. Future Services Data Usage</h4>
+    <p>For planned features like resale tracking, we may monitor artwork sales data with permission, process royalty payments, and provide certification services. Additional consent will be required for these.</p>
+    <h4>5. AI Training Protection</h4>
+    <p>We explicitly prohibit using your artwork, images, or creative content for AI model training, machine learning datasets, generative AI systems, or any automated content analysis beyond portfolio display. Your artistic work is protected from commercial AI training in perpetuity.</p>
+    <h4>6. Your Rights</h4>
+    <p>You can access and download your data, delete your account and content, control your portfolio visibility, and opt out of future service features.</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+  // Supabase config — same env-detection pattern app.html uses (runtime
+  // hostname check, no build step). Both files independently create their
+  // own Supabase client because they're genuinely separate entry points;
+  // this is config duplication, not logic duplication, and there was no
+  // way to share it without a build step this repo doesn't have.
+  const TRAC_ENV = location.hostname.includes('staging') ? 'staging' : 'production';
+  const TRAC_CONFIG = {
+    production: {
+      supabaseUrl: 'https://vhgsayaugbepugssyary.supabase.co',
+      supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoZ3NheWF1Z2JlcHVnc3N5YXJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NjA5ODMsImV4cCI6MjA3ODIzNjk4M30.2a6qJqW3BrHZxHHhM5Hm9e0sU6Bts6dXmPFW5tbrW_A'
+    },
+    staging: {
+      supabaseUrl: 'https://utlgnwxulsasydqwcjgc.supabase.co',
+      supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0bGdud3h1bHNhc3lkcXdjamdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwODQxMzcsImV4cCI6MjEwMDY2MDEzN30.s0UMHbJsYSN8WQXmdbYOVQwJGSO9gXCeOG4-if0LmeA'
+    }
+  }[TRAC_ENV];
+  const supabaseClient = supabase.createClient(TRAC_CONFIG.supabaseUrl, TRAC_CONFIG.supabaseKey, {
+    auth: { persistSession: true, autoRefreshToken: true }
+  });
+  if (TRAC_ENV === 'staging') document.title = '[STAGING] ' + document.title;
+
+  function openAuthModal(mode) {
+    showAuthTab(mode === 'signup' ? 'signup' : 'signin');
+    document.getElementById('authOverlay').classList.add('open');
+    return false;
+  }
+  function closeAuthModal() {
+    document.getElementById('authOverlay').classList.remove('open');
+  }
+  function showAuthTab(which) {
+    document.getElementById('authSignInPane').style.display = which === 'signin' ? 'block' : 'none';
+    document.getElementById('authSignUpPane').style.display = which === 'signup' ? 'block' : 'none';
+  }
+  document.getElementById('authCloseBtn').addEventListener('click', closeAuthModal);
+  document.getElementById('authOverlay').addEventListener('click', function (e) {
+    if (e.target === this) closeAuthModal();
+  });
+
+  function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.parentNode.querySelector('button');
+    if (input.type === 'password') {
+      input.type = 'text';
+      button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+    } else {
+      input.type = 'password';
+      button.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    }
+  }
+
+  function authMsg(elId, text, isError) {
+    const el = document.getElementById(elId);
+    el.textContent = text || '';
+    el.className = 'auth-msg' + (isError ? ' error' : '');
+  }
+
+  async function signIn() {
+    const email = document.getElementById('authEmail').value.trim();
+    const password = document.getElementById('authPassword').value;
+    if (!email || !password) { authMsg('authSignInMsg', 'Please enter email and password', true); return; }
+
+    const btn = document.getElementById('authSignInBtn');
+    btn.disabled = true;
+    btn.textContent = 'Signing in…';
+    try {
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      window.location.href = '/dashboard';
+    } catch (err) {
+      authMsg('authSignInMsg', err.message || 'Sign in failed', true);
+      btn.disabled = false;
+      btn.textContent = 'Sign in';
+    }
+  }
+
+  async function signUp() {
+    const fullName = document.getElementById('authSignupName').value.trim();
+    const email = document.getElementById('authSignupEmail').value.trim();
+    const password = document.getElementById('authSignupPassword').value;
+    const confirmPassword = document.getElementById('authConfirmPassword').value;
+    const agreeTerms = document.getElementById('authAgreeTerms').checked;
+
+    if (!fullName || !email || !password || !confirmPassword) { authMsg('authSignUpMsg', 'Please fill in all fields', true); return; }
+    if (password !== confirmPassword) { authMsg('authSignUpMsg', 'Passwords do not match', true); return; }
+    if (!agreeTerms) { authMsg('authSignUpMsg', 'Please agree to the Terms and Privacy Policy', true); return; }
+
+    const btn = document.getElementById('authSignUpBtn');
+    btn.disabled = true;
+    btn.textContent = 'Creating account…';
+    try {
+      const { data, error } = await supabaseClient.auth.signUp({
+        email, password, options: { data: { full_name: fullName } }
+      });
+      if (error) throw error;
+
+      if (data.session) {
+        // Email confirmation is off for this project; a session came back
+        // immediately, so there's a real logged-in user already.
+        window.location.href = '/dashboard';
+        return;
+      }
+      authMsg('authSignUpMsg', 'Account created! Check your email to verify, then sign in.', false);
+      showAuthTab('signin');
+    } catch (err) {
+      authMsg('authSignUpMsg', err.message || 'Sign up failed', true);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Create account';
+    }
+  }
+
+  async function requestPasswordReset() {
+    const email = document.getElementById('authEmail').value.trim();
+    if (!email) { authMsg('authSignInMsg', 'Enter your email above first', true); return; }
+    try {
+      const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/'
+      });
+      if (error) throw error;
+      authMsg('authSignInMsg', 'Password reset email sent, check your inbox', false);
+    } catch (err) {
+      authMsg('authSignInMsg', err.message || 'Could not send reset email', true);
+    }
+  }
+
+  function showTermsPopup() { document.getElementById('termsOverlay').classList.add('open'); }
+  function hideTermsPopup() { document.getElementById('termsOverlay').classList.remove('open'); }
+  function showPrivacyPopup() { document.getElementById('privacyOverlay').classList.add('open'); }
+  function hidePrivacyPopup() { document.getElementById('privacyOverlay').classList.remove('open'); }
+
+  function showPasswordResetModal() {
+    const existing = document.getElementById('passwordResetModal');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'passwordResetModal';
+    modal.className = 'legal-overlay open';
+    modal.style.zIndex = '1002';
+    modal.innerHTML = `
+      <div class="legal-card" style="max-width:400px;">
+        <h3>Set new password</h3>
+        <p>Your reset link was verified. Enter a new password below.</p>
+        <div class="auth-field">
+          <label for="newPasswordInput">New password</label>
+          <input type="password" id="newPasswordInput" placeholder="At least 6 characters">
+        </div>
+        <div class="auth-field">
+          <label for="confirmPasswordResetInput">Confirm password</label>
+          <input type="password" id="confirmPasswordResetInput" placeholder="Repeat new password">
+        </div>
+        <button id="saveNewPasswordBtn" class="auth-submit" onclick="saveNewPassword()">Save new password</button>
+        <div id="passwordResetMsg" class="auth-msg"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => document.getElementById('newPasswordInput')?.focus(), 100);
+  }
+
+  async function saveNewPassword() {
+    const newPassword = document.getElementById('newPasswordInput').value;
+    const confirmPassword = document.getElementById('confirmPasswordResetInput').value;
+    if (!newPassword || newPassword.length < 6) { document.getElementById('passwordResetMsg').textContent = 'Password must be at least 6 characters'; return; }
+    if (newPassword !== confirmPassword) { document.getElementById('passwordResetMsg').textContent = 'Passwords do not match'; return; }
+
+    const btn = document.getElementById('saveNewPasswordBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving…';
+    try {
+      const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      document.getElementById('passwordResetModal')?.remove();
+      openAuthModal('signin');
+      authMsg('authSignInMsg', 'Password updated, please sign in', false);
+    } catch (err) {
+      document.getElementById('passwordResetMsg').textContent = err.message || 'Could not update password';
+      btn.disabled = false;
+      btn.textContent = 'Save new password';
+    }
+  }
+
+  // Catches a password-recovery link landing here (the normal case) — see
+  // the matching safety-net redirect in app.html for the edge case of an
+  // in-flight reset email sent before this modal existed, which would
+  // otherwise land on app.html instead of here.
+  supabaseClient.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') showPasswordResetModal();
+  });
+
+  // Every internal "get into the app" control opens the modal instead of
+  // navigating away. Real <a href="app.html"> hrefs are kept as a
+  // no-JS/right-click-open-in-new-tab fallback — worst case that lands on
+  // app.html, which immediately bounces back here if there's no session.
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelector('.nav-signin').addEventListener('click', function (e) {
+      e.preventDefault();
+      openAuthModal('signin');
+    });
+    document.querySelectorAll('a[href="app.html"]').forEach(function (el) {
+      if (el.classList.contains('nav-signin')) return;
+      el.addEventListener('click', function (e) {
+        e.preventDefault();
+        openAuthModal('signup');
+      });
+    });
+  });
+</script>
 
 </body>
 </html>
