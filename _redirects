@@ -1,0 +1,12 @@
+# Preserve pretty-URL access to the real app and collector app.
+# Placed before the username wildcard below so it always wins.
+/app        /app.html         200
+/collector  /collector.html   200
+
+# Clean public portfolio links: tracstudio.app/username rewrites (not
+# redirects, the URL bar stays clean) to the existing ?view=portfolio&
+# username= query-string flow app.html already knows how to load.
+# Netlify matches real files (schema.sql, assets/*, app.html, etc.) before
+# ever checking redirect rules, so this wildcard only fires for paths that
+# aren't an actual file, i.e. real usernames.
+/:username  /app.html?view=portfolio&username=:username   200

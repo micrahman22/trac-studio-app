@@ -6668,7 +6668,9 @@
                                     document.getElementById('bio').value = '';
                                     document.getElementById('website').value = '';
                                     document.getElementById('contactEmail').value = user.email;
-                                    document.getElementById('portfolioLink').value = `tracstudio.app/${user.email.split('@')[0]}`;
+                                    const fallbackPortfolioUrl = `${window.location.origin}/${user.email.split('@')[0]}`;
+                                    document.getElementById('portfolioLink').href = fallbackPortfolioUrl;
+                                    document.getElementById('portfolioLink').textContent = fallbackPortfolioUrl;
 
                                     // Initialize CV status
                                     updateCVStatusDisplay(false);
@@ -6686,7 +6688,7 @@
                                 document.getElementById('bio').value = profile.bio || '';
                                 document.getElementById('website').value = profile.website || '';
                                 document.getElementById('contactEmail').value = profile.contact_email || user.email;
-                                const portfolioUrl = `${window.location.origin}${window.location.pathname}?view=portfolio&username=${profile.username || user.email.split('@')[0]}`;
+                                const portfolioUrl = `${window.location.origin}/${profile.username || user.email.split('@')[0]}`;
                                 document.getElementById('portfolioLink').href = portfolioUrl;
                                 document.getElementById('portfolioLink').textContent = portfolioUrl;
 
@@ -6719,7 +6721,9 @@
                                     document.getElementById('username').value = user.email.split('@')[0];
                                     document.getElementById('profileFullName').value = user.user_metadata?.full_name || '';
                                     document.getElementById('contactEmail').value = user.email;
-                                    document.getElementById('portfolioLink').value = `tracstudio.app/${user.email.split('@')[0]}`;
+                                    const fallbackPortfolioUrl2 = `${window.location.origin}/${user.email.split('@')[0]}`;
+                                    document.getElementById('portfolioLink').href = fallbackPortfolioUrl2;
+                                    document.getElementById('portfolioLink').textContent = fallbackPortfolioUrl2;
                                     updateCVStatusDisplay(false);
                                     loadSocialPlatforms('');
                                 }
@@ -6817,7 +6821,7 @@
                                 return;
                             }
 
-                            const portfolioUrl = `${window.location.origin}${window.location.pathname}?view=portfolio&username=${username}`;
+                            const portfolioUrl = `${window.location.origin}/${username}`;
 
                             navigator.clipboard.writeText(portfolioUrl).then(() => {
                                 showToast('Portfolio link copied to clipboard!');
