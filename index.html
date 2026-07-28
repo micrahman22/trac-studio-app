@@ -253,54 +253,6 @@
     .legacy { grid-template-columns: 1fr; }
   }
 
-  /* ---------- Newsletter ---------- */
-  .newsletter {
-    background: var(--bg-soft);
-    border-top: 1px solid var(--line);
-    padding: 88px 0;
-    text-align: center;
-  }
-  .newsletter p {
-    font-size: 1.2rem;
-    max-width: 30ch;
-    margin: 0 auto 36px;
-    line-height: 1.4;
-  }
-  .newsletter form {
-    max-width: 380px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 1.5px solid var(--ink);
-    padding-bottom: 10px;
-    gap: 12px;
-  }
-  .newsletter input {
-    flex: 1;
-    border: none;
-    background: none;
-    font-family: inherit;
-    font-size: 0.95rem;
-    outline: none;
-    color: var(--ink);
-  }
-  .newsletter input::placeholder { color: var(--faint); }
-  .newsletter button {
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: var(--ink);
-    display: flex;
-    align-items: center;
-  }
-  .newsletter .note {
-    margin-top: 16px;
-    font-size: 0.78rem;
-    color: var(--faint);
-    max-width: none;
-  }
-
   /* ---------- Footer ---------- */
   footer {
     background: var(--bg-soft);
@@ -588,25 +540,12 @@
 </section>
 
 <!--
-  Newsletter: no mailing-list service (Mailchimp, ConvertKit, etc.) is
-  connected anywhere in this repo. Rather than fake a subscribe flow, this
-  form submits as a plain mailto (action="mailto:..."), which opens the
-  visitor's own mail client addressed to TRAC's real inbox with their
-  typed email in the body. No JS, nothing pretending to be a working API
-  integration. Swap this for a real list-service form if one gets set up
-  later.
+  No newsletter section. It was here briefly with a placeholder mailto
+  (no real mailing-list service is connected anywhere in this repo), but
+  removed rather than shipping a form that goes nowhere real. Add it back
+  with a genuine list-service integration (Mailchimp, ConvertKit, etc.)
+  if one gets set up.
 -->
-<section class="newsletter">
-  <div class="wrap">
-    <p>Updates, resources, and inspiration for artists. Straight to your inbox.</p>
-    <form action="mailto:CONTACT_EMAIL_PLACEHOLDER?subject=Newsletter%20signup" method="POST" enctype="text/plain">
-      <input type="email" name="email" placeholder="Enter your email" required autocomplete="email">
-      <button type="submit" aria-label="Submit">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      </button>
-    </form>
-  </div>
-</section>
 
 <footer>
   <div class="wrap">
@@ -987,20 +926,15 @@ CONTENT (in this file):
     code but gated to staging-only in app.html (id="advancedToolsGrid",
     hidden when TRAC_ENV === 'production'), so it isn't part of the live
     product yet either way.
-[x] Newsletter: submits as a plain mailto form, not a fake success state
-    or an unconnected backend. Still needs a real address, see
-    CONTACT_EMAIL_PLACEHOLDER below.
+[x] Newsletter: removed entirely per your request. No real mailing-list
+    service is connected anywhere in this repo, and the mailto version
+    that stood in for one had no real address once Contact/Terms/Privacy
+    were dropped. Add it back with a genuine list-service integration if
+    one gets set up later.
 [x] Footer social icons removed per your request. No confirmed real
     TRAC-brand Instagram/X accounts exist; nothing was faked in their
     place, they were just dropped.
 [x] Footer Terms, Privacy, and Contact links removed per your request.
-[ ] CONTACT_EMAIL_PLACEHOLDER: still appears once in this file (the
-    newsletter form's mailto action) and needs a real address swapped in
-    before the newsletter form actually works. Search for
-    "CONTACT_EMAIL_PLACEHOLDER" to find it. Until it's set, submitting the
-    newsletter form will fail silently in most mail clients (no destination
-    address). Consider removing the newsletter section too if there's no
-    email you want to expose here.
 [ ] Sign In / Build Your Archive links point at https://tracstudio.app/
     because the live app has no distinct /login or /signup route; both
     forms live in one section inside app.html, toggled client-side. A
