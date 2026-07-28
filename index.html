@@ -489,7 +489,7 @@
         auto-opening the Sign Up tab) would need a small addition inside
         app.html itself. Not done here, out of scope for this file.
       -->
-      <a href="app.html" class="btn btn-primary uc">
+      <a href="app.html" class="js-cta-signup btn btn-primary uc">
         Build Your Archive
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
       </a>
@@ -513,7 +513,7 @@
     <div class="section-kicker uc">What's live today</div>
     <div class="feature-list">
 
-      <a class="feature-row" href="app.html">
+      <a class="feature-row js-cta-signup" href="app.html">
         <div>
           <div class="feature-num">01</div>
           <div class="feature-name">Portfolio</div>
@@ -522,7 +522,7 @@
         <div class="feature-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
       </a>
 
-      <a class="feature-row" href="app.html">
+      <a class="feature-row js-cta-signup" href="app.html">
         <div>
           <div class="feature-num">02</div>
           <div class="feature-name">Studio</div>
@@ -531,7 +531,7 @@
         <div class="feature-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
       </a>
 
-      <a class="feature-row" href="app.html">
+      <a class="feature-row js-cta-signup" href="app.html">
         <div>
           <div class="feature-num">03</div>
           <div class="feature-name">Collections</div>
@@ -540,7 +540,7 @@
         <div class="feature-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
       </a>
 
-      <a class="feature-row" href="app.html">
+      <a class="feature-row js-cta-signup" href="app.html">
         <div>
           <div class="feature-num">04</div>
           <div class="feature-name">Events</div>
@@ -549,7 +549,7 @@
         <div class="feature-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
       </a>
 
-      <a class="feature-row" href="app.html">
+      <a class="feature-row js-cta-signup" href="app.html">
         <div>
           <div class="feature-num">05</div>
           <div class="feature-name">CV, on request</div>
@@ -568,7 +568,7 @@
       <h2>Built for your process, not just your files.</h2>
       <div class="legacy-copy">
         <p>TRAC gives you one real place to build, organize, and share your practice, on your own terms.</p>
-        <a href="app.html" class="btn btn-primary uc">
+        <a href="app.html" class="js-cta-signup btn btn-primary uc">
           Build Your Archive
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </a>
@@ -622,14 +622,14 @@
 
 <!--
   ============================================================================
-  AUTH MODAL — single canonical sign-in/sign-up UI for the whole product.
+  AUTH MODAL: single canonical sign-in/sign-up UI for the whole product.
   ============================================================================
   This used to be a full-page section inside app.html. It's been moved
-  here, not copied — app.html no longer has its own login form at all (see
+  here, not copied. app.html no longer has its own login form at all (see
   the comments in that file). Landing on tracstudio.app while logged out
   now means seeing this modal, not a page navigation. On successful sign
   in, this redirects to /dashboard, which app.html already knows how to
-  render (it checks for a session and shows the dashboard automatically —
+  render (it checks for a session and shows the dashboard automatically,
   no new logic was needed there for that part).
 -->
 <div class="auth-overlay" id="authOverlay">
@@ -708,11 +708,11 @@
 
 <!--
   Terms of Service / Privacy Policy. Consolidated to one definition. The
-  app.html version of this had three separate, disagreeing copies (static
-  HTML, a set of plain functions, and a setTimeout-based override that
-  deleted and rebuilt the whole thing 500ms after load to fix a bug in the
-  other two) — that mess stays there as something to clean up separately;
-  this is a single clean copy using the same real policy text.
+  app.html version of this used to have three separate, disagreeing
+  copies (static HTML, a set of plain functions, and a setTimeout-based
+  override that deleted and rebuilt the whole thing 500ms after load to
+  fix a bug in the other two), all removed from there since this is now
+  the single real copy.
 -->
 <div class="legal-overlay" id="termsOverlay">
   <div class="legal-card">
@@ -754,7 +754,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-  // Supabase config — same env-detection pattern app.html uses (runtime
+  // Supabase config: same env-detection pattern app.html uses (runtime
   // hostname check, no build step). Both files independently create their
   // own Supabase client because they're genuinely separate entry points;
   // this is config duplication, not logic duplication, and there was no
@@ -933,7 +933,7 @@
     }
   }
 
-  // Catches a password-recovery link landing here (the normal case) — see
+  // Catches a password-recovery link landing here (the normal case). See
   // the matching safety-net redirect in app.html for the edge case of an
   // in-flight reset email sent before this modal existed, which would
   // otherwise land on app.html instead of here.
@@ -942,16 +942,19 @@
   });
 
   // Every internal "get into the app" control opens the modal instead of
-  // navigating away. Real <a href="app.html"> hrefs are kept as a
-  // no-JS/right-click-open-in-new-tab fallback — worst case that lands on
-  // app.html, which immediately bounces back here if there's no session.
+  // navigating away. Selected by class, not by href value: Netlify's own
+  // asset processing rewrites href="app.html" to href="/app" in the HTML
+  // it actually serves, so a selector matching the literal "app.html"
+  // string only ever worked in local testing, never on a real deploy.
+  // Real hrefs are kept as a no-JS/right-click-open-in-new-tab fallback.
+  // Worst case that lands on app.html, which immediately bounces back
+  // here if there's no session.
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('.nav-signin').addEventListener('click', function (e) {
       e.preventDefault();
       openAuthModal('signin');
     });
-    document.querySelectorAll('a[href="app.html"]').forEach(function (el) {
-      if (el.classList.contains('nav-signin')) return;
+    document.querySelectorAll('.js-cta-signup').forEach(function (el) {
       el.addEventListener('click', function (e) {
         e.preventDefault();
         openAuthModal('signup');
