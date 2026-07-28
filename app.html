@@ -4943,8 +4943,22 @@
             });
 
             // ✅ CHECK FOR PUBLIC PORTFOLIO SECOND
-            const viewType = urlParams.get('view');
-            const username = urlParams.get('username');
+            // Two ways to land here: the old ?view=portfolio&username=X query
+            // string (still works, e.g. if someone bookmarked it), or the
+            // clean tracstudio.app/username path. The clean path is rewritten
+            // by the Netlify _redirects rule to serve this same file, but
+            // that rewrite happens server-side — window.location still shows
+            // the original clean path with no query string at all, so it has
+            // to be read from the path itself, not from urlParams.
+            const RESERVED_ROOT_PATHS = ['app', 'app.html', 'collector', 'collector.html', 'index.html', ''];
+            const pathSegment = window.location.pathname.replace(/^\/+/, '').replace(/\/+$/, '');
+            const looksLikeUsername = pathSegment
+                && !pathSegment.includes('/')
+                && !pathSegment.includes('.')
+                && !RESERVED_ROOT_PATHS.includes(pathSegment.toLowerCase());
+
+            const viewType = urlParams.get('view') || (looksLikeUsername ? 'portfolio' : null);
+            const username = urlParams.get('username') || (looksLikeUsername ? pathSegment : null);
 
             if (viewType === 'portfolio' && username) {
                 console.log("🌐 IMMEDIATELY loading public portfolio for:", username);
