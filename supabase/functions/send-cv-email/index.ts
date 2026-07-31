@@ -62,13 +62,22 @@ serve(async (req) => {
     // All data operations use service role
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Fetch the request and verify it belongs to this artist and is still pending
+    // Claim the request atomically by flipping status pending -> approved
+    // as part of the same UPDATE that checks it's still pending, instead
+    // of a separate SELECT-then-later-UPDATE. Two simultaneous calls for
+    // the same request_id both used to pass the earlier SELECT check
+    // before either had written back, so both would send a real email -
+    // a genuine race, not just a narrow theoretical one. Only one
+    // concurrent UPDATE can ever match "status = pending" and return a
+    // row; whichever loses the race gets an empty result here and stops
+    // immediately, before any email is sent.
     const { data: cvRequest, error: requestError } = await supabase
       .from("cv_requests")
-      .select("*")
+      .update({ status: "approved", approved_at: new Date().toISOString() })
       .eq("id", request_id)
       .eq("artist_id", user.id)
       .eq("status", "pending")
+      .select()
       .single();
 
     if (requestError || !cvRequest) {
@@ -76,6 +85,19 @@ serve(async (req) => {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    // The claim above already flipped status to approved. Every failure
+    // path from here on needs to hand it back to pending - otherwise a
+    // request that hit e.g. a transient Resend outage would be stuck
+    // permanently "approved" with no email ever having gone out, and no
+    // way for the artist to retry.
+    async function revertToPending() {
+      await supabase
+        .from("cv_requests")
+        .update({ status: "pending", approved_at: null })
+        .eq("id", request_id)
+        .eq("artist_id", user.id);
     }
 
     // Fetch artist profile for CV URL
@@ -86,6 +108,7 @@ serve(async (req) => {
       .single();
 
     if (profileError || !profile?.cv_url) {
+      await revertToPending();
       return new Response(JSON.stringify({ error: "No CV found. Please upload your CV in Profile Settings first." }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -94,19 +117,21 @@ serve(async (req) => {
 
     const cvPath = profile.cv_url.split("/cv-files/")[1];
     if (!cvPath) {
+      await revertToPending();
       return new Response(JSON.stringify({ error: "Could not parse CV file path" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Generate signed URL — 48 hours, server-side only, never exposed to browser
+    // Generate signed URL: 48 hours, server-side only, never exposed to browser
     const { data: signedData, error: signedError } = await supabase.storage
       .from("cv-files")
       .createSignedUrl(cvPath, 172800);
 
     if (signedError || !signedData?.signedUrl) {
       console.error("Signed URL error:", signedError);
+      await revertToPending();
       return new Response(JSON.stringify({ error: "Could not generate download link" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -124,7 +149,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: FROM_EMAIL,
         to: cvRequest.requester_email,
-        subject: `CV from ${escapeHtml(artistName)} — TRAC`,
+        subject: `CV from ${escapeHtml(artistName)} - TRAC`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem; color: #333;">
             <h2 style="font-weight: 300; font-size: 1.8rem; margin-bottom: 1rem;">
@@ -155,19 +180,15 @@ serve(async (req) => {
     if (!emailRes.ok) {
       const errText = await emailRes.text();
       console.error("Resend API error:", errText);
+      await revertToPending();
       return new Response(JSON.stringify({ error: "Email failed to send", detail: errText }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Mark as approved — artist_id guard repeated for defence-in-depth
-    await supabase
-      .from("cv_requests")
-      .update({ status: "approved", approved_at: new Date().toISOString() })
-      .eq("id", request_id)
-      .eq("artist_id", user.id);
-
+    // Status was already claimed as "approved" atomically above, before
+    // the email was sent - nothing left to update here on success.
     console.log(`CV approved and emailed to ${cvRequest.requester_email}`);
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

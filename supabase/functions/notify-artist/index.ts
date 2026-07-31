@@ -145,7 +145,7 @@ serve(async (req) => {
     }
 
     // Mark as notified so a replayed call with the same id can't re-trigger
-    // this email — guard checked in the query above via .is("notified_at", null).
+    // this email. Guard checked in the query above via .is("notified_at", null).
     await supabase
       .from("cv_requests")
       .update({ notified_at: new Date().toISOString() })

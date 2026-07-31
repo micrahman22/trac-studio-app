@@ -5294,15 +5294,34 @@
                             }
                         }
 
-                        function updateCVStatusDisplay(hasCV, cvUrl = null) {
+                        async function updateCVStatusDisplay(hasCV, cvUrl = null) {
                             const cvCurrentFile = document.getElementById('cvCurrentFile');
                             if (!cvCurrentFile) return;
 
                             if (hasCV) {
+                                // cv-files is a private bucket (owner-only), so the stored
+                                // getPublicUrl()-style link 404s for everyone including the
+                                // owner. Generate a short-lived signed URL instead, using the
+                                // owner's own session, just for this preview link.
+                                let viewUrl = null;
+                                if (cvUrl) {
+                                    try {
+                                        const cvPath = cvUrl.split('/cv-files/')[1];
+                                        if (cvPath) {
+                                            const { data: signedData } = await supabaseClient.storage
+                                                .from('cv-files')
+                                                .createSignedUrl(cvPath, 3600);
+                                            viewUrl = signedData?.signedUrl || null;
+                                        }
+                                    } catch (err) {
+                                        console.error('Could not sign CV preview URL:', err);
+                                    }
+                                }
+
                                 cvCurrentFile.innerHTML = `
                                     <span style="color: green;">✓ CV uploaded and stored</span>
                                     <br><small style="color: #666;">CV button will appear in portfolio header</small>
-                                    ${cvUrl ? `<br><small><a href="${cvUrl}" target="_blank" style="color: #666;">View current CV</a></small>` : ''}
+                                    ${viewUrl ? `<br><small><a href="${viewUrl}" target="_blank" style="color: #666;">View current CV</a></small>` : ''}
                                 `;
                             } else {
                                 cvCurrentFile.innerHTML = '<span style="color: #666;">No CV uploaded yet</span>';
@@ -10560,9 +10579,19 @@
                                     return;
                                 }
 
-                                const { data: insertData, error } = await supabaseClient
+                                // The requester is anonymous (no account, no auth.uid()), so
+                                // there's no safe way to grant them SELECT on cv_requests to
+                                // read a row back after inserting it - anything permissive
+                                // enough to do that would also let any visitor read every
+                                // other requester's name/email/phone/message. So the id is
+                                // generated here instead of asking Postgres to hand one back
+                                // via .select(), and the insert itself needs no RETURNING at
+                                // all - avoiding the RLS/SELECT policy entirely for this call.
+                                const cvRequestId = crypto.randomUUID();
+                                const { error } = await supabaseClient
                                     .from('cv_requests')
                                     .insert([{
+                                        id: cvRequestId,
                                         artist_id: AppState.cvRequestArtistId,
                                         requester_name: formData.get('name'),
                                         requester_company: formData.get('company'),
@@ -10570,9 +10599,7 @@
                                         requester_phone: formData.get('phone') || null,
                                         message: formData.get('message') || null,
                                         status: 'pending'
-                                    }])
-                                    .select()
-                                    .single();
+                                    }]);
 
                                 if (error) throw error;
 
@@ -10583,7 +10610,7 @@
                                         'Content-Type': 'application/json',
                                         'Authorization': `Bearer ${supabaseKey}`
                                     },
-                                    body: JSON.stringify({ id: insertData.id })
+                                    body: JSON.stringify({ id: cvRequestId })
                                 }).catch(err => console.warn('Notify artist error:', err));
 
                                 showToast('✅ Request sent! The artist will review it shortly.');
