@@ -78,7 +78,9 @@
                             display: grid;
                             gap: 1rem;
                             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                        }                        
+                            grid-auto-flow: dense;
+                            grid-auto-rows: minmax(240px, auto);
+                        }
 
                         /* Mobile styles */
                         @media (max-width: 768px) {
@@ -3236,6 +3238,16 @@
                                                     <label for="dimensions">Dimensions</label>
                                                     <input type="text" id="dimensions" name="dimensions" placeholder="24 × 36 in">
                                                 </div>
+                                                <div class="form-group">
+                                                    <label for="cardSize">Portfolio Card Size</label>
+                                                    <select id="cardSize" name="cardSize">
+                                                        <option value="small">Small</option>
+                                                        <option value="wide">Wide</option>
+                                                        <option value="tall">Tall</option>
+                                                        <option value="large">Large</option>
+                                                    </select>
+                                                    <small style="color: #999;">Controls how much space this piece takes up in the portfolio grid.</small>
+                                                </div>
                                             </div>
 
                                             <div class="form-group">
@@ -4229,6 +4241,38 @@
                                 .replace(/'/g, '&#39;');
                         }
 
+                        // Per-artwork portfolio card sizing ("small" is the default -
+                        // 1x1, unchanged from before this existed). Row-spanning sizes
+                        // need the image to fill the cell via object-fit:cover instead of
+                        // its natural aspect ratio, or a shorter-than-the-cell image would
+                        // leave dead space below it.
+                        function artworkCardSpanStyle(artwork) {
+                            switch (artwork?.grid_size) {
+                                case 'wide': return 'grid-column: span 2;';
+                                case 'tall': return 'grid-row: span 2;';
+                                case 'large': return 'grid-column: span 2; grid-row: span 2;';
+                                default: return '';
+                            }
+                        }
+
+                        function artworkSpansRow(artwork) {
+                            return artwork?.grid_size === 'tall' || artwork?.grid_size === 'large';
+                        }
+
+                        function artworkImageFillStyle(artwork) {
+                            return artworkSpansRow(artwork)
+                                ? 'width:100%;height:100%;object-fit:cover;display:block;'
+                                : 'width:100%;height:auto;display:block;';
+                        }
+
+                        // The wrapping .artwork-image div needs an explicit height for
+                        // the img's height:100% above to resolve against - some layouts
+                        // (the masonry-style presets) already set this via CSS, but the
+                        // plain grid-classic layout doesn't, so this covers it inline.
+                        function artworkImageWrapStyle(artwork) {
+                            return artworkSpansRow(artwork) ? 'height:100%;' : '';
+                        }
+
                         // ==================== GLOBAL ERROR HANDLING ====================
                         // Last-resort safety net for errors that aren't already caught by a
                         // local try/catch (e.g. the blockchain/CoA section's unguarded await
@@ -4902,6 +4946,7 @@
                                 document.getElementById('medium').value = artwork.medium || '';
                                 document.getElementById('dimensions').value = artwork.dimensions || '';
                                 document.getElementById('description').value = artwork.description || '';
+                                document.getElementById('cardSize').value = artwork.grid_size || 'small';
 
                                 // Hide the public checkbox in edit mode
                                 if (publicLabel) {
@@ -5262,7 +5307,8 @@
                                         medium: document.getElementById('medium').value || '',
                                         dimensions: document.getElementById('dimensions').value || '',
                                         description: document.getElementById('description').value || '',
-                                        is_public: document.getElementById('isPublic').checked
+                                        is_public: document.getElementById('isPublic').checked,
+                                        grid_size: document.getElementById('cardSize').value
                                     };
 
                                     // Only update image if a new one was uploaded
@@ -5291,7 +5337,8 @@
                                         dimensions: document.getElementById('dimensions').value || '',
                                         description: document.getElementById('description').value || '',
                                         image_url: imageUrl,
-                                        is_public: document.getElementById('isPublic').checked
+                                        is_public: document.getElementById('isPublic').checked,
+                                        grid_size: document.getElementById('cardSize').value
                                     };
 
                                     const { data, error } = await supabaseClient
@@ -7156,9 +7203,10 @@
                                             // ✅ LAZY LOADING: Only first 3 images eager, rest lazy
                                             const loadingType = index < 3 ? 'eager' : 'lazy';
 
+                                            const spansRow = artworkSpansRow(artwork);
                                             return `
-                                            <div class="artwork-card">
-                                                <div class="artwork-image">
+                                            <div class="artwork-card" style="${artworkCardSpanStyle(artwork)}">
+                                                <div class="artwork-image"${spansRow ? ' style="height:100%;"' : ''}>
                                                     <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title) || 'Untitled'}"
                                                          loading="${loadingType}"
                                                          decoding="async"
@@ -7169,7 +7217,7 @@
                                                          data-artwork-year="${escapeHtml(artwork.year) || ''}"
                                                          data-artwork-medium="${escapeHtml(artwork.medium) || ''}"
                                                          data-artwork-dimensions="${escapeHtml(artwork.dimensions) || ''}"
-                                                         style="cursor: zoom-in; width: 100%; height: auto; display: block; aspect-ratio: ${aspectRatio};">
+                                                         style="cursor: zoom-in; ${spansRow ? 'width:100%;height:100%;object-fit:cover;display:block;' : `width: 100%; height: auto; display: block; aspect-ratio: ${aspectRatio};`}">
                                                 </div>
                                                 <div class="artwork-info">
                                                     <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
@@ -7829,9 +7877,9 @@
                                             collectionGridHTML = `
                                                 <div class="artworks-grid portfolio-layout monumental-asymmetric ${sizeClass}">
                                                     ${collectionArtworks.map(artwork => `
-                                                        <div class="artwork-card">
-                                                            <div class="artwork-image">
-                                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width:100%;height:auto;display:block;">
+                                                        <div class="artwork-card" style="${artworkCardSpanStyle(artwork)}">
+                                                            <div class="artwork-image" style="${artworkImageWrapStyle(artwork)}">
+                                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="${artworkImageFillStyle(artwork)}">
                                                             </div>
                                                             <div class="artwork-info">
                                                                 <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
@@ -7888,9 +7936,9 @@
                                                 ${otherArtworks.length > 0 ? `
                                                     <div class="artworks-grid portfolio-layout grid-classic ${sizeClass}">
                                                         ${otherArtworks.map(artwork => `
-                                                            <div class="artwork-card">
-                                                                <div class="artwork-image">
-                                                                    <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width:100%;height:auto;display:block;">
+                                                            <div class="artwork-card" style="${artworkCardSpanStyle(artwork)}">
+                                                                <div class="artwork-image" style="${artworkImageWrapStyle(artwork)}">
+                                                                    <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="${artworkImageFillStyle(artwork)}">
                                                                 </div>
                                                                 <div class="artwork-info">
                                                                     <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
@@ -7911,9 +7959,9 @@
                                             collectionGridHTML = `
                                                 <div class="artworks-grid portfolio-layout ${layoutClass} ${sizeClass}" id="mainArtworksGrid">
                                                     ${collectionArtworks.map(artwork => `
-                                                        <div class="artwork-card">
-                                                            <div class="artwork-image">
-                                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width:100%;height:auto;display:block;">
+                                                        <div class="artwork-card" style="${artworkCardSpanStyle(artwork)}">
+                                                            <div class="artwork-image" style="${artworkImageWrapStyle(artwork)}">
+                                                                <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="${artworkImageFillStyle(artwork)}">
                                                             </div>
                                                             <div class="artwork-info">
                                                                 <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
