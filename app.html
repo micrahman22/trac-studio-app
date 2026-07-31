@@ -7286,7 +7286,6 @@
                             setTimeout(() => {
                                 updateFooterContactDisplay(profileData);
                             }, 100);
-                            setTimeout(cleanPortfolioDisplay, 10);
 
                             setTimeout(() => {
                                 portfolioPage.classList.remove('loading');
@@ -7495,31 +7494,14 @@
                             });
                         }
 
-                        function generateCollectionLayout(collection, titleLayout, collectionArtworks, profileData) {
+                        function generateCollectionLayout(collection, titleLayout, collectionArtworks, profileData, collectionGridHTML) {
                         const title = escapeHtml(collection.name || 'Untitled Collection');
                         const description = escapeHtml(collection.description || '');
-                        const layoutClass = profileData.portfolio_layout || "grid-classic";
-                        const sizeClass = profileData.image_size || 'medium';
 
-                        const artworksGrid = `
-                            <div class="artworks-grid portfolio-layout ${layoutClass} ${sizeClass}">
-                                ${collectionArtworks.map(artwork => `
-                                    <div class="artwork-card">
-                                        <div class="artwork-image">
-                                            <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="width:100%;height:auto;display:block;">
-                                        </div>
-                                        <div class="artwork-info">
-                                            <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
-                                            <div class="artwork-details">
-                                                ${artwork.year ? `<div>${escapeHtml(artwork.year)}</div>` : ''}
-                                                ${artwork.medium ? `<div>${escapeHtml(artwork.medium)}</div>` : ''}
-                                                ${artwork.dimensions ? `<div>${escapeHtml(artwork.dimensions)}</div>` : ''}
-                                            </div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        `;
+                        // Use the grid already built by displayCollectionsInPortfolio for this
+                        // collection's own collectionLayout (carousel/masonry/stacked/featured-first/grid)
+                        // instead of rebuilding a plain grid from the page-wide layout here.
+                        const artworksGrid = collectionGridHTML;
 
                         // TRAC CLASSIC - EXACT ORIGINAL LAYOUT (NO CHANGES)
                         if (titleLayout === 'centered') {
@@ -7671,6 +7653,61 @@
                                                 </p>
                                             </div>
                                         ` : ''}
+                                    `;
+
+                                case 'institutional':
+                                    return `
+                                        <!-- CASE-FILE BANNER - CLEAN -->
+                                        <div style="margin: 0 auto 3rem auto; max-width: 1400px; padding: 1.5rem 1rem; border-top: 3px solid var(--accent-color, #8b0000); border-bottom: 1px solid var(--border-color, #8b0000);">
+                                            <div style="font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent-color, #8b0000); margin-bottom: 0.5rem;">
+                                                Collection File
+                                            </div>
+                                            <h2 style="font-weight: 600; font-family: 'Times New Roman', serif; margin: 0 0 0.5rem 0; color: var(--text-color, #000); line-height: 1.2; word-wrap: break-word;">
+                                                ${title}
+                                            </h2>
+                                            ${description ? `
+                                                <p style="line-height: 1.5; color: var(--text-color, #666); margin: 0; opacity: 0.8; word-wrap: break-word;">
+                                                    ${description}
+                                                </p>
+                                            ` : ''}
+                                        </div>
+                                        ${artworksGrid}
+                                    `;
+
+                                case 'narrative':
+                                    return `
+                                        <!-- SPLIT NARRATIVE - CLEAN -->
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; margin: 0 auto 3rem auto; max-width: 1200px; padding: 0 1rem;">
+                                            <div style="border-right: 1px dashed var(--border-color, #ffcc80); padding-right: 3rem;">
+                                                <h2 style="font-weight: 500; font-style: italic; margin: 0; color: var(--text-color, #5d4037); line-height: 1.2; word-wrap: break-word;">
+                                                    ${title}
+                                                </h2>
+                                            </div>
+                                            <div>
+                                                ${description ? `
+                                                    <p style="line-height: 1.7; color: var(--text-color, #5d4037); margin: 0; opacity: 0.85; word-wrap: break-word;">
+                                                        ${description}
+                                                    </p>
+                                                ` : ''}
+                                            </div>
+                                        </div>
+                                        ${artworksGrid}
+                                    `;
+
+                                case 'glitch':
+                                    return `
+                                        <!-- MINIMAL GLITCH - CLEAN -->
+                                        <div style="margin: 0 auto 3rem auto; max-width: 800px; padding: 0 1rem; text-align: center;">
+                                            <h2 style="font-weight: 700; font-family: monospace; letter-spacing: 0.05em; text-transform: uppercase; margin: 0 0 0.5rem 0; color: var(--text-color, #00ff9d); text-shadow: 2px 0 var(--accent-color, #ff00ff); line-height: 1.2; word-wrap: break-word;">
+                                                ${title}
+                                            </h2>
+                                            ${description ? `
+                                                <p style="line-height: 1.5; font-family: monospace; color: var(--text-color, #00ff9d); margin: 0; opacity: 0.7; word-wrap: break-word;">
+                                                    ${description}
+                                                </p>
+                                            ` : ''}
+                                        </div>
+                                        ${artworksGrid}
                                     `;
 
                                 default:
@@ -7835,7 +7872,7 @@
 
                                     collectionsHTML += `
                                         <div class="collection-section" style="margin-top: 4rem; margin-bottom: 4rem;">
-                                            ${generateCollectionLayout(collection, profileData.collection_title_layout || stylePreset.collectionTitleLayout, collectionArtworks, profileData)}
+                                            ${generateCollectionLayout(collection, profileData.collection_title_layout || stylePreset.collectionTitleLayout, collectionArtworks, profileData, collectionGridHTML)}
                                         </div>
                                     `;
                                 }
@@ -12222,33 +12259,9 @@
                         }
 
                         // Initialize everything
-                        //setInterval(cleanPortfolioDisplay, 500);
                         setInterval(disableDashboardPopups, 300);
                         //setInterval(removePortfolioHoverEffects, 500);
                         setTimeout(initSafePopupHandlers, 1000);
-
-                        // ==================== CLEAN PORTFOLIO DISPLAY ====================
-                        function cleanPortfolioDisplay() {
-                            // ONLY target portfolio section
-                            const portfolioSection = document.getElementById('portfolio-section');
-                            if (!portfolioSection || portfolioSection.style.display !== 'block') return;
-
-                            // Remove artwork details from PORTFOLIO ONLY (NOT events)
-                            const artworkCards = document.querySelectorAll('#portfolioPage .artwork-card');
-                            artworkCards.forEach(card => {
-                                // EXCLUDE event cards from cleanup
-                                if (!card.classList.contains('event-card') && !card.closest('#events-section')) {
-                                    const title = card.querySelector('.artwork-title');
-                                    const details = card.querySelector('.artwork-details');
-
-                                    if (title) title.style.display = 'none';
-                                    if (details) details.style.display = 'none';
-                                }
-                            });
-                        }
-
-                        // Run when portfolio loads
-                        setInterval(cleanPortfolioDisplay, 2000);
 
                                                                 // ==================== REMOVE PORTFOLIO HOVER EFFECTS ====================
                                                                 function removePortfolioHoverEffects() {
