@@ -4894,6 +4894,21 @@
                             }
                         }
 
+                        // editArtwork() was called from the artwork card's "Edit" button
+                        // but was never actually defined - a leftover from an old refactor
+                        // that deleted the function while adding a new caller for it in the
+                        // same commit. showUploadForm() already fully supports edit mode
+                        // when passed a real artwork object; this just looks that object up
+                        // from the same cached array the dashboard grid was rendered from.
+                        function editArtwork(artworkId) {
+                            const artwork = AppState.currentArtworks.find(a => a.id === artworkId);
+                            if (!artwork) {
+                                showToast('Could not find that artwork. Please refresh and try again.', 'error');
+                                return;
+                            }
+                            showUploadForm(artwork);
+                        }
+
                         function hideUploadForm() {
                             document.getElementById('uploadForm').style.display = 'none';
                             document.getElementById('artworkUploadForm').reset();
