@@ -402,10 +402,10 @@
                         }
 
                         /* EXPERIMENTAL IMMERSIVE */
-                        .portfolio-layout.immersive-stacked {
+                        .artworks-grid.portfolio-layout.immersive-stacked {
                             grid-template-columns: 1fr;
                             grid-auto-rows: 100vh;
-                            gap: 0;
+                            gap: 0 !important;
                             margin: 0;
                             padding: 0;
                         }
@@ -424,70 +424,116 @@
                             max-width: 90vw;
                         }
 
-                        /* MONUMENTAL SCULPTURAL */
-                        .portfolio-layout.monumental-asymmetric {
+                        /* MONUMENTAL SCULPTURAL - dense auto-flow so the hero/side
+                           pattern repeats cleanly for any number of artworks, not
+                           just multiples of 3 */
+                        .artworks-grid.portfolio-layout.monumental-asymmetric {
                             grid-template-columns: 2fr 1fr 1fr;
-                            gap: 2rem;
-                            grid-auto-rows: minmax(300px, auto);
-                        }
-
-                        .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+1) {
-                            grid-column: 1 / 3;
-                            grid-row: span 2;
-                        }
-
-                        .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+2) {
-                            grid-column: 3 / 4;
-                        }
-
-                        .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+3) {
-                            grid-column: 3 / 4;
-                        }
-
-                        /* HISTORICAL LAYERED */
-                        .portfolio-layout.historical-overlap {
-                            grid-template-columns: repeat(12, 1fr);
-                            grid-auto-rows: minmax(200px, auto);
-                            gap: 1rem;
+                            gap: 2rem !important;
+                            grid-auto-rows: minmax(280px, auto);
                             grid-auto-flow: dense;
                         }
 
-                        .portfolio-layout.historical-overlap .artwork-card:nth-child(odd) {
-                            grid-column: span 6;
+                        .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+1) {
+                            grid-column: span 2;
                             grid-row: span 2;
                         }
 
-                        .portfolio-layout.historical-overlap .artwork-card:nth-child(even) {
-                            grid-column: span 4;
+                        .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+2),
+                        .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n) {
+                            grid-column: span 1;
                             grid-row: span 1;
                         }
 
-                        .portfolio-layout.historical-overlap .artwork-card:nth-child(3n) {
-                            grid-column: span 3;
-                            transform: rotate(-1deg);
+                        .portfolio-layout.monumental-asymmetric .artwork-card {
+                            padding: 0 !important;
+                        }
+
+                        .portfolio-layout.monumental-asymmetric .artwork-card,
+                        #portfolioPage .portfolio-layout.monumental-asymmetric .artwork-image {
+                            height: 100%;
+                            min-height: 0;
+                        }
+
+                        /* Images are set to width:100%;height:auto inline by the
+                           renderer, so height/object-fit need !important here to
+                           actually fill the grid cell instead of leaving dead space
+                           below a shorter-than-the-cell image. */
+                        .portfolio-layout.monumental-asymmetric .artwork-image img {
+                            width: 100% !important;
+                            height: 100% !important;
+                            object-fit: cover;
+                            display: block;
+                        }
+
+                        /* HISTORICAL LAYERED - a clean repeating 4-item rhythm
+                           (wide+tall, two mid columns, wide) instead of the
+                           previous odd/even/3n/4n rules, which could all match
+                           the same card at once and fight each other */
+                        .artworks-grid.portfolio-layout.historical-overlap {
+                            grid-template-columns: repeat(12, 1fr);
+                            grid-auto-rows: minmax(220px, auto);
+                            gap: 1.5rem !important;
+                            grid-auto-flow: dense;
+                        }
+
+                        .portfolio-layout.historical-overlap .artwork-card:nth-child(4n+1) {
+                            grid-column: span 7;
+                            grid-row: span 2;
+                        }
+
+                        .portfolio-layout.historical-overlap .artwork-card:nth-child(4n+2),
+                        .portfolio-layout.historical-overlap .artwork-card:nth-child(4n+3) {
+                            grid-column: span 5;
+                            grid-row: span 1;
                         }
 
                         .portfolio-layout.historical-overlap .artwork-card:nth-child(4n) {
-                            grid-column: span 3;
-                            transform: rotate(1deg);
+                            grid-column: span 7;
+                            grid-row: span 1;
                         }
 
-                        /* COLORFUL VIBRANT */
-                        .portfolio-layout.vibrant-mosaic {
-                            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-                            grid-auto-rows: 200px;
-                            gap: 0.5rem;
+                        .portfolio-layout.historical-overlap .artwork-card {
+                            padding: 0 !important;
+                        }
+
+                        .portfolio-layout.historical-overlap .artwork-card,
+                        #portfolioPage .portfolio-layout.historical-overlap .artwork-image {
+                            height: 100%;
+                            min-height: 0;
+                        }
+
+                        .portfolio-layout.historical-overlap .artwork-image img {
+                            width: 100% !important;
+                            height: 100% !important;
+                            object-fit: cover;
+                            display: block;
+                        }
+
+                        /* COLORFUL VIBRANT - larger cells and more breathing room
+                           than the original 200px/0.5rem, which read as cramped */
+                        .artworks-grid.portfolio-layout.vibrant-mosaic {
+                            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+                            grid-auto-rows: 260px;
+                            gap: 1rem !important;
                         }
 
                         .portfolio-layout.vibrant-mosaic .artwork-card {
                             margin: 0;
                             border-radius: 0;
                             overflow: hidden;
+                            height: 100%;
+                            padding: 0 !important;
+                        }
+
+                        #portfolioPage .portfolio-layout.vibrant-mosaic .artwork-image {
+                            height: 100%;
+                            min-height: 0;
                         }
 
                         .portfolio-layout.vibrant-mosaic .artwork-image img {
-                            width: 100%;
-                            height: 100%;
+                            width: 100% !important;
+                            height: 100% !important;
                             object-fit: cover;
                         }
 
@@ -529,36 +575,47 @@
                             object-fit: cover;
                         }
 
-                        /* STORYTELLING QUILT */
-                        .portfolio-layout.quilt-narrative {
+                        /* STORYTELLING QUILT - the old pattern only had rules for
+                           exactly 4 cards (nth-child(1) through (4)); anything
+                           more or fewer either sat unstyled or left a grid full of
+                           empty fixed-height rows. This repeats a 2x2 block feature
+                           + wide strip + two small patches every 4 artworks. */
+                        .artworks-grid.portfolio-layout.quilt-narrative {
                             grid-template-columns: repeat(4, 1fr);
-                            grid-template-rows: repeat(3, 300px);
-                            gap: 1rem;
+                            grid-auto-rows: 260px;
+                            grid-auto-flow: dense;
+                            gap: 1rem !important;
                         }
 
-                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(1) {
-                            grid-column: 1 / 3;
-                            grid-row: 1 / 3;
+                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+1) {
+                            grid-column: span 2;
+                            grid-row: span 2;
                         }
 
-                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(2) {
-                            grid-column: 3 / 5;
-                            grid-row: 1 / 2;
+                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+2) {
+                            grid-column: span 2;
+                            grid-row: span 1;
                         }
 
-                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(3) {
-                            grid-column: 3 / 4;
-                            grid-row: 2 / 3;
+                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+3),
+                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n) {
+                            grid-column: span 1;
+                            grid-row: span 1;
                         }
 
-                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(4) {
-                            grid-column: 4 / 5;
-                            grid-row: 2 / 4;
+                        .portfolio-layout.quilt-narrative .artwork-card {
+                            padding: 0 !important;
+                        }
+
+                        .portfolio-layout.quilt-narrative .artwork-card,
+                        #portfolioPage .portfolio-layout.quilt-narrative .artwork-image {
+                            height: 100%;
+                            min-height: 0;
                         }
 
                         .portfolio-layout.quilt-narrative .artwork-image img {
-                            width: 100%;
-                            height: 100%;
+                            width: 100% !important;
+                            height: 100% !important;
                             object-fit: cover;
                         }
 
