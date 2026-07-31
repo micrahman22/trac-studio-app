@@ -769,6 +769,50 @@
                             min-height: 200px;
                         }
 
+                        .artwork-size-overlay {
+                            position: absolute;
+                            top: 0.5rem;
+                            right: 0.5rem;
+                            display: flex;
+                            gap: 0.25rem;
+                            opacity: 0;
+                            transform: translateY(-4px);
+                            transition: opacity 0.15s ease, transform 0.15s ease;
+                            z-index: 5;
+                        }
+
+                        .artwork-image:hover .artwork-size-overlay {
+                            opacity: 1;
+                            transform: translateY(0);
+                        }
+
+                        .artwork-size-btn {
+                            width: 28px;
+                            height: 28px;
+                            border: none;
+                            border-radius: 6px;
+                            background: rgba(0, 0, 0, 0.7);
+                            color: #fff;
+                            font-size: 0.7rem;
+                            font-weight: 600;
+                            font-family: inherit;
+                            cursor: pointer;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            backdrop-filter: blur(4px);
+                            transition: background 0.15s ease;
+                        }
+
+                        .artwork-size-btn:hover {
+                            background: rgba(0, 0, 0, 0.9);
+                        }
+
+                        .artwork-size-btn.active {
+                            background: #000;
+                            box-shadow: 0 0 0 2px #fff inset;
+                        }
+
                         .artwork-image img {
                             transition: opacity 0.3s ease;
                             opacity: 0;
@@ -3238,16 +3282,6 @@
                                                     <label for="dimensions">Dimensions</label>
                                                     <input type="text" id="dimensions" name="dimensions" placeholder="24 × 36 in">
                                                 </div>
-                                                <div class="form-group">
-                                                    <label for="cardSize">Portfolio Card Size</label>
-                                                    <select id="cardSize" name="cardSize">
-                                                        <option value="small">Small</option>
-                                                        <option value="wide">Wide</option>
-                                                        <option value="tall">Tall</option>
-                                                        <option value="large">Large</option>
-                                                    </select>
-                                                    <small style="color: #999;">Controls how much space this piece takes up in the portfolio grid.</small>
-                                                </div>
                                             </div>
 
                                             <div class="form-group">
@@ -4273,6 +4307,54 @@
                             return artworkSpansRow(artwork) ? 'height:100%;' : '';
                         }
 
+                        // Owner-only hover control for setting an artwork's bento-grid
+                        // card size directly on the portfolio, in place, instead of
+                        // through a separate settings form.
+                        const ARTWORK_GRID_SIZES = [
+                            ['small', 'S', 'Small'],
+                            ['wide', 'W', 'Wide'],
+                            ['tall', 'T', 'Tall'],
+                            ['large', 'L', 'Large'],
+                        ];
+
+                        function artworkSizeOverlayHTML(artwork, isOwner) {
+                            if (!isOwner) return '';
+                            const current = artwork.grid_size || 'small';
+                            return `
+                                <div class="artwork-size-overlay">
+                                    ${ARTWORK_GRID_SIZES.map(([value, label, title]) => `
+                                        <button type="button" class="artwork-size-btn${value === current ? ' active' : ''}"
+                                                title="${title}"
+                                                onclick="event.stopPropagation(); setArtworkGridSize('${artwork.id}', '${value}', this);">${label}</button>
+                                    `).join('')}
+                                </div>
+                            `;
+                        }
+
+                        async function setArtworkGridSize(artworkId, size, btn) {
+                            try {
+                                const overlay = btn.closest('.artwork-size-overlay');
+                                overlay.querySelectorAll('.artwork-size-btn').forEach(b => b.classList.remove('active'));
+                                btn.classList.add('active');
+
+                                const { data: { user } } = await supabaseClient.auth.getUser();
+                                if (!user) throw new Error('Not authenticated');
+
+                                const { error } = await supabaseClient
+                                    .from('artworks')
+                                    .update({ grid_size: size })
+                                    .eq('id', artworkId)
+                                    .eq('artist_id', user.id);
+
+                                if (error) throw error;
+
+                                clearPortfolioCache();
+                                loadPortfolio();
+                            } catch (error) {
+                                showToast('Could not update card size: ' + error.message, 'error');
+                            }
+                        }
+
                         // ==================== GLOBAL ERROR HANDLING ====================
                         // Last-resort safety net for errors that aren't already caught by a
                         // local try/catch (e.g. the blockchain/CoA section's unguarded await
@@ -4946,7 +5028,6 @@
                                 document.getElementById('medium').value = artwork.medium || '';
                                 document.getElementById('dimensions').value = artwork.dimensions || '';
                                 document.getElementById('description').value = artwork.description || '';
-                                document.getElementById('cardSize').value = artwork.grid_size || 'small';
 
                                 // Hide the public checkbox in edit mode
                                 if (publicLabel) {
@@ -5307,8 +5388,7 @@
                                         medium: document.getElementById('medium').value || '',
                                         dimensions: document.getElementById('dimensions').value || '',
                                         description: document.getElementById('description').value || '',
-                                        is_public: document.getElementById('isPublic').checked,
-                                        grid_size: document.getElementById('cardSize').value
+                                        is_public: document.getElementById('isPublic').checked
                                     };
 
                                     // Only update image if a new one was uploaded
@@ -5337,8 +5417,7 @@
                                         dimensions: document.getElementById('dimensions').value || '',
                                         description: document.getElementById('description').value || '',
                                         image_url: imageUrl,
-                                        is_public: document.getElementById('isPublic').checked,
-                                        grid_size: document.getElementById('cardSize').value
+                                        is_public: document.getElementById('isPublic').checked
                                     };
 
                                     const { data, error } = await supabaseClient
@@ -7218,6 +7297,7 @@
                                                          data-artwork-medium="${escapeHtml(artwork.medium) || ''}"
                                                          data-artwork-dimensions="${escapeHtml(artwork.dimensions) || ''}"
                                                          style="cursor: zoom-in; ${spansRow ? 'width:100%;height:100%;object-fit:cover;display:block;' : `width: 100%; height: auto; display: block; aspect-ratio: ${aspectRatio};`}">
+                                                    ${artworkSizeOverlayHTML(artwork, isOwner)}
                                                 </div>
                                                 <div class="artwork-info">
                                                     <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
@@ -7257,7 +7337,7 @@
                             <main class="gallery-main">
                                 <section id="works-section" class="portfolio-tab">
                                     <section class="artworks-section">
-                                        ${collections.length > 0 ? displayCollectionsInPortfolio(collections, profileData, collectionTitleLayout, stylePreset) : `
+                                        ${collections.length > 0 ? displayCollectionsInPortfolio(collections, profileData, collectionTitleLayout, stylePreset, isOwner) : `
                                             <div class="empty-state">
                                                 <div class="empty-icon">
                                                     <svg width="80" height="80" viewBox="0 0 80 80" fill="none" stroke="#ddd" stroke-width="1.5">
@@ -7836,7 +7916,7 @@
                         }
 
                         // ==================== COLLECTIONS DISPLAY ====================
-                        function displayCollectionsInPortfolio(collections, profileData, collectionLayout = 'grid', stylePreset) {
+                        function displayCollectionsInPortfolio(collections, profileData, collectionLayout = 'grid', stylePreset, isOwner = false) {
                             if (!collections || collections.length === 0) {
                                 return ''; 
                             }
@@ -7880,6 +7960,7 @@
                                                         <div class="artwork-card" style="${artworkCardSpanStyle(artwork)}">
                                                             <div class="artwork-image" style="${artworkImageWrapStyle(artwork)}">
                                                                 <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="${artworkImageFillStyle(artwork)}">
+                                                                ${artworkSizeOverlayHTML(artwork, isOwner)}
                                                             </div>
                                                             <div class="artwork-info">
                                                                 <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
@@ -7939,6 +8020,7 @@
                                                             <div class="artwork-card" style="${artworkCardSpanStyle(artwork)}">
                                                                 <div class="artwork-image" style="${artworkImageWrapStyle(artwork)}">
                                                                     <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="${artworkImageFillStyle(artwork)}">
+                                                                    ${artworkSizeOverlayHTML(artwork, isOwner)}
                                                                 </div>
                                                                 <div class="artwork-info">
                                                                     <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
@@ -7962,6 +8044,7 @@
                                                         <div class="artwork-card" style="${artworkCardSpanStyle(artwork)}">
                                                             <div class="artwork-image" style="${artworkImageWrapStyle(artwork)}">
                                                                 <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="${artworkImageFillStyle(artwork)}">
+                                                                ${artworkSizeOverlayHTML(artwork, isOwner)}
                                                             </div>
                                                             <div class="artwork-info">
                                                                 <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
