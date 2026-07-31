@@ -3498,16 +3498,6 @@
                                                     </div>
                                                 </div>
 
-                    <div class="form-section">
-                        <h3>Portfolio Styles</h3>
-                        <div class="form-group">
-                            <button type="button" onclick="showStyleBrowser()" class="btn-secondary">Browse Portfolio Styles</button>
-                            <div id="currentStyleIndicator" style="display: none; padding: 1rem; background: #f8f8f8; border-radius: 8px; border: 1px solid #e5e5e5; margin-top: 1rem;">
-                                <div style="font-size: 0.9rem; color: #666; margin-bottom: 0.25rem;">Current Style</div>
-                                <div id="currentStyleName" style="font-weight: 500;">Loading...</div>
-                            </div>
-                        </div>
-                    </div>
                     </div>
 
                     <div class="form-actions">
@@ -7322,6 +7312,14 @@
 
                             // ✅ OWNER-ONLY ELEMENTS (NO CV BUTTON)
                             const ownerOnlyElements = isOwner ? `
+                                <button class="icon-button" onclick="showStyleBrowser()" title="Browse Portfolio Styles">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                                        <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"></rect>
+                                        <rect x="9" y="1.5" width="5.5" height="5.5" rx="1"></rect>
+                                        <rect x="1.5" y="9" width="5.5" height="5.5" rx="1"></rect>
+                                        <rect x="9" y="9" width="5.5" height="5.5" rx="1"></rect>
+                                    </svg>
+                                </button>
                                 <button class="icon-button" onclick="toggleStyleEditor()" title="Customize Portfolio">
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                                         <path d="M8 2l2 4 4 1-2 4 2 4-4-1-2 4-2-4-4 1 2-4-2-4 4 1z"></path>
@@ -11146,6 +11144,14 @@
 
                                 // ✅ ONLY ADD THIS ONE LINE - AUTO-CLOSE AFTER APPLYING
                                 hideStyleBrowser();
+
+                                // Presets change layout/header/footer, not just colors and
+                                // fonts, so a full reload is needed when applied from the
+                                // portfolio page itself (see applyStyleChanges for the same pattern).
+                                if (document.getElementById('portfolio-section')?.style.display === 'block') {
+                                    clearPortfolioCache();
+                                    setTimeout(() => loadPortfolio(), 300);
+                                }
 
                             } catch (error) {
                                 console.error('Style application error:', error);
