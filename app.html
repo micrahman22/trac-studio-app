@@ -605,10 +605,6 @@
                             margin: 0;
                         }
 
-                        .portfolio-layout.archival-dossier .artwork-card:last-child {
-                            border-bottom: none;
-                        }
-
                         .portfolio-layout.archival-dossier .artwork-image {
                             max-width: 400px;
                             margin: 0 auto 1rem;
@@ -981,7 +977,7 @@
                         #portfolioPage.style-applied .artwork-details div {
                             color: var(--artwork-details-color);
                             font-size: var(--artwork-size);
-                            font-family: var(--body-font-family);
+                            font-family: var(--artwork-font-family, var(--body-font-family));
                         }
 
                         #portfolioPage .artwork-card {
@@ -7338,7 +7334,7 @@
                                 case 'floating':
                                     return `
                                         <header class="portfolio-header" style="position: fixed; top: 2rem; left: 50%; transform: translateX(-50%); background: var(--bg-color, rgba(255,255,255,0.9)); backdrop-filter: blur(10px); border: 1px solid var(--border-color, #e5e5e5); border-radius: 12px; padding: 1rem 2rem; z-index: 1000; width: auto;">
-                                            <div class="header-container" style="max-width: none;">
+                                            <div class="header-container" style="max-width: none; gap: 3rem;">
                                                 <div class="header-left">
                                                     <div class="artist-name">${artistName}</div>
                                                     ${dashboardButton}
@@ -7988,6 +7984,9 @@
                                         <footer style="padding: 1.25rem 0; border-top: 1px solid var(--border-color, #e5e5e5); background: var(--bg-color, white);">
                                             <div style="max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
                                                 ${socialIcons}
+                                                <div id="footerContactDisplay" style="text-align: center; font-size: var(--footer-font-size, 14px); font-family: var(--footer-font-family, 'Space Grotesk'); ${contactHTML ? '' : 'display: none;'}">
+                                                    ${contactHTML}
+                                                </div>
                                                 <div style="color: var(--footer-text-color, #666); font-size: var(--footer-font-size, 14px); font-family: var(--footer-font-family, 'Space Grotesk');">
                                                     Powered by TRAC
                                                 </div>
@@ -8014,6 +8013,9 @@
                                     return `
                                         <footer style="padding: 2rem 0; border-top: 1px solid var(--border-color, #e5e5e5); background: var(--bg-color, white);">
                                             <div style="max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
+                                                <div id="footerContactDisplay" style="text-align: center; font-size: var(--footer-font-size, 14px); font-family: var(--footer-font-family, 'Space Grotesk'); margin-bottom: ${contactHTML ? '0.75rem' : '0'}; ${contactHTML ? '' : 'display: none;'}">
+                                                    ${contactHTML}
+                                                </div>
                                                 <div style="text-align: center; color: var(--footer-text-color, #666); font-size: var(--footer-font-size, 14px); font-family: var(--footer-font-family, 'Space Grotesk');">
                                                     Powered by TRAC
                                                 </div>
@@ -11329,6 +11331,22 @@
                                                 </select>
                                             </div>
                                             <div class="font-control-group">
+                                                <label>Artwork Metadata Font</label>
+                                                <select id="artworkFont" class="font-select">
+                                                    <option value="Space Grotesk">Space Grotesk</option>
+                                                    <option value="Inter">Inter</option>
+                                                    <option value="Helvetica Neue">Helvetica Neue</option>
+                                                    <option value="Georgia">Georgia</option>
+                                                    <option value="Arial">Arial</option>
+                                                    <option value="Courier New">Courier New</option>
+                                                    <option value="Baskerville">Baskerville</option>
+                                                    <option value="Palatino">Palatino</option>
+                                                    <option value="Comic Sans MS">Comic Sans</option>
+                                                    <option value="Papyrus">Papyrus</option>
+                                                    <option value="OCR A Std">OCR A</option>
+                                                </select>
+                                            </div>
+                                            <div class="font-control-group">
                                                 <label>Font Sizes</label>
                                                 <div class="font-size-controls">
                                                     <div class="size-control">
@@ -11339,6 +11357,11 @@
                                                     <div class="size-control">
                                                         <label>Body Size</label>
                                                         <input type="range" id="bodySize" min="12" max="24" value="16" class="font-size-slider">
+                                                        <span class="size-value">16px</span>
+                                                    </div>
+                                                    <div class="size-control">
+                                                        <label>Artwork Metadata Size</label>
+                                                        <input type="range" id="artworkSize" min="10" max="24" value="16" class="font-size-slider">
                                                         <span class="size-value">16px</span>
                                                     </div>
                                                 </div>
@@ -11507,7 +11530,9 @@
                                         header: document.getElementById('headerFont').value,
                                         body: document.getElementById('bodyFont').value,
                                         header_size: document.getElementById('headerSize').value + 'px',
-                                        body_size: document.getElementById('bodySize').value + 'px'
+                                        body_size: document.getElementById('bodySize').value + 'px',
+                                        artwork: document.getElementById('artworkFont').value,
+                                        artwork_size: document.getElementById('artworkSize').value + 'px'
                                     }
                                 };
 
@@ -11541,8 +11566,9 @@
                                     portfolioPage.style.setProperty('--header-font-size', styleData.custom_fonts.header_size);
                                     portfolioPage.style.setProperty('--titles-size', styleData.custom_fonts.body_size);
                                     portfolioPage.style.setProperty('--desc-size', styleData.custom_fonts.body_size);
-                                    portfolioPage.style.setProperty('--artwork-size', styleData.custom_fonts.body_size);
                                     portfolioPage.style.setProperty('--footer-font-size', styleData.custom_fonts.body_size);
+                                    portfolioPage.style.setProperty('--artwork-font-family', styleData.custom_fonts.artwork);
+                                    portfolioPage.style.setProperty('--artwork-size', styleData.custom_fonts.artwork_size);
 
                                     // ✅ UPDATE LAYOUTS
                                     const currentProfile = await getCurrentProfileData();
@@ -11718,8 +11744,11 @@
                                 portfolioPage.style.setProperty('--header-font-size', profileData.custom_fonts.header_size);
                                 portfolioPage.style.setProperty('--titles-size', profileData.custom_fonts.body_size);
                                 portfolioPage.style.setProperty('--desc-size', profileData.custom_fonts.body_size);
-                                portfolioPage.style.setProperty('--artwork-size', profileData.custom_fonts.body_size);
                                 portfolioPage.style.setProperty('--footer-font-size', profileData.custom_fonts.body_size);
+                                // Falls back to the body font/size for profiles saved before
+                                // artwork metadata got its own controls.
+                                portfolioPage.style.setProperty('--artwork-font-family', profileData.custom_fonts.artwork || profileData.custom_fonts.body);
+                                portfolioPage.style.setProperty('--artwork-size', profileData.custom_fonts.artwork_size || profileData.custom_fonts.body_size);
                             }
 
                             // Apply layouts
@@ -11745,14 +11774,19 @@
                                     portfolioPage.style.setProperty('--body-font-family', value);
                                     portfolioPage.style.setProperty('--footer-font-family', value);
                                     break;
+                                case 'artworkFont':
+                                    portfolioPage.style.setProperty('--artwork-font-family', value);
+                                    break;
                                 case 'headerSize':
                                     portfolioPage.style.setProperty('--header-font-size', value);
                                     break;
                                 case 'bodySize':
                                     portfolioPage.style.setProperty('--titles-size', value);
                                     portfolioPage.style.setProperty('--desc-size', value);
-                                    portfolioPage.style.setProperty('--artwork-size', value);
                                     portfolioPage.style.setProperty('--footer-font-size', value);
+                                    break;
+                                case 'artworkSize':
+                                    portfolioPage.style.setProperty('--artwork-size', value);
                                     break;
                             }
                         }
@@ -11838,6 +11872,10 @@
                                     setFont('bodyFont', profile.custom_fonts.body || 'Space Grotesk');
                                     set('headerSize', parseInt(profile.custom_fonts.header_size) || 24);
                                     set('bodySize', parseInt(profile.custom_fonts.body_size) || 16);
+                                    // Falls back to the body font/size for profiles saved before
+                                    // artwork metadata got its own controls.
+                                    setFont('artworkFont', profile.custom_fonts.artwork || profile.custom_fonts.body || 'Space Grotesk');
+                                    set('artworkSize', parseInt(profile.custom_fonts.artwork_size || profile.custom_fonts.body_size) || 16);
                                 }
 
                                 console.log('🎨 Editor loaded with correct IDs');
