@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TRAC | The Operating System for Artists</title>
+<title>TRAC | Ownership, On Record</title>
 <meta name="description" content="TRAC is where artists build a portfolio, organize their studio, and manage their creative practice, all in one place.">
 
 <!--
@@ -24,11 +24,55 @@
   ============================================================================
 -->
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" href="/fonts/space-grotesk-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/space-grotesk-500.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/space-grotesk-600.woff2" as="font" type="font/woff2" crossorigin>
 
 <style>
+  @font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url('/fonts/space-grotesk-300.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('/fonts/space-grotesk-400.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url('/fonts/space-grotesk-500.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('/fonts/space-grotesk-600.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Space Grotesk';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('/fonts/space-grotesk-700.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Space Grotesk Fallback';
+    src: local('Arial');
+    size-adjust: 120.977%;
+    ascent-override: 81.3378%;
+    descent-override: 24.1368%;
+    line-gap-override: 0%;
+  }
+
   :root {
     --ink: #141412;
     --ink-soft: #524f48;
@@ -48,7 +92,7 @@
     margin: 0;
     background: var(--bg-white);
     color: var(--ink);
-    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Space Grotesk', 'Space Grotesk Fallback', -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 16px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
@@ -432,7 +476,7 @@
 
   <div class="hero-overlay">
     <div class="wrap">
-      <h1>The Operating System for Artists.</h1>
+      <h1>Ownership, On Record.</h1>
       <p class="sub">Build your archive. Manage your studio. Track your shows and collections. Own your practice.</p>
       <!--
         Same routing note as Sign In above: no dedicated /signup URL exists

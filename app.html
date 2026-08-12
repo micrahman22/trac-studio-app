@@ -8,12 +8,56 @@
                     <meta http-equiv="Expires" content="0">
                     <title>TRAC - Artist Portal</title>
                     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23000'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial,sans-serif' font-weight='700' font-size='18' fill='%23fff'>T</text></svg>">
-                    <link rel="preconnect" href="https://fonts.googleapis.com">
-                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-                    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+                    <link rel="preload" href="/fonts/space-grotesk-400.woff2" as="font" type="font/woff2" crossorigin>
+                    <link rel="preload" href="/fonts/space-grotesk-500.woff2" as="font" type="font/woff2" crossorigin>
+                    <link rel="preload" href="/fonts/space-grotesk-600.woff2" as="font" type="font/woff2" crossorigin>
                     <style>
+                        @font-face {
+                            font-family: 'Space Grotesk';
+                            font-style: normal;
+                            font-weight: 300;
+                            font-display: swap;
+                            src: url('/fonts/space-grotesk-300.woff2') format('woff2');
+                        }
+                        @font-face {
+                            font-family: 'Space Grotesk';
+                            font-style: normal;
+                            font-weight: 400;
+                            font-display: swap;
+                            src: url('/fonts/space-grotesk-400.woff2') format('woff2');
+                        }
+                        @font-face {
+                            font-family: 'Space Grotesk';
+                            font-style: normal;
+                            font-weight: 500;
+                            font-display: swap;
+                            src: url('/fonts/space-grotesk-500.woff2') format('woff2');
+                        }
+                        @font-face {
+                            font-family: 'Space Grotesk';
+                            font-style: normal;
+                            font-weight: 600;
+                            font-display: swap;
+                            src: url('/fonts/space-grotesk-600.woff2') format('woff2');
+                        }
+                        @font-face {
+                            font-family: 'Space Grotesk';
+                            font-style: normal;
+                            font-weight: 700;
+                            font-display: swap;
+                            src: url('/fonts/space-grotesk-700.woff2') format('woff2');
+                        }
+                        @font-face {
+                            font-family: 'Space Grotesk Fallback';
+                            src: local('Arial');
+                            size-adjust: 120.977%;
+                            ascent-override: 81.3378%;
+                            descent-override: 24.1368%;
+                            line-gap-override: 0%;
+                        }
+
                         /* BASIC RESET */
-                        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Space Grotesk', sans-serif; }
+                        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Space Grotesk', 'Space Grotesk Fallback', sans-serif; }
                         body { 
                             background: #ffffff; 
                             color: #000000; 
