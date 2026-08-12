@@ -16,35 +16,35 @@
                             font-family: 'Space Grotesk';
                             font-style: normal;
                             font-weight: 300;
-                            font-display: optional;
+                            font-display: swap;
                             src: url('/fonts/space-grotesk-300.woff2') format('woff2');
                         }
                         @font-face {
                             font-family: 'Space Grotesk';
                             font-style: normal;
                             font-weight: 400;
-                            font-display: optional;
+                            font-display: swap;
                             src: url('/fonts/space-grotesk-400.woff2') format('woff2');
                         }
                         @font-face {
                             font-family: 'Space Grotesk';
                             font-style: normal;
                             font-weight: 500;
-                            font-display: optional;
+                            font-display: swap;
                             src: url('/fonts/space-grotesk-500.woff2') format('woff2');
                         }
                         @font-face {
                             font-family: 'Space Grotesk';
                             font-style: normal;
                             font-weight: 600;
-                            font-display: optional;
+                            font-display: swap;
                             src: url('/fonts/space-grotesk-600.woff2') format('woff2');
                         }
                         @font-face {
                             font-family: 'Space Grotesk';
                             font-style: normal;
                             font-weight: 700;
-                            font-display: optional;
+                            font-display: swap;
                             src: url('/fonts/space-grotesk-700.woff2') format('woff2');
                         }
                         @font-face {
@@ -3061,6 +3061,16 @@
                             margin-top: 2rem !important;
                           }
 
+                            /* Stack profile photo and bio vertically on mobile */
+                            #portfolioPage .portfolio-tab .hero-container > div {
+                                flex-direction: column !important;
+                            }
+
+                            /* Let profile photo fill the stacked column on mobile */
+                            #portfolioPage .portfolio-tab .hero-container > div > img {
+                                max-width: 100% !important;
+                            }
+
                             /* Center profile photo */
                             #portfolioPage .portfolio-tab .hero-container > div > div:first-child img {
                                 margin: 0 auto !important;
@@ -3085,16 +3095,6 @@
                                 background: none !important;
                             }
 
-                            @media (max-width: 768px) {
-                              /* Task 1: Center profile photo & spacing */
-                              #portfolioPage .portfolio-tab .hero-container > div > div:first-child img {
-                                  margin: 0 auto !important;
-                                  display: block !important;
-                              }
-                              #portfolioPage .portfolio-tab .hero-container > div > div:first-child + div {
-                                  margin-top: 1.5rem !important;
-                              }
-
                               /* Task 2: Swap Works/Events buttons */
                               #portfolioPage .portfolio-nav {
                                   display: grid !important;
@@ -3106,6 +3106,7 @@
                               #portfolioPage .portfolio-nav .nav-item:first-child {
                                   grid-column: 1 / span 2 !important;
                                   margin-top: 0.5rem !important;
+                                  justify-content: center !important;
                               }
 
                               /* Remove artwork image borders */
@@ -3133,7 +3134,6 @@
                                   0% { transform: rotate(0deg); }
                                   100% { transform: rotate(360deg); }
                                 }
-                            }
                         }
 
                     </style>
@@ -3201,6 +3201,36 @@
                                 </div>
                             </section>
 
+                            <!-- Artworks Grid Section -->
+                            <section class="artworks-section">
+                                <div class="section-header">
+                                    <h3 class="section-title">Your Uploaded Works</h3>
+                                    <div style="display: flex; gap: 1rem; align-items: center;">
+                                        <button class="add-artwork-btn" onclick="showUploadForm()">+ Add Artwork</button>
+                                        <button class="add-artwork-btn" onclick="showArchivedPopup()" style="background: #ddd; border: none; color: black;">
+                                            View Archived Works
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Artworks Grid -->
+                                <div id="artworksGrid" class="artworks-grid">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">
+                                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" stroke="#ddd" stroke-width="1.5">
+                                                <rect x="10" y="10" width="60" height="60" rx="4" fill="none"/>
+                                                <line x1="25" y1="25" x2="55" y2="55" stroke="#ddd" stroke-width="1"/>
+                                                <line x1="55" y1="25" x2="25" y2="55" stroke="#ddd" stroke-width="1"/>
+                                                <circle cx="40" cy="40" r="8" fill="none"/>
+                                            </svg>
+                                        </div>
+                                        <h4>No artworks yet</h4>
+                                        <p>Add your first artwork to start building your archive</p>
+                                        <button class="cta-button" onclick="showUploadForm()">Upload Your First Piece</button>
+                                    </div>
+                                </div>
+                            </section>
+
                             <!-- 1×3 ROW: WIP | ACTIVITY | CV REQUESTS -->
                             <section class="dashboard-grid-section" style="padding: 3rem 0; border-top: 1px solid #e5e5e5;">
                                 <div class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
@@ -3221,7 +3251,7 @@
                                                 <span id="wipCount">0</span> works in progress
                                             </div>
                                         </div>
-                                    </div>  
+                                    </div>
 
                                     <!-- ROW 1: ACTIVITY HISTORY -->
                                     <div class="dashboard-card" onclick="showActivityHistory()">
@@ -3260,36 +3290,6 @@
 
                                         </div>
                                     </section>
-
-                            <!-- Artworks Grid Section -->
-                            <section class="artworks-section">
-                                <div class="section-header">
-                                    <h3 class="section-title">Your Uploaded Works</h3>
-                                    <div style="display: flex; gap: 1rem; align-items: center;">
-                                        <button class="add-artwork-btn" onclick="showUploadForm()">+ Add Artwork</button>
-                                        <button class="add-artwork-btn" onclick="showArchivedPopup()" style="background: #ddd; border: none; color: black;">
-                                            View Archived Works
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Artworks Grid -->
-                                <div id="artworksGrid" class="artworks-grid">
-                                    <div class="empty-state">
-                                        <div class="empty-icon">
-                                            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" stroke="#ddd" stroke-width="1.5">
-                                                <rect x="10" y="10" width="60" height="60" rx="4" fill="none"/>
-                                                <line x1="25" y1="25" x2="55" y2="55" stroke="#ddd" stroke-width="1"/>
-                                                <line x1="55" y1="25" x2="25" y2="55" stroke="#ddd" stroke-width="1"/>
-                                                <circle cx="40" cy="40" r="8" fill="none"/>
-                                            </svg>
-                                        </div>
-                                        <h4>No artworks yet</h4>
-                                        <p>Add your first artwork to start building your archive</p>
-                                        <button class="cta-button" onclick="showUploadForm()">Upload Your First Piece</button>
-                                    </div>
-                                </div>
-                            </section>
 
                             <!-- Upload Form -->
                             <div id="uploadForm" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 10000;">
