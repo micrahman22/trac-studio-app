@@ -2771,6 +2771,20 @@
 
                         /* ==================== MOBILE PROFILE SETTINGS FIX ==================== */
                         @media (max-width: 768px) {
+                          .profile-header {
+                            flex-direction: column !important;
+                            align-items: center !important;
+                            text-align: center !important;
+                            padding: 1.25rem !important;
+                          }
+
+                          .link-chip {
+                            max-width: 100% !important;
+                            overflow: hidden !important;
+                            text-overflow: ellipsis !important;
+                            white-space: nowrap !important;
+                          }
+
                           #settings-section .upload-form-container {
                             padding: 0 1rem !important;
                             width: 100% !important;
