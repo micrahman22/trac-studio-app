@@ -361,6 +361,16 @@
                         .collection-card .links button { background: none; border: none; padding: 0; font-family: inherit; font-size: 0.78rem; color: #666; text-decoration: underline; cursor: pointer; }
                         .collection-card .links button.danger { color: #c0392b; }
 
+                        /* Profile header (avatar + name + handle + portfolio link) */
+                        .profile-header { display: flex; gap: 1.5rem; align-items: center; max-width: 900px; margin: 2rem auto 0; padding: 1.75rem 2rem; background: white; border: 1px solid #e5e5e5; border-radius: 12px; }
+                        .avatar { display: block; position: relative; width: 84px; height: 84px; border-radius: 50%; background: #eee; border: 1px solid #e5e5e5; flex-shrink: 0; cursor: pointer; overflow: hidden; transition: opacity 0.15s ease; }
+                        .avatar:hover { opacity: 0.85; }
+                        .avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+                        .avatar img:not([src]) { display: none; }
+                        .profile-header h1 { margin: 0 0 0.2rem; font-size: 1.3rem; font-weight: 500; }
+                        .profile-header .handle { margin: 0 0 0.6rem; color: #666; font-size: 0.85rem; }
+                        .link-chip { display: inline-flex; align-items: center; font-size: 0.8rem; color: #666; background: #f5f5f5; padding: 0.35rem 0.7rem; border-radius: 8px; text-decoration: none; }
+
                         /* PORTFOLIO STYLES */
                         .portfolio-header { 
                             background: var(--bg-color, white);
@@ -3473,6 +3483,18 @@
                                 </div>
                             </section>
 
+                            <div class="profile-header">
+                                <label for="profilePhoto" class="avatar" title="Change profile photo">
+                                    <img id="settingsAvatarImg" alt="">
+                                    <input type="file" id="profilePhoto" name="profilePhoto" accept="image/*" style="display: none;">
+                                </label>
+                                <div>
+                                    <h1 id="settingsAvatarName"></h1>
+                                    <p class="handle" id="settingsAvatarHandle"></p>
+                                    <a id="settingsAvatarLink" class="link-chip" href="#" target="_blank"></a>
+                                </div>
+                            </div>
+
                             <section class="artworks-section">
                                 <div class="upload-form-container">
                                     <div class="upload-form">
@@ -3502,15 +3524,9 @@
                                                         </div>
                                                     </div>
 
-                                                    <div class="form-group">
+                                                    <div class="form-group" style="margin-bottom: 0;">
                                                         <label for="profileFullName">Full Name *</label>
                                                         <input type="text" id="profileFullName" name="fullName" required>
-                                                    </div>
-
-                                                    <div class="form-group" style="margin-bottom: 0;">
-                                                        <label for="profilePhoto">Profile Photo</label>
-                                                        <input type="file" id="profilePhoto" name="profilePhoto" accept="image/*">
-                                                        <div id="profilePhotoPreview" style="margin-top: 0.5rem;"></div>
                                                     </div>
                                                 </div>
 
@@ -6504,6 +6520,10 @@
                                     const fallbackPortfolioUrl = `${window.location.origin}/${user.email.split('@')[0]}`;
                                     document.getElementById('portfolioLink').href = fallbackPortfolioUrl;
                                     document.getElementById('portfolioLink').textContent = fallbackPortfolioUrl;
+                                    document.getElementById('settingsAvatarName').textContent = user.user_metadata?.full_name || '';
+                                    document.getElementById('settingsAvatarHandle').textContent = '@' + user.email.split('@')[0];
+                                    document.getElementById('settingsAvatarLink').textContent = fallbackPortfolioUrl;
+                                    document.getElementById('settingsAvatarLink').href = fallbackPortfolioUrl;
 
                                     // Initialize CV status
                                     updateCVStatusDisplay(false);
@@ -6524,11 +6544,13 @@
                                 const portfolioUrl = `${window.location.origin}/${profile.username || user.email.split('@')[0]}`;
                                 document.getElementById('portfolioLink').href = portfolioUrl;
                                 document.getElementById('portfolioLink').textContent = portfolioUrl;
+                                document.getElementById('settingsAvatarName').textContent = profile.full_name || user.user_metadata?.full_name || '';
+                                document.getElementById('settingsAvatarHandle').textContent = '@' + (profile.username || user.email.split('@')[0]);
+                                document.getElementById('settingsAvatarLink').textContent = portfolioUrl;
+                                document.getElementById('settingsAvatarLink').href = portfolioUrl;
 
                                 if (profile.profile_photo_url) {
-                                    document.getElementById('profilePhotoPreview').innerHTML = `
-                                        <img src="${escapeHtml(profile.profile_photo_url)}" alt="Current Profile Photo" style="max-width: 200px; border-radius: 8px;">
-                                    `;
+                                    document.getElementById('settingsAvatarImg').src = profile.profile_photo_url;
                                 }
 
                                 // Update CV status display
@@ -6557,6 +6579,10 @@
                                     const fallbackPortfolioUrl2 = `${window.location.origin}/${user.email.split('@')[0]}`;
                                     document.getElementById('portfolioLink').href = fallbackPortfolioUrl2;
                                     document.getElementById('portfolioLink').textContent = fallbackPortfolioUrl2;
+                                    document.getElementById('settingsAvatarName').textContent = user.user_metadata?.full_name || '';
+                                    document.getElementById('settingsAvatarHandle').textContent = '@' + user.email.split('@')[0];
+                                    document.getElementById('settingsAvatarLink').textContent = fallbackPortfolioUrl2;
+                                    document.getElementById('settingsAvatarLink').href = fallbackPortfolioUrl2;
                                     updateCVStatusDisplay(false);
                                     loadSocialPlatforms('');
                                 }
@@ -12599,10 +12625,7 @@
                                                                             if (updateError) throw updateError;
 
                                                                             // Show preview
-                                                                            document.getElementById('profilePhotoPreview').innerHTML = `
-                                                                                <img src="${publicUrl}" alt="Profile Photo" style="max-width: 200px; border-radius: 8px;">
-                                                                                <div style="margin-top: 0.5rem; color: green;">✓ Profile photo updated</div>
-                                                                            `;
+                                                                            document.getElementById('settingsAvatarImg').src = publicUrl;
 
                                                                             showToast('Profile photo updated!');
 
