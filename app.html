@@ -2821,19 +2821,6 @@
                             text-overflow: ellipsis !important;
                           }
 
-                          #portfolioLink {
-                            text-align: center !important;
-                            display: block !important;
-                            word-break: break-all !important;
-                            word-wrap: break-word !important;
-                            max-width: 90vw !important;
-                            margin: 0 auto 1rem auto !important;
-                            padding: 0.875rem !important;
-                            overflow: hidden !important;
-                            text-overflow: ellipsis !important;
-                            box-sizing: border-box !important;
-                          }
-
                           /* Bio Textarea */
                           #bio {
                             min-height: 150px !important;
@@ -3509,24 +3496,16 @@
                                                             <p>How your name, photo, and link appear across TRAC</p>
                                                         </div>
                                                     </div>
-                                                    <div class="form-grid">
-                                                        <div class="form-group">
+                                                    <div class="form-grid" style="margin-bottom: 0;">
+                                                        <div class="form-group" style="margin-bottom: 0;">
                                                             <label for="username">Username *</label>
                                                             <input type="text" id="username" name="username" required>
                                                             <small style="color: #666; font-size: 0.8rem;">This will be your portfolio URL: tracstudio.app/username</small>
                                                         </div>
-                                                        <div class="form-group">
-                                                            <label>Your Portfolio Link</label>
-                                                            <a id="portfolioLink" href="#" target="_blank" style="display: block; background: #f5f5f5; padding: 0.875rem; border-radius: 8px; text-decoration: none; color: #000; margin-bottom: 0.5rem;">
-                                                                tracstudio.app/username
-                                                            </a>
-                                                            <button type="button" onclick="copyPortfolioLink()" class="btn-secondary" style="width: 100%;">Copy</button>
+                                                        <div class="form-group" style="margin-bottom: 0;">
+                                                            <label for="profileFullName">Full Name *</label>
+                                                            <input type="text" id="profileFullName" name="fullName" required>
                                                         </div>
-                                                    </div>
-
-                                                    <div class="form-group" style="margin-bottom: 0;">
-                                                        <label for="profileFullName">Full Name *</label>
-                                                        <input type="text" id="profileFullName" name="fullName" required>
                                                     </div>
                                                 </div>
 
@@ -6518,8 +6497,6 @@
                                     document.getElementById('website').value = '';
                                     document.getElementById('contactEmail').value = user.email;
                                     const fallbackPortfolioUrl = `${window.location.origin}/${user.email.split('@')[0]}`;
-                                    document.getElementById('portfolioLink').href = fallbackPortfolioUrl;
-                                    document.getElementById('portfolioLink').textContent = fallbackPortfolioUrl;
                                     document.getElementById('settingsAvatarName').textContent = user.user_metadata?.full_name || '';
                                     document.getElementById('settingsAvatarHandle').textContent = '@' + user.email.split('@')[0];
                                     document.getElementById('settingsAvatarLink').textContent = fallbackPortfolioUrl;
@@ -6542,8 +6519,6 @@
                                 document.getElementById('website').value = profile.website || '';
                                 document.getElementById('contactEmail').value = profile.contact_email || user.email;
                                 const portfolioUrl = `${window.location.origin}/${profile.username || user.email.split('@')[0]}`;
-                                document.getElementById('portfolioLink').href = portfolioUrl;
-                                document.getElementById('portfolioLink').textContent = portfolioUrl;
                                 document.getElementById('settingsAvatarName').textContent = profile.full_name || user.user_metadata?.full_name || '';
                                 document.getElementById('settingsAvatarHandle').textContent = '@' + (profile.username || user.email.split('@')[0]);
                                 document.getElementById('settingsAvatarLink').textContent = portfolioUrl;
@@ -6577,8 +6552,6 @@
                                     document.getElementById('profileFullName').value = user.user_metadata?.full_name || '';
                                     document.getElementById('contactEmail').value = user.email;
                                     const fallbackPortfolioUrl2 = `${window.location.origin}/${user.email.split('@')[0]}`;
-                                    document.getElementById('portfolioLink').href = fallbackPortfolioUrl2;
-                                    document.getElementById('portfolioLink').textContent = fallbackPortfolioUrl2;
                                     document.getElementById('settingsAvatarName').textContent = user.user_metadata?.full_name || '';
                                     document.getElementById('settingsAvatarHandle').textContent = '@' + user.email.split('@')[0];
                                     document.getElementById('settingsAvatarLink').textContent = fallbackPortfolioUrl2;
@@ -6645,41 +6618,6 @@
                                     </div>
                                 </div>
                             `).join('');
-                        }
-
-                        async function copyPortfolioLink() {
-
-                            const { data: { user } } = await supabaseClient.auth.getUser();
-                            if (!user) {
-                                showToast('You must be logged in', 'error');
-                                return;
-                            }
-
-                            const { data: profile } = await supabaseClient
-                                .from('profiles')
-                                .select('username')
-                                .eq('id', user.id)
-                                .single();
-
-                            const username = profile?.username;
-                            if (!username) {
-                                showToast('Please set a username in profile settings first', 'error');
-                                return;
-                            }
-
-                            const portfolioUrl = `${window.location.origin}/${username}`;
-
-                            navigator.clipboard.writeText(portfolioUrl).then(() => {
-                                showToast('Portfolio link copied to clipboard!');
-                            }).catch(err => {
-                                const tempInput = document.createElement('input');
-                                tempInput.value = portfolioUrl;
-                                document.body.appendChild(tempInput);
-                                tempInput.select();
-                                document.execCommand('copy');
-                                document.body.removeChild(tempInput);
-                                showToast('Portfolio link copied to clipboard!');
-                            });
                         }
 
                         // Basic collection management functions
