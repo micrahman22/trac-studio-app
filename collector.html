@@ -510,7 +510,7 @@
                     </div>
                     <div class="c-coa-actions">
                         <button onclick="openCertView('${coa.id}')" style="background:white;border:1px solid #d1d1d1;color:#000;" onmouseenter="this.style.borderColor='#000'" onmouseleave="this.style.borderColor='#d1d1d1'">View CoA</button>
-                        <button data-coa-id="${coa.id}" data-artwork-title="${escapeHtml(artwork.title || '')}" onclick="openTransferModal(this.dataset.coaId, this.dataset.artworkTitle)" style="background:#000;border:1px solid #000;color:white;" onmouseenter="this.style.opacity='0.85'" onmouseleave="this.style.opacity='1'">Report Sale</button>
+                        <button data-coa-id="${coa.id}" data-artwork-title="${escapeHtml(artwork.title || '')}" onclick="openDisputeModal(this.dataset.coaId, this.dataset.artworkTitle)" style="background:white;border:1px solid #d1d1d1;color:#b91c1c;" onmouseenter="this.style.borderColor='#b91c1c'" onmouseleave="this.style.borderColor='#d1d1d1'">Report an Issue</button>
                     </div>
                 </div>
             </div>`;
@@ -609,109 +609,68 @@
         document.body.appendChild(modal);
     }
 
-    // ==================== TRANSFER / REPORT SALE ====================
-    function openTransferModal(coaId, artworkTitle) {
+    // Reporting a sale/transfer is now artist-attested only (see CLAUDE.md's
+    // Product Architecture Ground Truth) — the collector-initiated "Report a
+    // Sale" flow that used to live here has moved to app.html's "Report
+    // Transfer" action, which the artist uses after verifying a sale themselves.
+
+    // ==================== REPORT AN ISSUE ====================
+    // Collector dashboard stays view-only for ownership — this creates a review
+    // record only, no automatic reversal or correction. The burn-and-reissue
+    // correction workflow is separate, not-yet-built functionality.
+    function openDisputeModal(coaId, artworkTitle) {
         const modal = document.createElement('div');
         modal.className = 'c-modal-overlay';
         modal.innerHTML = `
         <div class="c-modal">
             <div class="c-modal-header">
                 <div>
-                    <h3>Report a Sale</h3>
+                    <h3>Report an Issue</h3>
                     <p style="font-size:0.8rem;color:#666;margin-top:0.2rem;">${escapeHtml(artworkTitle)}</p>
                 </div>
                 <button class="c-modal-close" onclick="this.closest('.c-modal-overlay').remove()">×</button>
             </div>
 
-            <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:0.875rem;margin-bottom:1.5rem;font-size:0.8rem;color:#92400e;line-height:1.5;">
-                By reporting this sale, the CoA will be transferred to the new owner, and the artist will be notified to collect their resale royalty.
+            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:0.875rem;margin-bottom:1.5rem;font-size:0.8rem;color:#991b1b;line-height:1.5;">
+                This flags the record for TRAC to review — it doesn't change or correct anything automatically.
             </div>
 
             <div class="c-form-group">
-                <label>New Owner's Full Name</label>
-                <input type="text" id="t-buyer-name" placeholder="Full name">
-            </div>
-            <div class="c-form-group">
-                <label>New Owner's Email</label>
-                <input type="email" id="t-buyer-email" placeholder="their@email.com">
-            </div>
-            <div class="c-form-group">
-                <label>Sale Price</label>
-                <input type="number" id="t-sale-price" placeholder="e.g. 2500">
-            </div>
-            <div class="c-form-group">
-                <label>Notes (optional)</label>
-                <textarea id="t-notes" rows="2" placeholder="Sold at auction, gallery name, etc." style="width:100%;padding:0.75rem;border:1px solid #d1d1d1;border-radius:8px;font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+                <label>What's wrong? (optional)</label>
+                <textarea id="d-note" rows="3" placeholder="Describe the issue..." style="width:100%;padding:0.75rem;border:1px solid #d1d1d1;border-radius:8px;font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
             </div>
 
             <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
                 <button onclick="this.closest('.c-modal-overlay').remove()" style="flex:1;padding:0.875rem;border:1px solid #d1d1d1;border-radius:8px;background:white;font-size:0.9rem;cursor:pointer;font-family:inherit;">Cancel</button>
-                <button id="t-submit-btn" onclick="executeTransfer('${coaId}')" style="flex:2;padding:0.875rem;background:#000;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit;font-weight:500;">Confirm Transfer</button>
+                <button id="d-submit-btn" data-coa-id="${coaId}" onclick="submitDispute(this.dataset.coaId)" style="flex:2;padding:0.875rem;background:#b91c1c;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit;font-weight:500;">Submit Report</button>
             </div>
         </div>`;
         modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
         document.body.appendChild(modal);
     }
 
-    async function executeTransfer(coaId) {
-        const newName = document.getElementById('t-buyer-name').value.trim();
-        const newEmail = document.getElementById('t-buyer-email').value.trim();
-        const salePrice = document.getElementById('t-sale-price').value.trim();
-        const notes = document.getElementById('t-notes').value.trim();
-        const btn = document.getElementById('t-submit-btn');
-
-        if (!newName || !newEmail) { showCToast('Please enter the new owner\'s name and email.', 'error'); return; }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) { showCToast('Please enter a valid email.', 'error'); return; }
-
-        btn.disabled = true; btn.textContent = 'Processing…';
+    async function submitDispute(coaId) {
+        const note = document.getElementById('d-note').value.trim();
+        const btn = document.getElementById('d-submit-btn');
+        btn.disabled = true; btn.textContent = 'Submitting…';
 
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) throw new Error('Not authenticated');
 
-            const { data: coa } = await supabaseClient.from('blockchain_coas').select('artist_id, royalty_pct').eq('id', coaId).single();
-            if (!coa) throw new Error('Certificate not found');
-
-            // Add new ownership record
-            await supabaseClient.from('coa_ownership_history').insert({
+            const { error } = await supabaseClient.from('coa_disputes').insert({
+                collector_id: user.id,
                 coa_id: coaId,
-                artist_id: coa.artist_id,
-                owner_name: newName,
-                owner_email: newEmail.toLowerCase(),
-                sale_price: salePrice ? parseFloat(salePrice) : null,
-                notes: notes,
-                transfer_date: new Date().toISOString(),
-                is_original_purchase: false
+                note: note || null
             });
+            if (error) throw error;
 
-            // Create royalty notification for artist
-            await supabaseClient.from('royalty_notifications').insert({
-                artist_id: coa.artist_id,
-                coa_id: coaId,
-                sale_price: salePrice ? parseFloat(salePrice) : null,
-                new_owner_name: newName,
-                new_owner_email: newEmail.toLowerCase(),
-                seller_name: user.user_metadata?.full_name || user.email,
-                status: 'pending'
-            });
-
-            // Upsert collector account for new buyer
-            await supabaseClient.from('collector_accounts').upsert({
-                email: newEmail.toLowerCase(),
-                display_name: newName,
-                invited_at: new Date().toISOString(),
-                invite_status: 'pending'
-            }, { onConflict: 'email', ignoreDuplicates: false });
-
-            // Close modal and refresh
             document.querySelector('.c-modal-overlay')?.remove();
-            showCToast('Transfer complete. The artist has been notified.');
-            await loadCollectorCoas(user.email);
-
+            showCToast('Reported. TRAC will review this record.');
         } catch (err) {
-            console.error('Transfer error:', err);
+            console.error('Dispute error:', err);
             showCToast('Error: ' + (err.message || 'Something went wrong'), 'error');
-            btn.disabled = false; btn.textContent = 'Confirm Transfer';
+            btn.disabled = false; btn.textContent = 'Submit Report';
         }
     }
 
