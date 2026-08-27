@@ -1,9 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { ethers } from "https://esm.sh/ethers@6";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+const POLYGON_RPC_URL = Deno.env.get("POLYGON_RPC_URL")!;
+const POLYGON_PRIVATE_KEY = Deno.env.get("PLATFORM_WALLET_PRIVATE_KEY")!;
+const POLYGON_CONTRACT_ADDRESS = Deno.env.get("POLYGON_CONTRACT_ADDRESS")!;
+const POLYGON_CHAIN_ID = 80002; // Polygon Amoy testnet - fixed, not a secret.
+
+const CONTRACT_ABI = [
+  "function mintCoa(string metadataURI) returns (uint256)",
+  "function recordTransfer(uint256 tokenId, string note)",
+  "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -81,8 +93,47 @@ serve(async (req) => {
       .eq("id", user.id)
       .single();
 
-    const tokenId = `TRAC-${Date.now()}`;
-    const txHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("")}`;
+    const metadata = {
+      artwork_title: artwork.title,
+      artist_name: artistProfile?.full_name || user.email,
+      image_url: artwork.image_url,
+      notes: notes || null,
+    };
+    const metadataURI = "data:application/json;base64," + btoa(JSON.stringify(metadata));
+
+    // Real on-chain mint. Nothing gets written to blockchain_coas unless this
+    // succeeds and confirms - there's no prior "reserved" row for mint, so a
+    // chain failure just means returning an error, nothing to revert.
+    let tokenId: string;
+    let txHash: string;
+    try {
+      const provider = new ethers.JsonRpcProvider(POLYGON_RPC_URL, POLYGON_CHAIN_ID);
+      const wallet = new ethers.Wallet(POLYGON_PRIVATE_KEY, provider);
+      const contract = new ethers.Contract(POLYGON_CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
+
+      const tx = await contract.mintCoa(metadataURI);
+      const receipt = await tx.wait(1);
+
+      const transferLog = receipt.logs
+        .map((log: unknown) => {
+          try {
+            return contract.interface.parseLog(log as { topics: string[]; data: string });
+          } catch {
+            return null;
+          }
+        })
+        .find((parsed: { name: string } | null) => parsed?.name === "Transfer");
+
+      if (!transferLog) {
+        throw new Error("Mint transaction confirmed but no Transfer event found in logs");
+      }
+
+      tokenId = transferLog.args.tokenId.toString();
+      txHash = tx.hash;
+    } catch (chainErr) {
+      console.error("On-chain mint failed:", chainErr.message);
+      return json({ error: "Could not mint certificate on-chain. Please try again." }, 502);
+    }
 
     const { data: coa, error: coaError } = await supabase
       .from("blockchain_coas")
@@ -91,15 +142,12 @@ serve(async (req) => {
         artwork_id: artwork.id,
         token_id: tokenId,
         tx_hash: txHash,
+        contract_address: POLYGON_CONTRACT_ADDRESS,
+        chain_id: POLYGON_CHAIN_ID,
         royalty_pct: Number.isFinite(royalty_pct) ? royalty_pct : 10,
         network: "Polygon Amoy",
         status: "minted",
-        metadata: JSON.stringify({
-          artwork_title: artwork.title,
-          artist_name: artistProfile?.full_name || user.email,
-          image_url: artwork.image_url,
-          notes: notes || null,
-        }),
+        metadata: JSON.stringify(metadata),
       })
       .select()
       .single();
@@ -170,7 +218,7 @@ serve(async (req) => {
       notified,
     });
   } catch (err) {
-    console.error("Unhandled error:", err);
+    console.error("Unhandled error:", err.message);
     return json({ error: err.message }, 500);
   }
 });
