@@ -736,23 +736,11 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="supabase-config.js"></script>
 <script>
-  // Supabase config: same env-detection pattern app.html uses (runtime
-  // hostname check, no build step). Both files independently create their
-  // own Supabase client because they're genuinely separate entry points;
-  // this is config duplication, not logic duplication, and there was no
-  // way to share it without a build step this repo doesn't have.
-  const TRAC_ENV = location.hostname.includes('staging') ? 'staging' : 'production';
-  const TRAC_CONFIG = {
-    production: {
-      supabaseUrl: 'https://vhgsayaugbepugssyary.supabase.co',
-      supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoZ3NheWF1Z2JlcHVnc3N5YXJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI2NjA5ODMsImV4cCI6MjA3ODIzNjk4M30.2a6qJqW3BrHZxHHhM5Hm9e0sU6Bts6dXmPFW5tbrW_A'
-    },
-    staging: {
-      supabaseUrl: 'https://utlgnwxulsasydqwcjgc.supabase.co',
-      supabaseKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV0bGdud3h1bHNhc3lkcXdjamdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUwODQxMzcsImV4cCI6MjEwMDY2MDEzN30.s0UMHbJsYSN8WQXmdbYOVQwJGSO9gXCeOG4-if0LmeA'
-    }
-  }[TRAC_ENV];
+  // TRAC_ENV/TRAC_CONFIG come from supabase-config.js (shared with app.html
+  // and collector.html) - this file still creates its own client because
+  // it's a genuinely separate entry point.
   const supabaseClient = supabase.createClient(TRAC_CONFIG.supabaseUrl, TRAC_CONFIG.supabaseKey, {
     auth: { persistSession: true, autoRefreshToken: true }
   });
