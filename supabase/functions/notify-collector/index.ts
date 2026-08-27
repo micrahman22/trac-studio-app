@@ -109,7 +109,7 @@ serve(async (req) => {
       '  <div style="margin: 2rem 0; text-align: center;">',
       '    <a href="' + APP_URL + '/collector"',
       '       style="background: #000; color: #fff; padding: 0.85rem 2.5rem; text-decoration: none; border-radius: 6px; font-size: 1rem; display: inline-block; letter-spacing: 0.02em;">',
-      '      View in Your Collector Dashboard',
+      '      Sign up for Collector Dashboard to view certificate',
       '    </a>',
       '  </div>',
       '  <p style="color: #888; font-size: 0.85rem; line-height: 1.5;">',
