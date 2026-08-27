@@ -265,7 +265,14 @@
     // index.html and app.html).
     const SUPABASE_URL = TRAC_CONFIG.supabaseUrl;
     const SUPABASE_ANON_KEY = TRAC_CONFIG.supabaseKey;
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Isolated storage key so an artist's session on index.html/app.html
+    // (same domain, same default storage otherwise) never carries over here.
+    // Without this, anyone already signed in as an artist elsewhere on this
+    // site would land on a collector dashboard automatically, since Supabase
+    // sessions are shared by domain, not by page, by default.
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { storageKey: 'trac-collector-auth' }
+    });
 
     console.log(`🔧 TRAC environment: ${TRAC_ENV} (${SUPABASE_URL})`);
     if (TRAC_ENV === 'staging') document.title = '[STAGING] ' + document.title;
@@ -395,7 +402,7 @@
         if (!name || !email || !password) { showCError(errEl, 'Please fill in all fields.'); return; }
         if (password.length < 8) { showCError(errEl, 'Password must be at least 8 characters.'); return; }
         btn.disabled = true; btn.textContent = 'Creating account…';
-        const { error } = await supabaseClient.auth.signUp({
+        const { data, error } = await supabaseClient.auth.signUp({
             email, password,
             options: {
                 data: { full_name: name },
@@ -408,6 +415,16 @@
             }
         });
         if (error) { showCError(errEl, error.message); btn.disabled = false; btn.textContent = 'Create Account'; return; }
+        // Supabase deliberately doesn't return an error for signup against an
+        // existing, already-confirmed email (avoids leaking which emails are
+        // registered) - it returns a fake success with an empty identities
+        // array instead. That's the only client-visible signal to tell a real
+        // new signup apart from "this account already exists."
+        if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+            showCError(errEl, 'An account with this email already exists. Please sign in instead.');
+            btn.disabled = false; btn.textContent = 'Create Account';
+            return;
+        }
         // No collector_accounts write here - no confirmed session exists yet at
         // this point (mailer_autoconfirm is off), so there's no auth.email() to
         // check the row against. showDashboard() does the only client-side
