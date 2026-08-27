@@ -395,13 +395,12 @@
         if (!name || !email || !password) { showCError(errEl, 'Please fill in all fields.'); return; }
         if (password.length < 8) { showCError(errEl, 'Password must be at least 8 characters.'); return; }
         btn.disabled = true; btn.textContent = 'Creating account…';
-        const { data, error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
+        const { error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
         if (error) { showCError(errEl, error.message); btn.disabled = false; btn.textContent = 'Create Account'; return; }
-        // Link collector_accounts record to this new user
-        await supabaseClient.from('collector_accounts').upsert({
-            email: email.toLowerCase(), display_name: name,
-            supabase_user_id: data.user?.id, invite_status: 'registered'
-        }, { onConflict: 'email' });
+        // No collector_accounts write here - no confirmed session exists yet at
+        // this point (mailer_autoconfirm is off), so there's no auth.email() to
+        // check the row against. showDashboard() does the only client-side
+        // upsert now, once a real confirmed session exists after they sign in.
         showCToast('Account created! Check your email to confirm.');
         btn.disabled = false; btn.textContent = 'Create Account';
     }
