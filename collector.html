@@ -395,7 +395,18 @@
         if (!name || !email || !password) { showCError(errEl, 'Please fill in all fields.'); return; }
         if (password.length < 8) { showCError(errEl, 'Password must be at least 8 characters.'); return; }
         btn.disabled = true; btn.textContent = 'Creating account…';
-        const { error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
+        const { error } = await supabaseClient.auth.signUp({
+            email, password,
+            options: {
+                data: { full_name: name },
+                // Without this, the confirmation link falls back to site_url
+                // (bare root), which serves index.html - the artist marketing
+                // page, not this app. window.location.origin keeps this
+                // environment-agnostic (staging vs production), same pattern
+                // as the password-reset redirectTo calls below.
+                emailRedirectTo: window.location.origin + '/collector'
+            }
+        });
         if (error) { showCError(errEl, error.message); btn.disabled = false; btn.textContent = 'Create Account'; return; }
         // No collector_accounts write here - no confirmed session exists yet at
         // this point (mailer_autoconfirm is off), so there's no auth.email() to
