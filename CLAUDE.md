@@ -8,6 +8,7 @@
 - If a task needs multiple steps, lay out the plan first and confirm before starting.
 - The user has final say on all decisions. If something's a bad idea, say so once, clearly — then follow their call.
 - Be concise. Skip preamble, skip restating what was asked, skip over-explaining unless asked for detail. Default to terse, high-signal responses.
+- No em dashes, no AI-sounding phrasing, no generic AI-style visuals (gradient blobs, generic stock-icon grids, cookie-cutter bullet-heavy layouts) in any app copy, docs, or design work produced for this project.
 
 ## Product Architecture Ground Truth
 
