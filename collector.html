@@ -274,6 +274,19 @@
         auth: { storageKey: 'trac-collector-auth' }
     });
 
+    // A confirmation/magic link lands here with #access_token=... in the URL.
+    // detectSessionInUrl (default on) reads it during createClient() above and
+    // stores it under this page's own isolated key - but it never removes the
+    // token from the visible URL. Left alone, that token sits in the address
+    // bar and rides along if the user edits the path to navigate elsewhere in
+    // the same tab (e.g. .../collector#access_token=... -> .../dashboard) -
+    // and since app.html/index.html also have detectSessionInUrl on by
+    // default, that leftover token would sign them in there too, under their
+    // own separate storage. Stripping it immediately closes that off.
+    if (window.location.hash.includes('access_token')) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     console.log(`🔧 TRAC environment: ${TRAC_ENV} (${SUPABASE_URL})`);
     if (TRAC_ENV === 'staging') document.title = '[STAGING] ' + document.title;
 
