@@ -3064,6 +3064,7 @@
                                         <a href="#" class="nav-item active" onclick="showSection('dashboard')">Dashboard</a>
                                         <a href="#" class="nav-item" onclick="showSection('settings')">Profile Settings</a>
                                         <a href="#" class="nav-item" onclick="showSection('portfolio')">Portfolio</a>
+                                        <a href="#" class="nav-item nav-item-blockchain" onclick="showSection('blockchain')">Blockchain</a>
                                     </nav>
                                 </div>
                                 <div class="header-right">
@@ -3281,14 +3282,14 @@
                                 </div>
                             </section>      
 
-                            <!-- 2×2 GRID: Alerts | Blockchain -->
+                            <!-- ALERTS -->
                             <!-- Staging-only for now: gated off in production via TRAC_ENV, see hide check near TRAC_CONFIG -->
-                                    <div id="advancedToolsGrid" class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative;">
+                                    <div id="advancedToolsGrid" class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative;">
 
                                     <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85); z-index: 1; border-radius: 12px; pointer-events: none;"></div>
                                     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; color: #666; padding: 0.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 0.9rem; pointer-events: none; white-space: nowrap;">Advanced Tools • Launching Soon</div>
 
-                                    <!-- ROW 1: ALERTS -->
+                                    <!-- ALERTS -->
                                     <div class="dashboard-card" onclick="showAlertsManager()">
                                         <div style="text-align: center; padding: 0.5rem;">
                                             <div style="margin-bottom: 1rem;">
@@ -3305,24 +3306,6 @@
                                             </div>
                                         </div>
                                     </div>
-
-                                            <!-- ROW 2: BLOCKCHAIN TOOLS -->
-                                            <div class="dashboard-card" style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem; cursor: pointer;" onclick="openBlockchainTools()">
-                                                <div style="text-align: center; padding: 0.5rem;">
-                                                    <div style="margin-bottom: 1rem;">
-                                                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                                                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                                                            <line x1="8" y1="12" x2="16" y2="12"></line>
-                                                            <line x1="12" y1="8" x2="12" y2="16"></line>
-                                                        </svg>
-                                                    </div>
-                                                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; font-weight: 500;">Blockchain Tools</h3>
-                                                    <p style="margin: 0; color: #666; font-size: 0.85rem;">Mint & manage COA's</p>
-                                                    <div style="margin-top: 1rem; font-size: 0.75rem; color: #999;">
-                                                        <span id="coaCount">0</span> certificates issued
-                                                    </div>
-                                                </div>
-                                            </div>
 
                                         </div>
                                     </section>
@@ -3366,6 +3349,7 @@
                                         <a href="#" class="nav-item" onclick="showSection('dashboard')">Dashboard</a>
                                         <a href="#" class="nav-item" onclick="showSection('settings')">Profile Settings</a>
                                         <a href="#" class="nav-item" onclick="showSection('portfolio')">Portfolio</a>
+                                        <a href="#" class="nav-item nav-item-blockchain active">Blockchain</a>
                                     </nav>
                                 </div>
                                 <div class="header-right">
@@ -3457,6 +3441,7 @@
                                         <a href="#" class="nav-item" onclick="showSection('dashboard')">Dashboard</a>
                                         <a href="#" class="nav-item active">Profile Settings</a>
                                         <a href="#" class="nav-item" onclick="showSection('portfolio')">Portfolio</a>
+                                        <a href="#" class="nav-item nav-item-blockchain" onclick="showSection('blockchain')">Blockchain</a>
                                     </nav>
                                 </div>
                                 <div class="header-right">
@@ -4228,6 +4213,7 @@
                         if (TRAC_ENV === 'production') {
                             const advancedToolsGrid = document.getElementById('advancedToolsGrid');
                             if (advancedToolsGrid) advancedToolsGrid.style.display = 'none';
+                            document.querySelectorAll('.nav-item-blockchain').forEach(el => el.style.display = 'none');
                         }
 
                         // Escapes a value for safe interpolation into innerHTML template
