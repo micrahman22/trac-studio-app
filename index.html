@@ -653,6 +653,17 @@
         <p>Join TRAC as an artist to manage your work</p>
       </div>
       <div class="auth-field">
+        <label>I am signing up as</label>
+        <div style="display:flex;gap:1.5rem;">
+          <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;">
+            <input type="radio" name="authSignupRole" value="artist" checked> Artist
+          </label>
+          <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;">
+            <input type="radio" name="authSignupRole" value="collector"> Collector
+          </label>
+        </div>
+      </div>
+      <div class="auth-field">
         <label for="authSignupName">Full name</label>
         <input type="text" id="authSignupName" placeholder="Enter your full name" autocomplete="name">
       </div>
@@ -790,9 +801,30 @@
     btn.disabled = true;
     btn.textContent = 'Signing in…';
     try {
-      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      window.location.href = '/dashboard';
+
+      let role = data.user?.user_metadata?.role;
+      if (role !== 'artist' && role !== 'collector') {
+        // Fallback for accounts created before role was tracked in
+        // user_metadata. Checks profiles (artist) first, then
+        // collector_accounts by email (collector). If neither matches,
+        // defaults to artist - matching this function's previous
+        // unconditional behavior, but this is an assumption carried
+        // forward, not a confirmed product decision. Flagging for review
+        // rather than silently baking it in further.
+        const { data: profileRow } = await supabaseClient
+          .from('profiles').select('id').eq('id', data.user.id).maybeSingle();
+        if (profileRow) {
+          role = 'artist';
+        } else {
+          const { data: collectorRow } = await supabaseClient
+            .from('collector_accounts').select('id').eq('email', email.toLowerCase()).maybeSingle();
+          role = collectorRow ? 'collector' : 'artist';
+        }
+      }
+
+      window.location.href = role === 'collector' ? '/collector' : '/dashboard';
     } catch (err) {
       authMsg('authSignInMsg', err.message || 'Sign in failed', true);
       btn.disabled = false;
@@ -806,6 +838,8 @@
     const password = document.getElementById('authSignupPassword').value;
     const confirmPassword = document.getElementById('authConfirmPassword').value;
     const agreeTerms = document.getElementById('authAgreeTerms').checked;
+    const roleInput = document.querySelector('input[name="authSignupRole"]:checked');
+    const selectedRole = roleInput && roleInput.value === 'collector' ? 'collector' : 'artist';
 
     if (!fullName || !email || !password || !confirmPassword) { authMsg('authSignUpMsg', 'Please fill in all fields', true); return; }
     if (password !== confirmPassword) { authMsg('authSignUpMsg', 'Passwords do not match', true); return; }
@@ -814,18 +848,29 @@
     const btn = document.getElementById('authSignUpBtn');
     btn.disabled = true;
     btn.textContent = 'Creating account…';
+    const redirectPath = selectedRole === 'collector' ? '/collector' : '/dashboard';
     try {
       const { data, error } = await supabaseClient.auth.signUp({
-        email, password, options: { data: { full_name: fullName } }
+        email, password,
+        options: {
+          data: { full_name: fullName, role: selectedRole },
+          emailRedirectTo: window.location.origin + redirectPath
+        }
       });
       if (error) throw error;
 
       if (data.session) {
-        // Email confirmation is off for this project; a session came back
-        // immediately, so there's a real logged-in user already.
-        window.location.href = '/dashboard';
+        // Confirmation is required on this project (mailer_autoconfirm is
+        // off), so this branch shouldn't normally fire - kept as a safety
+        // net in case that setting ever changes.
+        window.location.href = redirectPath;
         return;
       }
+      // Collector role deliberately does NOT write to collector_accounts
+      // here - no confirmed session exists yet to check the row against,
+      // same reasoning collector.html's own signup used to document. That
+      // write happens later, in collector.html's showDashboard(), once a
+      // real confirmed session exists.
       authMsg('authSignUpMsg', 'Account created! Check your email to verify, then sign in.', false);
       showAuthTab('signin');
     } catch (err) {
@@ -931,6 +976,17 @@
         openAuthModal('signup');
       });
     });
+
+    // collector.html redirects here with ?auth=collector when it finds no
+    // session, since this modal is now the one place to sign up/sign in
+    // regardless of role. Opens on the signup tab with Collector pre-selected
+    // - an existing collector can still switch to "Sign in" from there.
+    const authParam = new URLSearchParams(window.location.search).get('auth');
+    if (authParam === 'collector') {
+      openAuthModal('signup');
+      const collectorRadio = document.querySelector('input[name="authSignupRole"][value="collector"]');
+      if (collectorRadio) collectorRadio.checked = true;
+    }
   });
 </script>
 

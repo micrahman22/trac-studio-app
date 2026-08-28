@@ -160,70 +160,6 @@
     </div>
 </header>
 
-<!-- AUTH: LOGIN -->
-<div id="c-login-screen" style="display:none;">
-    <div class="c-auth-wrap">
-        <div class="c-auth-box">
-            <h2>Welcome back</h2>
-            <p class="sub">Sign in to view your Certificates of Authenticity.</p>
-            <div class="c-error" id="c-login-error"></div>
-            <div class="c-form-group">
-                <label>Email</label>
-                <input type="email" id="c-login-email" placeholder="your@email.com" autocomplete="email">
-            </div>
-            <div class="c-form-group">
-                <label>Password</label>
-                <input type="password" id="c-login-password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')collectorSignIn()">
-            </div>
-            <button class="c-submit" id="c-login-btn" onclick="collectorSignIn()">Sign In</button>
-            <div class="c-switch">Don't have an account? <a onclick="showCollectorAuth('signup')">Create one</a></div>
-            <div class="c-switch" style="margin-top:0.5rem;"><a onclick="showCollectorAuth('reset')">Forgot password?</a></div>
-        </div>
-    </div>
-</div>
-
-<!-- AUTH: SIGN UP -->
-<div id="c-signup-screen" style="display:none;">
-    <div class="c-auth-wrap">
-        <div class="c-auth-box">
-            <h2>Create your account</h2>
-            <p class="sub">Your CoAs are waiting. Set up your collector account to access them.</p>
-            <div class="c-error" id="c-signup-error"></div>
-            <div class="c-form-group">
-                <label>Full Name</label>
-                <input type="text" id="c-signup-name" placeholder="Your name" autocomplete="name">
-            </div>
-            <div class="c-form-group">
-                <label>Email</label>
-                <input type="email" id="c-signup-email" placeholder="your@email.com" autocomplete="email">
-            </div>
-            <div class="c-form-group">
-                <label>Password</label>
-                <input type="password" id="c-signup-password" placeholder="At least 8 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')collectorSignUp()">
-            </div>
-            <button class="c-submit" id="c-signup-btn" onclick="collectorSignUp()">Create Account</button>
-            <div class="c-switch">Already have an account? <a onclick="showCollectorAuth('login')">Sign in</a></div>
-        </div>
-    </div>
-</div>
-
-<!-- AUTH: RESET PASSWORD -->
-<div id="c-reset-screen" style="display:none;">
-    <div class="c-auth-wrap">
-        <div class="c-auth-box">
-            <h2>Reset password</h2>
-            <p class="sub">Enter your email and we'll send a reset link.</p>
-            <div class="c-error" id="c-reset-error"></div>
-            <div class="c-form-group">
-                <label>Email</label>
-                <input type="email" id="c-reset-email" placeholder="your@email.com">
-            </div>
-            <button class="c-submit" id="c-reset-btn" onclick="collectorResetPassword()">Send Reset Link</button>
-            <div class="c-switch"><a onclick="showCollectorAuth('login')">Back to sign in</a></div>
-        </div>
-    </div>
-</div>
-
 <!-- MAIN DASHBOARD (authenticated) -->
 <div id="c-dashboard" style="display:none;">
     <main class="c-main">
@@ -341,43 +277,37 @@
     let currentCollector = null;
 
     // ==================== INIT ====================
+    // No session here redirects to index.html's own auth modal (?auth=collector
+    // pre-selects the Collector role there) rather than showing anything on
+    // this page - sign-up/sign-in/password-reset all live on index.html now,
+    // regardless of role. Password recovery links land on index.html directly
+    // too (its own PASSWORD_RECOVERY listener handles them in place), so
+    // there's nothing for this page to do with that event at all anymore.
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-            showCollectorAuth('newpassword');
-            return;
-        }
         if (session?.user) {
             currentCollector = session.user;
             await showDashboard();
+            document.body.classList.add('loaded');
         } else {
             currentCollector = null;
-            showScreen('c-landing');
-            updateHeaderNav(false);
+            window.location.href = '/?auth=collector';
         }
-        document.body.classList.add('loaded');
     });
 
     // Check existing session
     (async () => {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) {
-            showScreen('c-landing');
-            updateHeaderNav(false);
-            document.body.classList.add('loaded');
+            window.location.href = '/?auth=collector';
         }
     })();
 
     // ==================== SCREENS ====================
     function showScreen(id) {
-        ['c-landing','c-login-screen','c-signup-screen','c-reset-screen','c-dashboard']
+        ['c-landing','c-dashboard']
             .forEach(s => { const el = document.getElementById(s); if (el) el.style.display = 'none'; });
         const el = document.getElementById(id);
         if (el) el.style.display = 'block';
-    }
-
-    function showCollectorAuth(type) {
-        const map = { login: 'c-login-screen', signup: 'c-signup-screen', reset: 'c-reset-screen' };
-        showScreen(map[type] || 'c-login-screen');
     }
 
     function updateHeaderNav(isLoggedIn) {
@@ -393,79 +323,14 @@
     }
 
     // ==================== AUTH ====================
-    async function collectorSignIn() {
-        const email = document.getElementById('c-login-email').value.trim();
-        const password = document.getElementById('c-login-password').value;
-        const errEl = document.getElementById('c-login-error');
-        const btn = document.getElementById('c-login-btn');
-        errEl.style.display = 'none';
-        if (!email || !password) { showCError(errEl, 'Please fill in all fields.'); return; }
-        btn.disabled = true; btn.textContent = 'Signing in…';
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) { showCError(errEl, error.message); btn.disabled = false; btn.textContent = 'Sign In'; }
-    }
-
-    async function collectorSignUp() {
-        const name = document.getElementById('c-signup-name').value.trim();
-        const email = document.getElementById('c-signup-email').value.trim();
-        const password = document.getElementById('c-signup-password').value;
-        const errEl = document.getElementById('c-signup-error');
-        const btn = document.getElementById('c-signup-btn');
-        errEl.style.display = 'none';
-        if (!name || !email || !password) { showCError(errEl, 'Please fill in all fields.'); return; }
-        if (password.length < 8) { showCError(errEl, 'Password must be at least 8 characters.'); return; }
-        btn.disabled = true; btn.textContent = 'Creating account…';
-        const { data, error } = await supabaseClient.auth.signUp({
-            email, password,
-            options: {
-                data: { full_name: name },
-                // Without this, the confirmation link falls back to site_url
-                // (bare root), which serves index.html - the artist marketing
-                // page, not this app. window.location.origin keeps this
-                // environment-agnostic (staging vs production), same pattern
-                // as the password-reset redirectTo calls below.
-                emailRedirectTo: window.location.origin + '/collector'
-            }
-        });
-        if (error) { showCError(errEl, error.message); btn.disabled = false; btn.textContent = 'Create Account'; return; }
-        // Supabase deliberately doesn't return an error for signup against an
-        // existing, already-confirmed email (avoids leaking which emails are
-        // registered) - it returns a fake success with an empty identities
-        // array instead. That's the only client-visible signal to tell a real
-        // new signup apart from "this account already exists."
-        if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-            showCError(errEl, 'An account with this email already exists. Please sign in instead.');
-            btn.disabled = false; btn.textContent = 'Create Account';
-            return;
-        }
-        // No collector_accounts write here - no confirmed session exists yet at
-        // this point (mailer_autoconfirm is off), so there's no auth.email() to
-        // check the row against. showDashboard() does the only client-side
-        // upsert now, once a real confirmed session exists after they sign in.
-        showCToast('Account created! Check your email to confirm.');
-        btn.disabled = false; btn.textContent = 'Create Account';
-    }
-
-    async function collectorResetPassword() {
-        const email = document.getElementById('c-reset-email').value.trim();
-        const errEl = document.getElementById('c-reset-error');
-        const btn = document.getElementById('c-reset-btn');
-        errEl.style.display = 'none';
-        if (!email) { showCError(errEl, 'Please enter your email.'); return; }
-        btn.disabled = true; btn.textContent = 'Sending…';
-        const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.href
-        });
-        if (error) { showCError(errEl, error.message); }
-        else { showCToast('Password reset link sent to ' + email); }
-        btn.disabled = false; btn.textContent = 'Send Reset Link';
-    }
+    // Sign-in/sign-up/password-reset all moved to index.html's unified auth
+    // modal, regardless of role. collectorSignIn/collectorSignUp/
+    // collectorResetPassword/showCollectorAuth removed entirely.
 
     async function collectorSignOut() {
         await supabaseClient.auth.signOut();
         currentCollector = null;
-        showScreen('c-landing');
-        updateHeaderNav(false);
+        window.location.href = '/?auth=collector';
     }
 
     // ==================== DASHBOARD ====================
