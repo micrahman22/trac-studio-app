@@ -152,7 +152,12 @@ serve(async (req) => {
         .eq("email", recipientEmail.toLowerCase())
         .maybeSingle();
       if (collectorAccount?.invite_status === "registered") {
-        buttonText = "View pending transfer in your Collector Dashboard";
+        // transfer fires once ownership is already recorded - "pending" is
+        // wrong for it, unlike transfer_pending/invite which are still
+        // ahead of that point.
+        buttonText = eventType === "transfer"
+          ? "View certificate in your Collector Dashboard"
+          : "View pending transfer in your Collector Dashboard";
       }
     }
 
