@@ -5,6 +5,8 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const FROM_EMAIL = Deno.env.get("FROM_EMAIL") || "onboarding@resend.dev";
+const INVITE_FROM_EMAIL = Deno.env.get("INVITE_FROM_EMAIL") || FROM_EMAIL;
+const TRANSFER_FROM_EMAIL = Deno.env.get("TRANSFER_FROM_EMAIL") || FROM_EMAIL;
 const APP_URL = Deno.env.get("APP_URL") || "https://tracstudio.app";
 
 const corsHeaders = {
@@ -190,6 +192,10 @@ serve(async (req) => {
       : eventType === "invite" ? "You have a certificate waiting - "
       : "New certificate - ";
 
+    const senderEmail = (eventType === "invite" || eventType === "mint") ? INVITE_FROM_EMAIL
+      : (eventType === "transfer" || eventType === "transfer_pending") ? TRANSFER_FROM_EMAIL
+      : FROM_EMAIL;
+
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -197,7 +203,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: FROM_EMAIL,
+        from: senderEmail,
         to: recipientEmail,
         subject: subjectPrefix + escapeHtml(artworkTitle) + " - TRAC",
         html: emailHtml,
