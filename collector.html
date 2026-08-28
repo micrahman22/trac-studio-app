@@ -201,14 +201,15 @@
     // index.html and app.html).
     const SUPABASE_URL = TRAC_CONFIG.supabaseUrl;
     const SUPABASE_ANON_KEY = TRAC_CONFIG.supabaseKey;
-    // Isolated storage key so an artist's session on index.html/app.html
-    // (same domain, same default storage otherwise) never carries over here.
-    // Without this, anyone already signed in as an artist elsewhere on this
-    // site would land on a collector dashboard automatically, since Supabase
-    // sessions are shared by domain, not by page, by default.
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        auth: { storageKey: 'trac-collector-auth' }
-    });
+    // Deliberately the DEFAULT storage key, same as index.html/app.html -
+    // sign-in now happens exclusively on index.html's unified modal, which
+    // redirects here after establishing a session under that same default
+    // key. An isolated key here used to guard against an artist's existing
+    // session leaking in, but that only worked when collector.html had its
+    // own separate sign-in form; now that login is unified, isolation would
+    // just stop a legitimate collector session from ever being seen here at
+    // all. The artist-leak case is guarded explicitly below instead, by role.
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // A confirmation/magic link lands here with #access_token=... in the URL.
     // detectSessionInUrl (default on) reads it during createClient() above and
@@ -276,6 +277,20 @@
 
     let currentCollector = null;
 
+    // Same resolution order as index.html's signIn() - since sessions are now
+    // shared by domain (no storage isolation), this is what actually stops an
+    // artist's session from landing on a collector dashboard, not storage.
+    async function resolveRole(user) {
+        const metaRole = user.user_metadata?.role;
+        if (metaRole === 'artist' || metaRole === 'collector') return metaRole;
+        const { data: profileRow } = await supabaseClient
+            .from('profiles').select('id').eq('id', user.id).maybeSingle();
+        if (profileRow) return 'artist';
+        const { data: collectorRow } = await supabaseClient
+            .from('collector_accounts').select('id').eq('email', user.email.toLowerCase()).maybeSingle();
+        return collectorRow ? 'collector' : 'artist';
+    }
+
     // ==================== INIT ====================
     // No session here redirects to index.html's own auth modal (?auth=collector
     // pre-selects the Collector role there) rather than showing anything on
@@ -285,6 +300,11 @@
     // there's nothing for this page to do with that event at all anymore.
     supabaseClient.auth.onAuthStateChange(async (event, session) => {
         if (session?.user) {
+            const role = await resolveRole(session.user);
+            if (role === 'artist') {
+                window.location.href = '/dashboard';
+                return;
+            }
             currentCollector = session.user;
             await showDashboard();
             document.body.classList.add('loaded');
