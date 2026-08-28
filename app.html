@@ -4702,6 +4702,22 @@
                         }
 
                         // ==================== CORE INITIALIZATION ====================
+    // Same resolution order as index.html's signIn() and collector.html's
+    // resolveRole() - user_metadata first, then profiles (artist), then
+    // collector_accounts by email (collector), defaulting to artist if
+    // neither matches. Relies on the collector_accounts read-policy fix
+    // already live on staging to see an unlinked row by email.
+    async function resolveRole(user) {
+        const metaRole = user.user_metadata?.role;
+        if (metaRole === 'artist' || metaRole === 'collector') return metaRole;
+        const { data: profileRow } = await supabaseClient
+            .from('profiles').select('id').eq('id', user.id).maybeSingle();
+        if (profileRow) return 'artist';
+        const { data: collectorRow } = await supabaseClient
+            .from('collector_accounts').select('id').eq('email', user.email.toLowerCase()).maybeSingle();
+        return collectorRow ? 'collector' : 'artist';
+    }
+
     async function initializeApp() {
         try {
             const urlParams = new URLSearchParams(window.location.search);
@@ -4796,6 +4812,14 @@
 
             if (session) {
                 console.log("✅ User signed in:", session.user.email);
+
+                const role = await resolveRole(session.user);
+                if (role === 'collector') {
+                    console.log("🔀 Collector session on /dashboard, redirecting to /collector");
+                    window.location.href = '/collector';
+                    return;
+                }
+
                 showSection('dashboard');
 
                 // ✅ FUCKING ADD THIS LINE TO UPDATE COUNTS WHEN LOGGED IN USER LOADS APP
