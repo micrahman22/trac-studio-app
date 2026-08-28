@@ -302,7 +302,12 @@
         if (session?.user) {
             const role = await resolveRole(session.user);
             if (role === 'artist') {
-                window.location.href = '/dashboard';
+                // An artist and collector session must never be interchangeable
+                // just because they're active in the same browser - a mismatch
+                // always means "prove who you are again," never "here's your
+                // other account instead."
+                await supabaseClient.auth.signOut();
+                window.location.href = '/?auth=collector';
                 return;
             }
             currentCollector = session.user;

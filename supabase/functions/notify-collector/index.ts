@@ -47,10 +47,18 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const historyId = body?.history_id;
+    const pendingTransferId = body?.pending_transfer_id;
     const rawEventType = body?.event_type;
-    const eventType = rawEventType === "transfer" || rawEventType === "transfer_pending" ? rawEventType : "mint";
+    const eventType = ["transfer", "transfer_pending", "invite"].includes(rawEventType) ? rawEventType : "mint";
 
-    if (!historyId) {
+    if (eventType === "invite") {
+      if (!pendingTransferId) {
+        return new Response(JSON.stringify({ error: "Missing pending_transfer_id" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else if (!historyId) {
       return new Response(JSON.stringify({ error: "Missing history_id" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -59,35 +67,63 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    // Only callable server-to-server (mint-coa/initiate-transfer/finalize-transfer
-    // authenticate with the service-role key, which is required to reach this
-    // Authorization-checked function at all). Even so, we never trust a
-    // client-shaped payload for the
-    // email content — re-fetch the authoritative row by id, same pattern as
-    // notify-artist.
-    const { data: history, error: historyError } = await supabase
-      .from("coa_ownership_history")
-      .select(`
-        owner_name, owner_email, transfer_date,
-        blockchain_coas ( artist_id, artwork_id, artworks ( title ) )
-      `)
-      .eq("id", historyId)
-      .single();
+    // Never trust a client-shaped payload for the email content - re-fetch
+    // the authoritative row by id, same pattern for both id types.
+    let ownerName: string | null;
+    let recipientEmail: string;
+    let artworkTitle: string;
+    let artistId: string;
 
-    if (historyError || !history) {
-      return new Response(JSON.stringify({ error: "Ownership record not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (eventType === "invite") {
+      const { data: pending, error: pendingError } = await supabase
+        .from("coa_pending_transfers")
+        .select(`
+          new_collector_email,
+          blockchain_coas ( artist_id, artwork_id, artworks ( title ) )
+        `)
+        .eq("id", pendingTransferId)
+        .single();
+
+      if (pendingError || !pending) {
+        return new Response(JSON.stringify({ error: "Pending transfer not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const coa = pending.blockchain_coas as unknown as { artist_id: string; artwork_id: string; artworks: { title: string } | null };
+      ownerName = null; // Nothing to greet them by yet - they're not an owner in our system until this transfer finalizes.
+      recipientEmail = pending.new_collector_email;
+      artworkTitle = coa?.artworks?.title || "the artwork";
+      artistId = coa.artist_id;
+    } else {
+      const { data: history, error: historyError } = await supabase
+        .from("coa_ownership_history")
+        .select(`
+          owner_name, owner_email, transfer_date,
+          blockchain_coas ( artist_id, artwork_id, artworks ( title ) )
+        `)
+        .eq("id", historyId)
+        .single();
+
+      if (historyError || !history) {
+        return new Response(JSON.stringify({ error: "Ownership record not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const coa = history.blockchain_coas as unknown as { artist_id: string; artwork_id: string; artworks: { title: string } | null };
+      ownerName = history.owner_name;
+      recipientEmail = history.owner_email;
+      artworkTitle = coa?.artworks?.title || "the artwork";
+      artistId = coa.artist_id;
     }
-
-    const coa = history.blockchain_coas as unknown as { artist_id: string; artwork_id: string; artworks: { title: string } | null };
-    const artworkTitle = coa?.artworks?.title || "the artwork";
 
     const { data: profile } = await supabase
       .from("profiles")
       .select("full_name, username")
-      .eq("id", coa.artist_id)
+      .eq("id", artistId)
       .single();
 
     const artistName = profile?.full_name || profile?.username || "The artist";
@@ -96,12 +132,34 @@ serve(async (req) => {
       ? `recorded a transfer of <strong>${escapeHtml(artworkTitle)}</strong> to your TRAC Collector account`
       : eventType === "transfer_pending"
       ? `initiated a transfer of <strong>${escapeHtml(artworkTitle)}</strong> away from your TRAC Collector account. It isn't final yet`
+      : eventType === "invite"
+      ? `is sending you <strong>${escapeHtml(artworkTitle)}</strong> as a Certificate of Authenticity on TRAC. It isn't final yet`
       : `recorded you as the owner of a new certificate of authenticity for <strong>${escapeHtml(artworkTitle)}</strong>`;
+
+    // transfer_pending, invite, and transfer all go to someone who's either
+    // already registered or should be by the time this fires - "Sign up" is
+    // wrong for any of them. transfer's recipient is always already
+    // registered by the time finalize-transfer allows it to fire, but this
+    // still verifies against collector_accounts instead of assuming that
+    // invariant holds - if it's ever violated elsewhere, the wording stays
+    // correct either way. mint is not checked here: its recipient is usually
+    // new, out of scope for this change.
+    let buttonText = "Sign up for Collector Dashboard to view certificate";
+    if (eventType === "transfer_pending" || eventType === "invite" || eventType === "transfer") {
+      const { data: collectorAccount } = await supabase
+        .from("collector_accounts")
+        .select("invite_status")
+        .eq("email", recipientEmail.toLowerCase())
+        .maybeSingle();
+      if (collectorAccount?.invite_status === "registered") {
+        buttonText = "View pending transfer in your Collector Dashboard";
+      }
+    }
 
     const emailHtml = [
       '<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem; color: #333;">',
       '  <h2 style="font-weight: 300; font-size: 1.8rem; margin-bottom: 1rem;">',
-      '    Hi ' + escapeHtml(history.owner_name) + ',',
+      '    Hi ' + escapeHtml(ownerName || "there") + ',',
       '  </h2>',
       '  <p style="line-height: 1.6; margin-bottom: 1rem;">',
       '    ' + escapeHtml(artistName) + ' has ' + actionText + ' on TRAC.',
@@ -109,7 +167,7 @@ serve(async (req) => {
       '  <div style="margin: 2rem 0; text-align: center;">',
       '    <a href="' + APP_URL + '/collector"',
       '       style="background: #000; color: #fff; padding: 0.85rem 2.5rem; text-decoration: none; border-radius: 6px; font-size: 1rem; display: inline-block; letter-spacing: 0.02em;">',
-      '      Sign up for Collector Dashboard to view certificate',
+      '      ' + buttonText,
       '    </a>',
       '  </div>',
       '  <p style="color: #888; font-size: 0.85rem; line-height: 1.5;">',
@@ -122,6 +180,11 @@ serve(async (req) => {
       '</div>',
     ].join("\n");
 
+    const subjectPrefix = eventType === "transfer" ? "Ownership recorded - "
+      : eventType === "transfer_pending" ? "Transfer initiated - "
+      : eventType === "invite" ? "You have a certificate waiting - "
+      : "New certificate - ";
+
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -130,8 +193,8 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         from: FROM_EMAIL,
-        to: history.owner_email,
-        subject: (eventType === "transfer" ? "Ownership recorded — " : eventType === "transfer_pending" ? "Transfer initiated — " : "New certificate — ") + escapeHtml(artworkTitle) + " - TRAC",
+        to: recipientEmail,
+        subject: subjectPrefix + escapeHtml(artworkTitle) + " - TRAC",
         html: emailHtml,
       }),
     });
@@ -150,7 +213,7 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("Unhandled error:", err);
+    console.error("Unhandled error:", err.message);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

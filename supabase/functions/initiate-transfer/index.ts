@@ -106,7 +106,47 @@ serve(async (req) => {
       console.error("No current ownership history found for coa", coa.id, "- skipping current-holder notification");
     }
 
-    return json({ success: true, pending_transfer_id: pending.id, notified });
+    // Ensure a collector_accounts stub exists for the new collector, same
+    // shape as mint-coa's stub - but check-then-insert, never upsert.
+    // mint-coa's own upsert always overwrites invite_status back to
+    // 'pending' on conflict, even if that email was already 'registered' -
+    // silently downgrading a repeat collector until their next login
+    // self-heals it via showDashboard(). Not fixing that here, just not
+    // repeating it: if a row already exists, it's left untouched.
+    const { data: existingCollector } = await supabase
+      .from("collector_accounts")
+      .select("id")
+      .eq("email", new_collector_email.toLowerCase())
+      .maybeSingle();
+
+    if (!existingCollector) {
+      await supabase.from("collector_accounts").insert({
+        email: new_collector_email.toLowerCase(),
+        invited_at: new Date().toISOString(),
+        invite_status: "pending",
+      });
+    }
+
+    // Invite the new collector. Passes pending_transfer_id, not a bare
+    // email, so notify-collector re-fetches the authoritative row itself -
+    // same pattern already used for history_id.
+    let collectorInvited = false;
+    try {
+      const inviteRes = await fetch(`${SUPABASE_URL}/functions/v1/notify-collector`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ pending_transfer_id: pending.id, event_type: "invite" }),
+      });
+      collectorInvited = inviteRes.ok;
+      if (!inviteRes.ok) console.error("notify-collector (invite) failed:", await inviteRes.text());
+    } catch (inviteErr) {
+      console.error("notify-collector (invite) call failed:", inviteErr);
+    }
+
+    return json({ success: true, pending_transfer_id: pending.id, notified, collector_invited: collectorInvited });
   } catch (err) {
     console.error("Unhandled error:", err);
     return json({ error: err.message }, 500);
