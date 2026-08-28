@@ -979,11 +979,11 @@
 
     // collector.html redirects here with ?auth=collector when it finds no
     // session, since this modal is now the one place to sign up/sign in
-    // regardless of role. Opens on the signup tab with Collector pre-selected
-    // - an existing collector can still switch to "Sign in" from there.
+    // regardless of role. Opens on the signin tab with Collector pre-selected
+    // - someone without an account yet can still switch to "Sign up" from there.
     const authParam = new URLSearchParams(window.location.search).get('auth');
     if (authParam === 'collector') {
-      openAuthModal('signup');
+      openAuthModal('signin');
       const collectorRadio = document.querySelector('input[name="authSignupRole"][value="collector"]');
       if (collectorRadio) collectorRadio.checked = true;
     }
