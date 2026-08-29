@@ -147,13 +147,15 @@ serve(async (req) => {
     // correct either way. mint is not checked here: its recipient is usually
     // new, out of scope for this change.
     let buttonText = "Sign up for Collector Dashboard to view certificate";
+    let isRegistered = false;
     if (eventType === "transfer_pending" || eventType === "invite" || eventType === "transfer") {
       const { data: collectorAccount } = await supabase
         .from("collector_accounts")
         .select("invite_status")
         .eq("email", recipientEmail.toLowerCase())
         .maybeSingle();
-      if (collectorAccount?.invite_status === "registered") {
+      isRegistered = collectorAccount?.invite_status === "registered";
+      if (isRegistered) {
         // transfer fires once ownership is already recorded - "pending" is
         // wrong for it, unlike transfer_pending/invite which are still
         // ahead of that point.
@@ -162,6 +164,15 @@ serve(async (req) => {
           : "View pending transfer in your Collector Dashboard";
       }
     }
+
+    // Same registered check drives which tab the link opens on - an
+    // already-registered recipient should land on sign-in, not sign-up.
+    // Links to index.html directly, not /collector: collector.html's own
+    // no-session redirect hardcodes '?auth=collector' with no query string
+    // forwarding, which would silently drop intent before index.html ever
+    // saw it for anyone without a live session there (the common case for
+    // an email link).
+    const collectorLink = APP_URL + "/?auth=collector&intent=" + (isRegistered ? "signin" : "signup");
 
     const emailHtml = [
       '<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem; color: #333;">',
@@ -172,7 +183,7 @@ serve(async (req) => {
       '    ' + escapeHtml(artistName) + ' has ' + actionText + ' on TRAC.',
       '  </p>',
       '  <div style="margin: 2rem 0; text-align: center;">',
-      '    <a href="' + APP_URL + '/collector"',
+      '    <a href="' + collectorLink + '"',
       '       style="background: #000; color: #fff; padding: 0.85rem 2.5rem; text-decoration: none; border-radius: 6px; font-size: 1rem; display: inline-block; letter-spacing: 0.02em;">',
       '      ' + buttonText,
       '    </a>',

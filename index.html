@@ -979,11 +979,17 @@
 
     // collector.html redirects here with ?auth=collector when it finds no
     // session, since this modal is now the one place to sign up/sign in
-    // regardless of role. Opens on the signin tab with Collector pre-selected
-    // - someone without an account yet can still switch to "Sign up" from there.
-    const authParam = new URLSearchParams(window.location.search).get('auth');
+    // regardless of role. notify-collector's email links also land here with
+    // an explicit intent (signin for an already-registered recipient, signup
+    // for a brand-new one). No intent defaults to signin, matching every
+    // other caller of this block (a no-session redirect almost always means
+    // an existing collector landed here, not a stranger) - someone without
+    // an account yet can still switch to "Sign up" from there.
+    const urlParams = new URLSearchParams(window.location.search);
+    const authParam = urlParams.get('auth');
     if (authParam === 'collector') {
-      openAuthModal('signin');
+      const intent = urlParams.get('intent');
+      openAuthModal(intent === 'signup' ? 'signup' : 'signin');
       const collectorRadio = document.querySelector('input[name="authSignupRole"][value="collector"]');
       if (collectorRadio) collectorRadio.checked = true;
     }
