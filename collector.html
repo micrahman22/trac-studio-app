@@ -132,7 +132,6 @@
         .coa-cert { border: 2px solid #000; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; position: relative; }
         .coa-cert::before { content: ''; position: absolute; inset: 6px; border: 1px solid #e5e5e5; border-radius: 8px; pointer-events: none; }
         .coa-cert-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid #e5e5e5; }
-        .coa-cert-header .trac-logo { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 0.25rem; }
         .coa-cert-header .cert-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: #666; }
         .coa-cert-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; align-items: baseline; }
         .coa-cert-row .key { font-size: 0.72rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -561,7 +560,7 @@
     async function openCertView(coaId) {
         const { data: coa } = await supabaseClient
             .from('blockchain_coas')
-            .select('*, artworks(title, year, medium, dimensions), coa_ownership_history(*)')
+            .select('*, artworks(title, year, medium, dimensions, image_url, description), coa_ownership_history(*)')
             .eq('id', coaId)
             .single();
         if (!coa) return;
@@ -570,56 +569,67 @@
         const history = (coa.coa_ownership_history || []).sort((a,b) => new Date(a.transfer_date) - new Date(b.transfer_date));
         const original = history.find(h => h.is_original_purchase) || {};
         let meta; try { meta = JSON.parse(coa.metadata || '{}'); } catch { meta = {}; }
+        const explorerUrl = coa.tx_hash ? `https://amoy.polygonscan.com/tx/${encodeURIComponent(coa.tx_hash)}` : null;
 
         const modal = document.createElement('div');
         modal.className = 'c-modal-overlay';
         modal.innerHTML = `
         <div class="c-modal">
-            <div class="c-modal-header">
-                <h3>Certificate of Authenticity</h3>
+            <div class="c-modal-header" style="justify-content:flex-end;">
                 <button class="c-modal-close" onclick="this.closest('.c-modal-overlay').remove()">×</button>
             </div>
 
             <div class="coa-cert">
                 <div class="coa-cert-header">
-                    <div class="trac-logo">TRAC</div>
+                    <div class="c-logo-badge" style="margin-bottom:0.6rem;">TRAC</div>
                     <div class="cert-label">Certificate of Authenticity</div>
                 </div>
-                <div class="coa-cert-row">
-                    <span class="key">Artwork</span>
-                    <span class="val">${escapeHtml(artwork.title) || '—'}</span>
+
+                <!-- ARTWORK CARD -->
+                <div style="border:1px solid #e5e5e5;border-radius:10px;padding:1.25rem;margin-bottom:1rem;">
+                    ${artwork.image_url ? `
+                    <div style="display:flex;justify-content:center;margin-bottom:1rem;">
+                        <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title || '')}" style="width:220px;height:165px;object-fit:cover;border-radius:8px;border:1px solid #e5e5e5;">
+                    </div>` : ''}
+                    <div style="text-align:center;margin-bottom:1rem;">
+                        <div style="font-size:0.95rem;font-weight:600;margin-bottom:0.3rem;letter-spacing:-0.01em;">${escapeHtml(artwork.title) || 'Untitled'}</div>
+                        <div style="font-size:0.78rem;color:#666;">${[meta.artist_name, artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).map(escapeHtml).join(' · ')}</div>
+                    </div>
+                    ${artwork.description ? `
+                    <div style="padding-top:0.9rem;border-top:1px solid #f0f0f0;">
+                        <div style="font-size:0.72rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">Description</div>
+                        <div style="font-size:0.83rem;font-weight:400;line-height:1.55;color:#333;">${escapeHtml(artwork.description)}</div>
+                    </div>` : ''}
                 </div>
-                <div class="coa-cert-row">
-                    <span class="key">Artist</span>
-                    <span class="val">${escapeHtml(meta.artist_name) || '—'}</span>
-                </div>
-                <div class="coa-cert-row">
-                    <span class="key">Year</span>
-                    <span class="val">${escapeHtml(artwork.year) || '—'}</span>
-                </div>
-                <div class="coa-cert-row">
-                    <span class="key">Medium</span>
-                    <span class="val">${escapeHtml(artwork.medium) || '—'}</span>
-                </div>
-                <div class="coa-cert-row">
-                    <span class="key">Dimensions</span>
-                    <span class="val">${escapeHtml(artwork.dimensions) || '—'}</span>
-                </div>
-                <div class="coa-cert-row">
-                    <span class="key">Resale Royalty</span>
-                    <span class="val">${coa.royalty_pct}% (EIP-2981)</span>
-                </div>
-                <div class="coa-cert-row">
-                    <span class="key">Network</span>
-                    <span class="val">${escapeHtml(coa.network)}</span>
-                </div>
-                <div class="coa-cert-row">
-                    <span class="key">Issued</span>
-                    <span class="val">${new Date(coa.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</span>
-                </div>
-                <div class="coa-cert-hash">
-                    <div class="key">Transaction Hash</div>
-                    <div class="val">${escapeHtml(coa.tx_hash)}</div>
+
+                <!-- MINT CARD -->
+                <div style="border:1px solid #e5e5e5;border-radius:10px;padding:1.25rem;">
+                    <div class="coa-cert-row">
+                        <span class="key">Resale Royalty</span>
+                        <span class="val">${coa.royalty_pct}% (EIP-2981)</span>
+                    </div>
+                    <div class="coa-cert-row">
+                        <span class="key">Network</span>
+                        <span class="val">${escapeHtml(coa.network)}</span>
+                    </div>
+                    <div class="coa-cert-row">
+                        <span class="key">Issued</span>
+                        <span class="val">${new Date(coa.created_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}</span>
+                    </div>
+                    ${meta.notes ? `
+                    <div style="margin-bottom:0.75rem;padding-top:0.25rem;">
+                        <div style="font-size:0.72rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">Notes</div>
+                        <div style="font-size:0.83rem;font-weight:400;line-height:1.55;color:#333;">${escapeHtml(meta.notes)}</div>
+                    </div>` : ''}
+                    <div class="coa-cert-hash">
+                        <div class="key">Transaction Hash</div>
+                        <div class="val">${escapeHtml(coa.tx_hash) || '—'}</div>
+                        ${explorerUrl ? `
+                        <a href="${explorerUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.78rem;font-weight:500;color:#000;border:1px solid #d1d1d1;border-radius:20px;padding:0.35rem 0.75rem;margin-top:0.6rem;">
+                            View on PolygonScan
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
+                        </a>` : ''}
+                    </div>
                 </div>
             </div>
 
