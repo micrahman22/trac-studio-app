@@ -8111,11 +8111,6 @@
                                 }
                             }
 
-                            // ❌ REMOVE THIS AUTO-SWITCH (comment it out):
-                            // if (showFooterContact && contactHTML) {
-                            //     footerStyle = 'contact-prominent';
-                            // }
-
                             switch(footerStyle) {
                                 case 'expanded':
                                     return `
@@ -8534,41 +8529,6 @@
 
                             document.addEventListener('click', window.handleWipStudioClicks);
                             console.log('✅ Studio events setup complete');
-                        }
-
-                        function handleWipStudioClicks(e) {
-                            // Only handle clicks when WIP studio modal is open
-                            const wipModal = document.getElementById('wipStudioModal');
-                            if (!wipModal || wipModal.style.display !== 'flex') return;
-
-                            // Only handle clicks that originate from tool buttons IN THE MAIN WIP STUDIO
-                            const moodboardTool = e.target.closest('.moodboard-tool');
-                            const sketchTool = e.target.closest('.sketch-tool');
-                            const noteTool = e.target.closest('.note-tool');
-
-                            if (moodboardTool) {
-                                console.log('🎨 Moodboard tool clicked');
-                                e.preventDefault();
-                                e.stopPropagation();
-                                addMoodboardItem();
-                                return;
-                            }
-
-                            if (sketchTool) {
-                                console.log('📝 Sketch tool clicked');
-                                e.preventDefault();
-                                e.stopPropagation();
-                                uploadSketch();
-                                return;
-                            }
-
-                            if (noteTool) {
-                                console.log('📋 Note tool clicked');
-                                e.preventDefault();
-                                e.stopPropagation();
-                                createNewNote();
-                                return;
-                            }
                         }
 
                         // ==================== WIP STUDIO FUNCTIONS ====================
@@ -12344,14 +12304,6 @@
                                             const img = e.target;
                                             if (img.closest('.event-card')) return;
 
-                                            // DEBUG: Check what data attributes exist
-                                            console.log('🔍 Image data attributes:', {
-                                                title: img.getAttribute('data-artwork-title'),
-                                                year: img.getAttribute('data-artwork-year'), 
-                                                medium: img.getAttribute('data-artwork-medium'),
-                                                dimensions: img.getAttribute('data-artwork-dimensions')
-                                            });
-
                                             const title = img.getAttribute('data-artwork-title') || 'Untitled';
                                             const year = img.getAttribute('data-artwork-year') || '';
                                             const medium = img.getAttribute('data-artwork-medium') || '';
@@ -12428,36 +12380,7 @@
 
                         // Initialize everything
                         setInterval(disableDashboardPopups, 300);
-                        //setInterval(removePortfolioHoverEffects, 500);
                         setTimeout(initSafePopupHandlers, 1000);
-
-                                                                // ==================== REMOVE PORTFOLIO HOVER EFFECTS ====================
-                                                                function removePortfolioHoverEffects() {
-                                                                    const portfolioSection = document.getElementById('portfolio-section');
-                                                                    if (!portfolioSection || portfolioSection.style.display !== 'block') return;
-
-                                                                    // Remove hover effects
-                                                                    const artworkCards = document.querySelectorAll('#portfolioPage .artwork-card');
-                                                                    artworkCards.forEach(card => {
-                                                                        card.style.transform = 'none';
-                                                                        card.style.transition = 'none';
-                                                                    });
-
-                                                                    // REMOVE MARGIN AND CENTER - with !important to prevent override
-                                                                    document.querySelectorAll('#portfolioPage .artwork-image').forEach(container => {
-                                                                        container.style.setProperty('margin-bottom', '0', 'important');
-                                                                        container.style.setProperty('display', 'flex', 'important');
-                                                                        container.style.setProperty('justify-content', 'center', 'important');
-                                                                    });
-
-                                                                    // CENTER IMAGES - FIXED (removed nested loop)
-                                                                    document.querySelectorAll('#portfolioPage .artwork-image img').forEach(img => {
-                                                                        img.style.setProperty('width', 'auto', 'important');
-                                                                        img.style.setProperty('max-width', '80%', 'important');
-                                                                        img.style.setProperty('height', 'auto', 'important');
-                                                                    });
-                                                                }
-
 
                                                                 // ==================== EVENT LISTENERS ====================
                                                                 document.addEventListener('DOMContentLoaded', function() {
@@ -12995,8 +12918,6 @@
 
 
     // ==================== BLOCKCHAIN / COA SYSTEM ====================
-
-    function openBlockchainTools() { showSection('blockchain'); }
 
     async function loadBlockchainSection() {
         const { data: { user } } = await supabaseClient.auth.getUser();

@@ -154,10 +154,9 @@
 <!-- HEADER -->
 <header class="c-header">
     <div class="c-logo">TRAC <span>Collector</span></div>
-    <div class="c-nav" id="c-header-nav">
-        <button class="c-btn c-btn-outline" onclick="showCollectorAuth('login')">Sign In</button>
-        <button class="c-btn c-btn-primary" onclick="showCollectorAuth('signup')">Create Account</button>
-    </div>
+    <!-- Populated by updateHeaderNav() once the session resolves - body stays
+         opacity:0 until then, so there's no logged-out flash to fill here. -->
+    <div class="c-nav" id="c-header-nav"></div>
 </header>
 
 <!-- MAIN DASHBOARD (authenticated) -->
@@ -176,21 +175,6 @@
             </div>
         </div>
     </main>
-</div>
-
-<!-- LANDING (not logged in, not on auth screen) -->
-<div id="c-landing" style="display:none;">
-    <div style="max-width:620px;margin:0 auto;padding:5rem 2rem;text-align:center;">
-        <div style="width:72px;height:72px;background:#f5f5f5;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        </div>
-        <h1 style="font-size:2rem;font-weight:500;letter-spacing:-0.03em;margin-bottom:0.75rem;">TRAC Collector</h1>
-        <p style="color:#666;font-size:1rem;margin-bottom:2.5rem;line-height:1.7;">Access and manage your Certificates of Authenticity for physical artworks. If you purchased a TRAC-certified artwork, check your email for an invitation link.</p>
-        <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
-            <button class="c-btn c-btn-primary" style="padding:0.875rem 2rem;font-size:0.95rem;" onclick="showCollectorAuth('signup')">Create Account</button>
-            <button class="c-btn c-btn-outline" style="padding:0.875rem 2rem;font-size:0.95rem;" onclick="showCollectorAuth('login')">Sign In</button>
-        </div>
-    </div>
 </div>
 
 <!-- SUPABASE -->
@@ -329,22 +313,19 @@
 
     // ==================== SCREENS ====================
     function showScreen(id) {
-        ['c-landing','c-dashboard']
+        ['c-dashboard']
             .forEach(s => { const el = document.getElementById(s); if (el) el.style.display = 'none'; });
         const el = document.getElementById(id);
         if (el) el.style.display = 'block';
     }
 
-    function updateHeaderNav(isLoggedIn) {
+    // Only ever called once a session is confirmed - the logged-out case
+    // never needs its own nav here, since the page redirects to index.html's
+    // auth modal before this could ever render for a signed-out visitor.
+    function updateHeaderNav() {
         const nav = document.getElementById('c-header-nav');
         if (!nav) return;
-        if (isLoggedIn) {
-            nav.innerHTML = `<button class="c-btn c-btn-outline" onclick="collectorSignOut()">Sign Out</button>`;
-        } else {
-            nav.innerHTML = `
-                <button class="c-btn c-btn-outline" onclick="showCollectorAuth('login')">Sign In</button>
-                <button class="c-btn c-btn-primary" onclick="showCollectorAuth('signup')">Create Account</button>`;
-        }
+        nav.innerHTML = `<button class="c-btn c-btn-outline" onclick="collectorSignOut()">Sign Out</button>`;
     }
 
     // ==================== AUTH ====================
@@ -361,7 +342,7 @@
     // ==================== DASHBOARD ====================
     async function showDashboard() {
         showScreen('c-dashboard');
-        updateHeaderNav(true);
+        updateHeaderNav();
 
         const { data: { user } } = await supabaseClient.auth.getUser();
         if (!user) return;
@@ -611,7 +592,6 @@
     }
 
     // ==================== UTILITIES ====================
-    function showCError(el, msg) { el.textContent = msg; el.style.display = 'block'; }
     function showCToast(msg, type = 'success') {
         const t = document.getElementById('c-toast');
         t.textContent = msg; t.className = type === 'error' ? 'error' : '';
