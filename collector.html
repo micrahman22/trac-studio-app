@@ -179,6 +179,9 @@
             <p>Your Certificates of Authenticity — permanently linked to your physical artworks.</p>
         </div>
 
+        <!-- PENDING INCOMING TRANSFERS - populated by loadPendingIncomingTransfers() -->
+        <div id="c-pending-transfers" style="display:none;"></div>
+
         <!-- COLLECTION TOOLBAR -->
         <div class="c-collection-toolbar">
             <input type="search" id="c-coa-search" placeholder="Search by artwork or artist name..." oninput="renderCollectorCoas()">
@@ -402,7 +405,58 @@
             }
         }
 
+        await loadPendingIncomingTransfers(user.email);
         await loadCollectorCoas(user.email);
+    }
+
+    // ==================== PENDING INCOMING TRANSFERS ====================
+    // A transfer someone initiated to this collector but hasn't finalized
+    // yet - the artwork won't show up in the collection grid until then,
+    // and without this a collector has no way to tell "nothing happened"
+    // apart from "it's in progress, still waiting on the artist."
+    async function loadPendingIncomingTransfers(email) {
+        const section = document.getElementById('c-pending-transfers');
+        if (!section) return;
+
+        const { data: pending } = await supabaseClient
+            .from('coa_pending_transfers')
+            .select('id, created_at, blockchain_coas(artist_id, artworks(title))')
+            .eq('new_collector_email', email.toLowerCase())
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+
+        if (!pending || pending.length === 0) {
+            section.style.display = 'none';
+            section.innerHTML = '';
+            return;
+        }
+
+        // coa_pending_transfers.artist_id references auth.users, not
+        // profiles directly, so there's no FK PostgREST can use to embed a
+        // sender name in the query above - fetched separately here, same
+        // pattern used elsewhere in this app for the same reason.
+        const artistIds = [...new Set(pending.map(p => p.blockchain_coas?.artist_id).filter(Boolean))];
+        let artistNames = {};
+        if (artistIds.length > 0) {
+            const { data: artists } = await supabaseClient
+                .from('profiles').select('id, full_name, username').in('id', artistIds);
+            (artists || []).forEach(a => { artistNames[a.id] = a.full_name || a.username || 'An artist'; });
+        }
+
+        section.style.display = 'block';
+        section.innerHTML = `
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+                <div style="font-size:0.85rem;font-weight:600;color:#1e3a8a;margin-bottom:0.6rem;">Incoming</div>
+                <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                    ${pending.map(p => {
+                        const title = p.blockchain_coas?.artworks?.title || 'An artwork';
+                        const senderName = artistNames[p.blockchain_coas?.artist_id] || 'an artist';
+                        return `<div style="font-size:0.83rem;color:#1e3a8a;">
+                            <strong>${escapeHtml(title)}</strong> from ${escapeHtml(senderName)} - pending finalization
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
     }
 
     // Raw data lives here so search/sort can re-filter and re-render without
