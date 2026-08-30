@@ -11533,44 +11533,10 @@
                                         </div>
                                     </div>
 
-                                    <!-- ADVANCED TAB - SPACING REMOVED -->
-                                    <div class="style-tab-content" id="advanced-tab">
-                                        <div class="advanced-controls">
-                                            <div class="advanced-control-group">
-                                                <label>Text Body Layout</label>
-                                                <select id="collectionTitleLayout" class="advanced-select">
-                                                    <option value="centered">Centered</option>
-                                                    <option value="minimal">Minimal</option>
-                                                    <option value="left-aligned">Left Aligned</option>
-                                                    <option value="centered-large">Centered Large</option>
-                                                    <option value="expressive">Expressive</option>
-                                                    <option value="bold-centered">Bold Centered</option>
-                                                    <option value="archival">Archival</option>
-                                                    <option value="rotated">Rotated</option>
-                                                </select>
-                                            </div>
-
-                                            <div class="advanced-control-group">
-                                                <label>Show Contact in Footer</label>
-                                                <div class="toggle-control">
-                                                    <label class="toggle-switch">
-                                                        <input type="checkbox" id="showFooterContact">
-                                                        <span class="toggle-slider"></span>
-                                                    </label>
-                                                    <span class="toggle-label" id="footerContactStatus">Disabled</span>
-                                                </div>
-                                            </div>
-
-                                            <!-- ✅ SAVE CUSTOM PRESET ADDED BACK -->
-                                            <div class="advanced-control-group">
-                                                <label>Save as Custom Preset</label>
-                                                <div class="save-style-control">
-                                                    <input type="text" id="newStyleName" class="style-name-input" placeholder="Enter preset name">
-                                                    <button type="button" onclick="saveCustomStyle()" class="btn-primary">Save</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <!-- Populated by setupAdvancedControls(), called right after
+                                         this panel is appended and before setupStyleEditorEvents()
+                                         wires up whatever's actually in the DOM at that point. -->
+                                    <div class="style-tab-content" id="advanced-tab"></div>
                                 </div>
 
                                 <div class="style-editor-actions">
@@ -11580,6 +11546,7 @@
                             `;
 
                             document.body.appendChild(panel);
+                            setupAdvancedControls();
                             setupStyleEditorEvents();
                             console.log('🔄 STYLE EDITOR RECREATED WITHOUT SPACING');
                             return panel;
@@ -11684,6 +11651,8 @@
                                     image_size: document.getElementById('imageSize').value,
                                     collection_title_layout: document.getElementById('collectionTitleLayout').value,
                                     show_footer_contact: document.getElementById('showFooterContact').checked,
+                                    portfolio_spacing: document.getElementById('gridSpacing').value + 'rem',
+                                    card_padding: document.getElementById('cardPadding').value + 'rem',
                                     custom_colors: {
                                         bg: document.getElementById('bgColor').value,
                                         text: document.getElementById('textColor').value,
@@ -11730,6 +11699,8 @@
                                     portfolioPage.style.setProperty('--desc-size', styleData.custom_fonts.body_size);
                                     portfolioPage.style.setProperty('--artwork-size', styleData.custom_fonts.body_size);
                                     portfolioPage.style.setProperty('--footer-font-size', styleData.custom_fonts.body_size);
+                                    portfolioPage.style.setProperty('--grid-spacing', styleData.portfolio_spacing);
+                                    portfolioPage.style.setProperty('--card-padding', styleData.card_padding);
 
                                     // ✅ UPDATE LAYOUTS
                                     const currentProfile = await getCurrentProfileData();
@@ -11813,6 +11784,8 @@
                             _setVal('bodyFont', 'Space Grotesk');
                             _setVal('headerSize', '24');
                             _setVal('bodySize', '16');
+                            _setVal('gridSpacing', '2');
+                            _setVal('cardPadding', '1.5');
                             const _sfc = document.getElementById('showFooterContact');
                             if (_sfc) _sfc.checked = false;
                             const _he = document.getElementById('hoverEffects');
@@ -11895,6 +11868,17 @@
                                 portfolioPage.style.setProperty('--text-color', profileData.custom_colors.text);
                                 portfolioPage.style.setProperty('--accent-color', profileData.custom_colors.accent);
                                 portfolioPage.style.setProperty('--border-color', profileData.custom_colors.border);
+                            }
+
+                            // Apply spacing - without this, a saved Grid Spacing/Card Padding
+                            // only ever took effect within the editor's own live-preview
+                            // session and silently reverted to the CSS default on any fresh
+                            // portfolio load, since nothing here read it back from the profile.
+                            if (profileData.portfolio_spacing) {
+                                portfolioPage.style.setProperty('--grid-spacing', profileData.portfolio_spacing);
+                            }
+                            if (profileData.card_padding) {
+                                portfolioPage.style.setProperty('--card-padding', profileData.card_padding);
                             }
 
                             // Apply fonts
@@ -12006,6 +11990,19 @@
                                 check('showFooterContact', profile.show_footer_contact || false);
                                 text('footerContactStatus', profile.show_footer_contact ? 'Enabled' : 'Disabled');
 
+                                // ADVANCED SPACING SLIDERS - the slider's own value AND its
+                                // adjacent label both need setting, unlike set() above which
+                                // only touches .value (headerSize/bodySize below have the
+                                // same pre-existing label-sync gap, not introduced here).
+                                const setSlider = (id, val) => {
+                                    const el = document.getElementById(id);
+                                    if (!el) return;
+                                    el.value = val;
+                                    if (el.nextElementSibling) el.nextElementSibling.textContent = val + 'rem';
+                                };
+                                setSlider('gridSpacing', parseFloat(profile.portfolio_spacing) || 2);
+                                setSlider('cardPadding', parseFloat(profile.card_padding) || 1.5);
+
                                 // FONTS - ensure the saved value exists as an option before setting
                                 const setFont = (id, val) => {
                                     if (!val) return;
@@ -12034,7 +12031,17 @@
                             }
                         }
 
-                        // ==================== FIXED setupAdvancedControls - FULL VERSION ====================
+                        // Builds the Advanced tab's content. Text Body Layout and Show
+                        // Contact in Footer keep the exact same ids/classes the old static
+                        // markup used, so setupStyleEditorEvents()'s existing generic
+                        // wiring (.toggle-switch input, etc.) picks them up identically -
+                        // neither one's behavior changes here. Grid Spacing and Card
+                        // Padding are new: deliberately NOT given class="font-size-slider"
+                        // like the other range inputs on this panel, since that class is
+                        // already claimed by setupStyleEditorEvents()'s generic wiring,
+                        // which appends "px" and calls updateFontPreview() - wrong unit and
+                        // wrong function for a spacing value. These get their own
+                        // dedicated wiring below instead.
                         function setupAdvancedControls() {
                             const advancedTab = document.getElementById('advanced-tab');
                             if (!advancedTab) return;
@@ -12069,7 +12076,7 @@
                                     <div class="advanced-control-group">
                                         <label>Grid Spacing</label>
                                         <div class="font-size-controls">
-                                            <input type="range" id="gridSpacing" min="1" max="4" value="2" class="font-size-slider">
+                                            <input type="range" id="gridSpacing" min="1" max="4" value="2" step="0.5" class="spacing-slider">
                                             <span class="size-value">2rem</span>
                                         </div>
                                     </div>
@@ -12077,8 +12084,16 @@
                                     <div class="advanced-control-group">
                                         <label>Card Padding</label>
                                         <div class="font-size-controls">
-                                            <input type="range" id="cardPadding" min="1" max="3" value="1.5" step="0.5" class="font-size-slider">
+                                            <input type="range" id="cardPadding" min="1" max="3" value="1.5" step="0.5" class="spacing-slider">
                                             <span class="size-value">1.5rem</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="advanced-control-group">
+                                        <label>Save as Custom Preset</label>
+                                        <div class="save-style-control">
+                                            <input type="text" id="newStyleName" class="style-name-input" placeholder="Enter preset name">
+                                            <button type="button" onclick="saveCustomStyle()" class="btn-primary">Save</button>
                                         </div>
                                     </div>
                                 </div>
@@ -12087,6 +12102,11 @@
                             console.log('✅ ADVANCED TAB BUILT WITH CORRECT IDs');
 
                             // EVENT LISTENERS
+                            // Toggle switches (Show Contact in Footer) also get wired
+                            // generically by setupStyleEditorEvents() right after this
+                            // function returns, which is what actually calls
+                            // updateAdvancedPreview() for it - this listener here only
+                            // updates the visible Enabled/Disabled label, same as before.
                             const toggles = advancedTab.querySelectorAll('.toggle-switch input');
                             toggles.forEach(toggle => {
                                 toggle.addEventListener('change', function() {
@@ -12095,12 +12115,15 @@
                                 });
                             });
 
-                            // SPACING SLIDERS
-                            const spacingSliders = advancedTab.querySelectorAll('.font-size-slider');
+                            // SPACING SLIDERS - Grid Spacing / Card Padding. Unlike the
+                            // toggle above, nothing else wires these, so this listener
+                            // has to do both the label update and the live preview itself.
+                            const spacingSliders = advancedTab.querySelectorAll('.spacing-slider');
                             spacingSliders.forEach(slider => {
                                 slider.addEventListener('input', function() {
                                     const valueSpan = this.nextElementSibling;
                                     valueSpan.textContent = this.value + 'rem';
+                                    updateAdvancedPreview(this.id, this.value);
                                 });
                             });
                         }
@@ -12127,6 +12150,15 @@
                                 case 'collectionTitleLayout':
                                     window.previewLayoutChanges = window.previewLayoutChanges || {};
                                     window.previewLayoutChanges.collectionTitleLayout = value;
+                                    break;
+                                case 'gridSpacing':
+                                    // .artworks-grid { gap: var(--grid-spacing) !important; } and
+                                    // the matching --card-padding rule already exist in CSS -
+                                    // this was the only piece actually missing.
+                                    portfolioPage.style.setProperty('--grid-spacing', value + 'rem');
+                                    break;
+                                case 'cardPadding':
+                                    portfolioPage.style.setProperty('--card-padding', value + 'rem');
                                     break;
                             }
                         }
