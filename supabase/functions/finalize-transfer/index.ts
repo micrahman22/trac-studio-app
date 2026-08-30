@@ -133,7 +133,10 @@ serve(async (req) => {
         const wallet = new ethers.Wallet(POLYGON_PRIVATE_KEY, provider);
         const contract = new ethers.Contract(POLYGON_CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
 
-        const tx = await contract.recordTransfer(coa.token_id, `Transferred to ${collectorAccount.email}`);
+        // Same name-with-fallback as owner_name below - this note is
+        // permanent and append-only once written on-chain, so it should
+        // never embed the raw email in the first place.
+        const tx = await contract.recordTransfer(coa.token_id, `Transferred to ${collectorAccount.display_name || "Pending Collector"}`);
         await tx.wait(1);
         txHash = tx.hash;
       } catch (chainErr) {
