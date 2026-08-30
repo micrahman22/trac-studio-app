@@ -534,7 +534,6 @@
                         <div style="font-size:0.83rem;font-weight:500;">${escapeHtml(h.owner_name)}</div>
                         <div style="font-size:0.72rem;color:#666;">${h.is_original_purchase?'Original purchase':'Secondary sale'} · ${new Date(h.transfer_date).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}</div>
                     </div>
-                    ${h.sale_price ? `<div style="font-size:0.8rem;font-weight:500;">$${Number(h.sale_price).toLocaleString()}</div>` : ''}
                 </div>`).join('')}
             </div>
 
