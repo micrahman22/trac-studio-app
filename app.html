@@ -12210,18 +12210,6 @@
                             }
                         }
 
-                                function closeArtworkPopup() {
-                                    const popup = document.getElementById('artworkPopupOverlay');
-                                    if (popup) {
-                                        document.body.removeChild(popup);
-                                    }
-                                    // Also close the old popup system
-                                    const oldPopup = document.getElementById('artworkPopup');
-                                    if (oldPopup) {
-                                        oldPopup.style.display = 'none';
-                                    }
-                                }
-
                         // Update the image click handlers in the portfolio
                                 // ==================== WORKING POPUP SYSTEM ====================
 
@@ -12745,27 +12733,21 @@
                                                                         eventImageUpload.addEventListener('change', handleEventImageSelect);
                                                                     }
 
-                                                                // Close popup on background click
-                                                                document.getElementById('artworkPopup').addEventListener('click', function(e) {
-                                                                if (e.target === this) closeArtworkPopup();
-                                                                });
-
-                                                                // Close portfolio popup on background click  
-                                                                document.getElementById('artworkPopup').addEventListener('click', function(e) {
-                                                                if (e.target === this) {
-                                                                closePopup();
-                                                                }
-                                                                });
-
                                                                 // Close CV modal on background click
                                                                 document.getElementById('cvRequestModal').addEventListener('click', function(e) {
                                                                 if (e.target === this) hideCVRequestForm();
                                                                 });
 
-                                                                // ESC key to close popups
+                                                                // ESC key to close popups. Artwork popup close moved to
+                                                                // closePopup() - closeArtworkPopup() (removed) was fully
+                                                                // redundant with it, and the two direct-node background-click
+                                                                // listeners that used to sit above this were redundant with
+                                                                // the delegated one below, which also survives the popup
+                                                                // element being torn down and recreated by
+                                                                // createPopupElements() (a direct-node listener doesn't).
                                                                 document.addEventListener('keydown', function(e) {
                                                                 if (e.key === 'Escape') {
-                                                                closeArtworkPopup();
+                                                                closePopup();
                                                                 hideUploadForm();
                                                                 hideStyleBrowser();
                                                                 hideAddEventForm();
@@ -12781,14 +12763,7 @@
                                                                         }
                                                                     }, 1000);
 
-                                                                                                        // Close on ESC key
-                                                                                                        document.addEventListener('keydown', function(e) {
-                                                                                                            if (e.key === 'Escape') {
-                                                                                                                closePopup();
-                                                                                                            }
-                                                                                                        });
-
-                                                                                                        // Close on background click  
+                                                                                                        // Close on background click
                                                                                                         document.addEventListener('click', function(e) {
                                                                                                             if (e.target.id === 'artworkPopup') {
                                                                                                                 closePopup();
