@@ -377,6 +377,11 @@
   }
   .auth-field input:focus { outline: none; border-color: var(--black); }
   .auth-field-pw { position: relative; }
+  .auth-field-pw input {
+    /* Room for the eye-icon button below (right: 10px, ~24px wide) - without
+       this the icon sits on top of typed text instead of beside it. */
+    padding-right: 42px;
+  }
   .auth-field-pw button {
     position: absolute;
     right: 10px; top: 50%; transform: translateY(-50%);
@@ -871,8 +876,12 @@
       // same reasoning collector.html's own signup used to document. That
       // write happens later, in collector.html's showDashboard(), once a
       // real confirmed session exists.
-      authMsg('authSignUpMsg', 'Account created! Check your email to verify, then sign in.', false);
+      // authSignUpMsg's pane gets hidden by showAuthTab() right below, before
+      // anyone could ever read a message written there - authSignInMsg is
+      // what's actually visible after the switch, same pattern already used
+      // for the password-reset confirmation message.
       showAuthTab('signin');
+      authMsg('authSignInMsg', 'Account created! Check your email to verify, then sign in.', false);
     } catch (err) {
       authMsg('authSignUpMsg', err.message || 'Sign up failed', true);
     } finally {
