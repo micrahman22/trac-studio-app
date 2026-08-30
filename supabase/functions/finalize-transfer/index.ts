@@ -147,7 +147,10 @@ serve(async (req) => {
         .insert({
           coa_id: pending.coa_id,
           artist_id: user.id,
-          owner_name: collectorAccount.display_name || collectorAccount.email,
+          // Never fall back to the raw email here - it's rendered as the
+          // displayed owner name everywhere this column shows up (the
+          // artist's "Owner:" line, the collector's own provenance view).
+          owner_name: collectorAccount.display_name || "Pending Collector",
           owner_email: collectorAccount.email,
           transfer_date: new Date().toISOString(),
           is_original_purchase: false,

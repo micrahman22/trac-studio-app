@@ -376,6 +376,22 @@
             email: user.email.toLowerCase(), supabase_user_id: user.id, invite_status: 'registered'
         }, { onConflict: 'email' });
 
+        // Backfill display_name from what they told us at signup, but only
+        // if nothing's there yet - never overwrite a name mint-coa already
+        // captured from the artist, or one the auto-register trigger already
+        // set. Same safety net role as the upsert above: the trigger is the
+        // normal path, this just covers an account that confirmed before
+        // that trigger existed.
+        if (user.user_metadata?.full_name) {
+            const { data: existing } = await supabaseClient
+                .from('collector_accounts').select('display_name').eq('email', user.email.toLowerCase()).maybeSingle();
+            if (!existing?.display_name) {
+                await supabaseClient.from('collector_accounts')
+                    .update({ display_name: user.user_metadata.full_name })
+                    .eq('email', user.email.toLowerCase());
+            }
+        }
+
         await loadCollectorCoas(user.email);
     }
 
