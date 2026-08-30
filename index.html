@@ -702,6 +702,16 @@
       <div class="auth-switch">Already have an account? <a href="#" onclick="showAuthTab('signin'); return false;">Sign in</a></div>
       <div id="authSignUpMsg" class="auth-msg"></div>
     </div>
+
+    <!-- Check Email - shown instead of either form right after a successful
+         signup, not a message tacked onto sign-in someone can easily miss. -->
+    <div id="authCheckEmailPane" style="display:none;">
+      <div class="auth-head">
+        <h2>Check your email</h2>
+        <p id="authCheckEmailText">We've sent a confirmation link to your email.</p>
+      </div>
+      <button class="auth-submit" onclick="showAuthTab('signin')">Go to Sign In</button>
+    </div>
   </div>
 </div>
 
@@ -773,6 +783,7 @@
   function showAuthTab(which) {
     document.getElementById('authSignInPane').style.display = which === 'signin' ? 'block' : 'none';
     document.getElementById('authSignUpPane').style.display = which === 'signup' ? 'block' : 'none';
+    document.getElementById('authCheckEmailPane').style.display = which === 'checkemail' ? 'block' : 'none';
   }
   document.getElementById('authCloseBtn').addEventListener('click', closeAuthModal);
   document.getElementById('authOverlay').addEventListener('click', function (e) {
@@ -890,12 +901,15 @@
       // same reasoning collector.html's own signup used to document. That
       // write happens later, in collector.html's showDashboard(), once a
       // real confirmed session exists.
-      // authSignUpMsg's pane gets hidden by showAuthTab() right below, before
-      // anyone could ever read a message written there - authSignInMsg is
-      // what's actually visible after the switch, same pattern already used
-      // for the password-reset confirmation message.
-      showAuthTab('signin');
-      authMsg('authSignInMsg', 'Account created! Check your email to verify, then sign in.', false);
+      // A dedicated pane, not a small message tacked onto sign-in - that
+      // was too easy to miss entirely, and someone reading past it straight
+      // into the password field never registered they needed to go check
+      // their email first. Pre-fills authEmail so they don't have to retype
+      // it once they come back and click through to sign in.
+      document.getElementById('authCheckEmailText').textContent =
+        "We've sent a confirmation link to " + email + ". Click it, then come back here to sign in.";
+      document.getElementById('authEmail').value = email;
+      showAuthTab('checkemail');
     } catch (err) {
       authMsg('authSignUpMsg', err.message || 'Sign up failed', true);
     } finally {
