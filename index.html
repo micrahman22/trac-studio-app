@@ -382,6 +382,13 @@
        this the icon sits on top of typed text instead of beside it. */
     padding-right: 42px;
   }
+  /* Edge (and old IE) inject their own native reveal/clear icons into every
+     password field, landing in the exact same spot as our custom button -
+     two eye icons on one field otherwise. */
+  .auth-field-pw input::-ms-reveal,
+  .auth-field-pw input::-ms-clear {
+    display: none;
+  }
   .auth-field-pw button {
     position: absolute;
     right: 10px; top: 50%; transform: translateY(-50%);
@@ -708,9 +715,9 @@
     <div id="authCheckEmailPane" style="display:none;">
       <div class="auth-head">
         <h2>Check your email</h2>
-        <p id="authCheckEmailText">We've sent a confirmation link to your email.</p>
+        <p id="authCheckEmailText">We've sent a confirmation link to your email. Click it and you'll be signed in automatically.</p>
       </div>
-      <button class="auth-submit" onclick="showAuthTab('signin')">Go to Sign In</button>
+      <button class="auth-submit" onclick="showAuthTab('signin')">Sign In Instead</button>
     </div>
   </div>
 </div>
@@ -904,10 +911,14 @@
       // A dedicated pane, not a small message tacked onto sign-in - that
       // was too easy to miss entirely, and someone reading past it straight
       // into the password field never registered they needed to go check
-      // their email first. Pre-fills authEmail so they don't have to retype
-      // it once they come back and click through to sign in.
+      // their email first. The confirmation link itself is a valid login
+      // token - clicking it signs them in immediately, no separate sign-in
+      // step actually happens, so the copy here says that plainly instead
+      // of describing a step that doesn't exist. authEmail is still
+      // pre-filled as a fallback for "Sign In Instead" below, in case they
+      // want to sign in on a different device than the one they're on now.
       document.getElementById('authCheckEmailText').textContent =
-        "We've sent a confirmation link to " + email + ". Click it, then come back here to sign in.";
+        "We've sent a confirmation link to " + email + ". Click it and you'll be signed in automatically.";
       document.getElementById('authEmail').value = email;
       showAuthTab('checkemail');
     } catch (err) {
