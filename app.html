@@ -4718,6 +4718,26 @@
         return collectorRow ? 'collector' : 'artist';
     }
 
+    // Shared by both the one-time initial-load check and the live
+    // onAuthStateChange subscription below, so the two never drift out of
+    // sync with each other. Returns true if it fired (caller should stop
+    // whatever else it was about to do).
+    async function checkForRoleMismatch(user) {
+        if (!user) return false;
+        const role = await resolveRole(user);
+        if (role === 'collector') {
+            // An artist and collector session must never be interchangeable
+            // just because they're active in the same browser - a mismatch
+            // always means "prove who you are again," never "here's your
+            // other account instead."
+            console.log("🔀 Collector session detected on artist page, signing out");
+            await supabaseClient.auth.signOut();
+            window.location.href = '/';
+            return true;
+        }
+        return false;
+    }
+
     async function initializeApp() {
         try {
             const urlParams = new URLSearchParams(window.location.search);
@@ -4740,12 +4760,25 @@
             // bounce it to the landing page with the recovery tokens intact
             // (they live in the URL hash, which survives the redirect) so
             // its own PASSWORD_RECOVERY listener can pick it up.
-            supabaseClient.auth.onAuthStateChange((event, session) => {
+            supabaseClient.auth.onAuthStateChange(async (event, session) => {
                 AppState.currentUser = session?.user || null;
 
                 if (event === 'PASSWORD_RECOVERY') {
                     console.log('🔑 Password recovery flow detected, redirecting to /');
                     window.location.href = '/' + window.location.hash;
+                    return;
+                }
+
+                // This subscription lives for the tab's whole lifetime, and
+                // the session it sees is backed by localStorage shared across
+                // every tab on this origin - a collector signing in from a
+                // completely different tab silently swaps the session out
+                // from under this one, with no visible change on this page
+                // until its next network call goes out as the wrong user.
+                // Re-checking role on every event this fires, not just once
+                // at initial load, is what catches that the moment it happens.
+                if (session) {
+                    await checkForRoleMismatch(session.user);
                 }
             });
 
@@ -4813,17 +4846,7 @@
             if (session) {
                 console.log("✅ User signed in:", session.user.email);
 
-                const role = await resolveRole(session.user);
-                if (role === 'collector') {
-                    // An artist and collector session must never be interchangeable
-                    // just because they're active in the same browser - a mismatch
-                    // always means "prove who you are again," never "here's your
-                    // other account instead."
-                    console.log("🔀 Collector session on /dashboard, signing out");
-                    await supabaseClient.auth.signOut();
-                    window.location.href = '/';
-                    return;
-                }
+                if (await checkForRoleMismatch(session.user)) return;
 
                 showSection('dashboard');
 
@@ -12990,7 +13013,7 @@
     async function loadBcStats(user) {
         const [{ count: total }, { count: transfers }, { data: pending }] = await Promise.all([
             supabaseClient.from('blockchain_coas').select('*', { count: 'exact', head: true }).eq('artist_id', user.id),
-            supabaseClient.from('coa_ownership_history').select('*', { count: 'exact', head: true }).eq('artist_id', user.id),
+            supabaseClient.from('coa_ownership_history').select('*', { count: 'exact', head: true }).eq('artist_id', user.id).eq('is_original_purchase', false),
             supabaseClient.from('royalty_notifications').select('*').eq('artist_id', user.id).eq('status', 'pending')
         ]);
         const el = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v ?? 0; };
