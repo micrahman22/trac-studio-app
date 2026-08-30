@@ -5249,14 +5249,33 @@
                         };
 
                         async function handleImageFile(file) {
+                            // Compression (when it actually runs - files under
+                            // TracImageService's 1MB threshold pass through instantly)
+                            // happens here, at selection time, well before the separate
+                            // Add Artwork click that triggers the real network upload.
+                            // Without this, that CPU-bound work was invisible - nothing
+                            // distinguished it from the "Uploading..." state shown later,
+                            // so it read as unexplained slowness.
+                            const placeholder = document.getElementById('uploadPlaceholder');
+                            const originalPlaceholderHTML = placeholder.innerHTML;
+                            const willCompress = file.size > 1 * 1024 * 1024;
+                            if (willCompress) {
+                                placeholder.innerHTML = '<span class="loading-spinner"></span><span>Compressing image…</span>';
+                            }
+
                             const processedFile = await TracImageService.process(file, { label: 'Image' });
-                            if (!processedFile) return;
+
+                            if (!processedFile) {
+                                placeholder.innerHTML = originalPlaceholderHTML;
+                                return;
+                            }
 
                             AppState.selectedImageFile = processedFile;
 
                             const reader = new FileReader();
                             reader.onload = function(e) {
-                                document.getElementById('uploadPlaceholder').style.display = 'none';
+                                placeholder.innerHTML = originalPlaceholderHTML;
+                                placeholder.style.display = 'none';
                                 document.getElementById('imagePreview').style.display = 'block';
                                 document.getElementById('imagePreview').innerHTML = `
                                     <div style="margin-top: 1rem; font-size: 0.8rem; color: #666;">
@@ -5334,6 +5353,45 @@
                             return (base || 'file') + ext;
                         }
 
+                        // supabaseClient.storage's .upload() is built on fetch, which has
+                        // no upload-progress event in any browser - only XHR exposes one.
+                        // This hits Supabase Storage's REST endpoint directly (same
+                        // request shape the SDK itself makes: POST .../storage/v1/object/
+                        // {bucket}/{path} with the raw file as body) so real percentage
+                        // feedback is possible during the actual network transfer.
+                        function uploadFileWithProgress(bucket, path, file, onProgress) {
+                            return new Promise(async (resolve, reject) => {
+                                const { data: { session } } = await supabaseClient.auth.getSession();
+                                if (!session) { reject(new Error('Not authenticated')); return; }
+
+                                const xhr = new XMLHttpRequest();
+                                xhr.open('POST', `${supabaseUrl}/storage/v1/object/${bucket}/${path}`);
+                                xhr.setRequestHeader('Authorization', `Bearer ${session.access_token}`);
+                                xhr.setRequestHeader('apikey', supabaseKey);
+                                xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+                                xhr.setRequestHeader('x-upsert', 'false');
+
+                                xhr.upload.onprogress = function (e) {
+                                    if (e.lengthComputable && onProgress) {
+                                        onProgress(Math.round((e.loaded / e.total) * 100));
+                                    }
+                                };
+
+                                xhr.onload = function () {
+                                    if (xhr.status >= 200 && xhr.status < 300) {
+                                        resolve(JSON.parse(xhr.responseText));
+                                    } else {
+                                        let message = 'Upload failed';
+                                        try { message = JSON.parse(xhr.responseText).message || message; } catch (_) {}
+                                        reject(new Error(message));
+                                    }
+                                };
+                                xhr.onerror = function () { reject(new Error('Network error during upload')); };
+
+                                xhr.send(file);
+                            });
+                        }
+
                         // ==================== ARTWORK MANAGEMENT ====================
                         async function uploadArtwork() {
                             const submitBtn = document.getElementById('uploadSubmitBtn');
@@ -5366,26 +5424,33 @@
                                     return;
                                 }
 
-                                // Set loading state
+                                // Set loading state. Compression (if any) already happened
+                                // back when the file was selected, not here - this spinner
+                                // now covers only the actual network transfer, with a real
+                                // percentage instead of a static "Uploading..." that gave no
+                                // sense of progress or remaining time.
                                 submitBtn.disabled = true;
-                                submitText.innerHTML = `<span class="loading-spinner"></span> ${isEdit ? 'Updating...' : 'Uploading...'}`;
+                                const setSubmitProgress = (pct) => {
+                                    submitText.innerHTML = `<span class="loading-spinner"></span> ${isEdit ? 'Updating' : 'Uploading'}... ${pct}%`;
+                                };
+                                setSubmitProgress(0);
 
                                 let imageUrl = null;
 
                                 // Upload new image if provided (for both create and edit)
                                 if (AppState.selectedImageFile) {
                                     const imageName = `${user.id}/${Date.now()}_${sanitizeFilename(AppState.selectedImageFile.name)}`;
-                                    const { data: imageData, error: uploadError } = await supabaseClient.storage
-                                        .from('artwork-images')
-                                        .upload(imageName, AppState.selectedImageFile);
-
-                                    if (uploadError) throw uploadError;
+                                    const imageData = await uploadFileWithProgress(
+                                        'artwork-images', imageName, AppState.selectedImageFile, setSubmitProgress
+                                    );
 
                                     const { data: { publicUrl } } = supabaseClient.storage
                                         .from('artwork-images')
-                                        .getPublicUrl(imageData.path);
+                                        .getPublicUrl(imageData.Key.replace(/^artwork-images\//, ''));
 
                                     imageUrl = publicUrl;
+                                } else {
+                                    submitText.innerHTML = `<span class="loading-spinner"></span> ${isEdit ? 'Updating...' : 'Uploading...'}`;
                                 }
 
                                 if (isEdit && artworkId) {
