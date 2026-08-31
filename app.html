@@ -123,6 +123,27 @@
                           .stat-caption { animation: none; opacity: 1; }
                         }
                         .artworks-section { padding: 4rem 0; }
+                        /* Dashboard's dividers (.stats-section, .dashboard-grid-section)
+                           span the full viewport because .gallery-main itself has no
+                           padding - each section owns its own width. Blockchain's <main>
+                           carries its own max-width/padding instead, so its dividers sit
+                           inset unless explicitly broken out. Scoped to #blockchain-section
+                           only - .stats-section itself is shared with Dashboard, whose
+                           section is already unconstrained and would be pushed further
+                           off-screen by this same rule. */
+                        #blockchain-section {
+                            /* vw includes the scrollbar's own width, so the
+                               breakout below overshoots the real visible edge
+                               by a few px - clip it here rather than exposing
+                               a horizontal scrollbar for it. */
+                            overflow-x: hidden;
+                        }
+                        #blockchain-section .stats-section,
+                        #blockchain-section .bc-full-bleed-divider {
+                            margin-left: calc(50% - 50vw);
+                            margin-right: calc(50% - 50vw);
+                        }
+                        #blockchain-section .bc-full-bleed-divider { border-top: 1px solid #e5e5e5; }
                         .section-header { max-width: 1400px; margin: 0 auto 3rem; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
                         .section-title { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; }
                         .add-artwork-btn { background: #000; color: white; border: none; padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s; border-radius: 8px; }
@@ -3412,8 +3433,10 @@
                                 </div>
                             </section>
 
+                            <div class="bc-full-bleed-divider"></div>
+
                             <!-- ISSUED COAs -->
-                            <section class="artworks-section" style="border-top: 1px solid #e5e5e5; padding-top: 3rem;">
+                            <section class="artworks-section" style="padding-top: 3rem;">
                                 <div class="section-header" style="padding: 0; max-width: none;">
                                     <h3 class="section-title">Issued CoAs</h3>
                                 </div>
