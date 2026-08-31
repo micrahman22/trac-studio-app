@@ -39,6 +39,10 @@ before making further changes to either table's policies.
 - Supabase Edge Functions in Deno/TypeScript for the two operations needing a secret
 - Deployment: Netlify (static hosting, routing via `_redirects`)
 - Local/preview: Replit, via `server.py` (trivial Python static file server)
+- Staging URL: `https://trac-studio-staging.netlify.app` — a Netlify-dashboard-only
+  setting (Supabase Auth redirect config), not captured anywhere else in the repo.
+  `location.hostname.includes('staging')` in `supabase-config.js` is what actually
+  routes this hostname to the staging Supabase project.
 
 ## Project Structure
 
