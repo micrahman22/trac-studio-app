@@ -58,16 +58,16 @@
         body { background: #fff; color: #000; line-height: 1.6; min-height: 100vh; opacity: 0; }
         body.loaded { opacity: 1; transition: opacity 0.2s ease; }
 
-        /* NAV */
-        .c-header { border-bottom: 1px solid #e5e5e5; padding: 0 2rem; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: white; z-index: 100; }
-        /* Same black-pill treatment as index.html's .logo-mark / app.html's
-           .logo-container - sized for this header's slim 64px nav bar, same
-           role as index.html's nav rather than app.html's larger dashboard
-           header. */
+        /* NAV - same header classes as app.html's Dashboard, verbatim, minus
+           .header-left/.gallery-nav (collector has no multi-page nav to show). */
+        .gallery-header { background: white; border-bottom: 1px solid #e5e5e5; padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
+        .header-container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo-container { background: #000000; border-radius: 12px; padding: 0.75rem 1.25rem; display: inline-flex; align-items: center; justify-content: center; }
+        .gallery-logo { font-size: 2.2rem; font-weight: 600; letter-spacing: -0.02em; color: #ffffff; margin: 0; line-height: 1; }
+        .icon-button { background: none; border: none; padding: 0.5rem; cursor: pointer; color: #666; transition: color 0.2s; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .icon-button:hover { color: #000; background: #f5f5f5; }
+        /* Still used by the certificate view's own branded header (openCertView). */
         .c-logo-badge { display: inline-flex; align-items: center; justify-content: center; background: #000; color: #fff; font-weight: 600; letter-spacing: 0.02em; border-radius: 6px; padding: 0.5rem 0.9rem; font-size: 1rem; }
-        .c-nav { display: flex; align-items: center; gap: 1rem; }
-        .c-icon-button { background: none; border: none; padding: 0.5rem; cursor: pointer; color: #666; transition: color 0.2s; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .c-icon-button:hover { color: #000; background: #f5f5f5; }
         .c-btn { padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-family: inherit; cursor: pointer; transition: all 0.2s; }
         .c-btn-primary { background: #000; color: white; border: none; }
         .c-btn-primary:hover { background: #333; }
@@ -93,9 +93,13 @@
 
         /* MAIN DASHBOARD */
         .c-main { max-width: 960px; margin: 0 auto; padding: 2.5rem 1.5rem; }
-        .c-page-title { margin-bottom: 2.5rem; }
-        .c-page-title h1 { font-size: 1.75rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.35rem; }
-        .c-page-title p { color: #666; font-size: 0.875rem; }
+        /* Same hero and section-title classes as app.html's Dashboard/Blockchain, verbatim. */
+        .hero-section { padding: 3rem 0 2rem; text-align: center; }
+        .hero-container { max-width: 800px; margin: 0 auto; padding: 0 2rem; }
+        .hero-title { font-size: 2.25rem; font-weight: 500; margin-bottom: 0.75rem; letter-spacing: -0.02em; }
+        .hero-subtitle { font-size: 1rem; color: #666; font-weight: 400; }
+        .section-header { max-width: 1400px; margin: 0 auto 3rem; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .section-title { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; }
 
         /* COLLECTION TOOLBAR */
         .c-collection-toolbar { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
@@ -104,22 +108,48 @@
         .c-collection-toolbar select { padding: 0.7rem 1rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.88rem; font-family: inherit; background: white; cursor: pointer; }
         .c-collection-toolbar select:focus { outline: none; border-color: #000; }
 
-        /* COA CARD */
-        .c-coa-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
-        .c-coa-card { border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden; background: white; transition: box-shadow 0.2s; }
-        .c-coa-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
-        .c-coa-image { width: 100%; aspect-ratio: 4/3; object-fit: cover; background: #f5f5f5; display: block; }
-        .c-coa-image-placeholder { width: 100%; aspect-ratio: 4/3; background: #f5f5f5; display: flex; align-items: center; justify-content: center; }
-        .c-coa-body { padding: 1.25rem; }
-        .c-coa-title { font-size: 1rem; font-weight: 500; margin-bottom: 0.2rem; }
-        .c-coa-meta { font-size: 0.78rem; color: #666; margin-bottom: 0.875rem; }
-        .c-coa-badges { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        /* CoA conveyor belt - same classes as app.html's Dashboard/Blockchain
+           conveyor belt, verbatim (event-card variants omitted, unused here). */
+        .conveyor-belt-container {
+            width: 1400px;
+            margin: 2rem 48px 2rem 32px;
+            overflow-x: auto;
+            padding: 2rem 0;
+            clip-path: inset(0 43px 0 25px);
+            position: relative;
+            left: -32px;
+            max-width: calc(100vw - 80px);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .conveyor-belt-container::-webkit-scrollbar { height: none; }
+        .conveyor-belt-container::-webkit-scrollbar-track { background: transparent; }
+        .conveyor-belt-container::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 1px; width: 30% !important; margin: 0 auto; }
+        .conveyor-belt-container::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); width: 40% !important; }
+        .conveyor-belt-track {
+            display: flex;
+            gap: 2rem;
+            padding: 0 32px;
+            width: fit-content;
+            max-width: 100%;
+            min-width: auto !important;
+            box-sizing: border-box;
+            position: relative;
+            left: 32px;
+        }
+        .conveyor-item { flex: 0 0 auto; width: 350px; height: 400px; scroll-snap-align: start; }
+        .conveyor-item.artwork-card { margin-bottom: 0; height: 100%; display: flex; flex-direction: column; border: none; border-radius: 0; overflow: visible; background: transparent; box-shadow: none; }
+        .conveyor-item .artwork-image { height: 70%; flex-shrink: 0; overflow: hidden; }
+        .conveyor-item .artwork-image img { width: 100%; height: 100%; object-fit: cover; }
+        .conveyor-item .artwork-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 1.5rem; }
+        .conveyor-item.artwork-card .artwork-info { background: transparent; padding: 1rem 0.5rem; border: none; }
+        .artwork-title { font-size: 0.8rem; font-weight: 500; margin-bottom: 0.2rem; }
+        .artwork-details { color: #666; font-size: 0.7rem; line-height: 1.2; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
+        .artwork-details div { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
         .c-badge { font-size: 0.68rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 500; }
         .c-badge-green { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
         .c-badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
         .c-badge-gray { background: #f5f5f5; color: #666; border: 1px solid #e5e5e5; }
-        .c-coa-actions { display: flex; gap: 0.5rem; }
-        .c-coa-actions button { flex: 1; padding: 0.6rem; font-size: 0.8rem; border-radius: 8px; font-family: inherit; cursor: pointer; transition: all 0.2s; }
 
         /* MODAL */
         .c-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2147483647; }
@@ -140,6 +170,29 @@
         .coa-cert-hash .key { font-size: 0.68rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
         .coa-cert-hash .val { font-size: 0.68rem; font-family: monospace; word-break: break-all; color: #555; }
 
+        /* ARTWORK IMAGE POPUP - same expand-on-click treatment as Blockchain's
+           artworkPopup/openPopup in app.html, self-contained here since
+           collector.html shares no JS/CSS with app.html. Deliberately NOT the
+           Dashboard behavior (app.html's disableDashboardPopups turns this off
+           there on purpose) - collector should behave like Blockchain. */
+        #c-artwork-popup {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 999999;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        #c-artwork-popup .c-popup-close { position: absolute; top: 2rem; right: 2rem; background: rgba(0,0,0,0.7); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; }
+        #c-artwork-popup .c-popup-body { display: flex; align-items: flex-end; justify-content: center; gap: 1.5rem; max-width: 90vw; max-height: 90vh; }
+        #c-popup-img { max-width: 70vh; max-height: 90vh; object-fit: contain; display: block; }
+        #c-popup-info { flex-shrink: 0; width: 200px; }
+        #c-popup-info .title { color: white; font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
+        #c-popup-info .detail { color: white; font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.2rem; }
+
         /* TOAST */
         #c-toast { position: fixed; top: 1.25rem; right: 1.25rem; background: #000; color: white; padding: 0.875rem 1.25rem; border-radius: 8px; font-size: 0.875rem; z-index: 9999999; display: none; max-width: 300px; }
         #c-toast.error { background: #dc2626; }
@@ -151,9 +204,54 @@
         .c-empty p { font-size: 0.875rem; }
 
         @media (max-width: 600px) {
-            .c-header { padding: 0 1rem; }
-            .c-coa-grid { grid-template-columns: 1fr; }
             .c-auth-box { padding: 1.75rem; border: none; }
+        }
+
+        /* Same conveyor-belt mobile overrides as app.html, verbatim, plus the
+           #c-coa-grid-scoped width fix Blockchain needed for the same reason:
+           .c-main keeps its own horizontal padding unlike Dashboard's
+           .gallery-main, so the belt's 100vw sizing here overshoots it. */
+        @media (max-width: 768px) {
+            .conveyor-belt-container {
+                position: relative !important;
+                left: 0 !important;
+                right: 0 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                -webkit-overflow-scrolling: touch !important;
+                scrollbar-width: none !important;
+            }
+            .conveyor-belt-container::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
+            .conveyor-belt-track {
+                display: flex !important;
+                padding: 1rem 1rem 1rem 1rem !important;
+                margin: 0 !important;
+                gap: 1rem !important;
+                width: max-content !important;
+                min-width: 100% !important;
+                box-sizing: border-box !important;
+            }
+            .conveyor-item {
+                width: calc(100vw - 2rem) !important;
+                max-width: 320px !important;
+                min-width: 280px !important;
+                flex-shrink: 0 !important;
+                margin: 0 !important;
+                scroll-snap-align: none !important;
+            }
+            body, html {
+                overflow-x: hidden !important;
+                max-width: 100vw !important;
+                overflow-anchor: none !important;
+            }
+            #c-coa-grid .conveyor-belt-container {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
         }
     </style>
 </head>
@@ -162,24 +260,45 @@
 <!-- TOAST -->
 <div id="c-toast"></div>
 
-<!-- HEADER -->
-<header class="c-header">
-    <div class="c-logo-badge">TRAC</div>
-    <!-- Populated by updateHeaderNav() once the session resolves - body stays
-         opacity:0 until then, so there's no logged-out flash to fill here. -->
-    <div class="c-nav" id="c-header-nav"></div>
+<!-- HEADER - same classes/structure as app.html's Dashboard header, minus
+     the multi-page nav (collector has only one page). -->
+<header class="gallery-header">
+    <div class="header-container">
+        <div class="logo-container">
+            <h1 class="gallery-logo">TRAC</h1>
+        </div>
+        <!-- Populated by updateHeaderNav() once the session resolves - body stays
+             opacity:0 until then, so there's no logged-out flash to fill here. -->
+        <div id="c-header-nav"></div>
+    </div>
 </header>
+
+<!-- ARTWORK IMAGE POPUP - click-to-expand, matches Blockchain's artworkPopup
+     in app.html (not Dashboard's, which is deliberately disabled there). -->
+<div id="c-artwork-popup">
+    <button class="c-popup-close" onclick="closeCArtworkPopup()">×</button>
+    <div class="c-popup-body">
+        <img id="c-popup-img" src="" alt="">
+        <div id="c-popup-info"></div>
+    </div>
+</div>
 
 <!-- MAIN DASHBOARD (authenticated) -->
 <div id="c-dashboard" style="display:none;">
     <main class="c-main">
-        <div class="c-page-title">
-            <h1 id="c-welcome-name">My Collection</h1>
-            <p>Your Certificates of Authenticity — permanently linked to your physical artworks.</p>
-        </div>
+        <section class="hero-section">
+            <div class="hero-container">
+                <h2 class="hero-title" id="c-welcome-name">My Collection</h2>
+                <p class="hero-subtitle">Your Certificates of Authenticity — permanently linked to your physical artworks.</p>
+            </div>
+        </section>
 
         <!-- PENDING INCOMING TRANSFERS - populated by loadPendingIncomingTransfers() -->
         <div id="c-pending-transfers" style="display:none;"></div>
+
+        <div class="section-header" style="padding: 0; max-width: none;">
+            <h3 class="section-title">Your Certificates</h3>
+        </div>
 
         <!-- COLLECTION TOOLBAR -->
         <div class="c-collection-toolbar">
@@ -192,8 +311,8 @@
         </div>
 
         <!-- COA GRID -->
-        <div id="c-coa-grid" class="c-coa-grid">
-            <div class="c-empty" style="grid-column:1/-1;">
+        <div id="c-coa-grid">
+            <div class="c-empty">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 <h3>Loading certificates…</h3>
             </div>
@@ -350,7 +469,7 @@
         const nav = document.getElementById('c-header-nav');
         if (!nav) return;
         nav.innerHTML = `
-            <button class="c-icon-button" onclick="collectorSignOut()" title="Sign Out">
+            <button class="icon-button" onclick="collectorSignOut()" title="Sign Out">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                     <path d="M6 14H3.333C2.98 14 2.641 13.86 2.391 13.61C2.14 13.36 2 13.02 2 12.667V3.333C2 2.98 2.14 2.641 2.391 2.391C2.641 2.14 2.98 2 3.333 2H6"></path>
                     <path d="M10.667 11.333L14 8l-3.333-3.333"></path>
@@ -500,7 +619,7 @@
 
         if (allCollectorCoas.length === 0) {
             grid.innerHTML = `
-            <div class="c-empty" style="grid-column:1/-1;">
+            <div class="c-empty">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
                 <h3>No certificates yet</h3>
                 <p>When an artist issues a CoA for an artwork you purchased, it will appear here.</p>
@@ -526,35 +645,105 @@
         });
 
         if (items.length === 0) {
-            grid.innerHTML = `<div class="c-empty" style="grid-column:1/-1;"><h3>No matches</h3><p>No certificates match your search.</p></div>`;
+            grid.innerHTML = `<div class="c-empty"><h3>No matches</h3><p>No certificates match your search.</p></div>`;
             return;
         }
 
-        grid.innerHTML = items.map(({ ownership: o, coa, artwork }) => {
-            const meta = [artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).map(escapeHtml).join(' · ');
-            return `
-            <div class="c-coa-card">
-                ${artwork.image_url
-                    ? `<img class="c-coa-image" src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" loading="lazy">`
-                    : `<div class="c-coa-image-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`
-                }
-                <div class="c-coa-body">
-                    <div class="c-coa-title">${escapeHtml(artwork.title) || 'Untitled'}</div>
-                    <div class="c-coa-meta">${meta || 'Physical artwork'}</div>
-                    <div class="c-coa-badges">
-                        <span class="c-badge c-badge-green">Certified</span>
-                        <span class="c-badge c-badge-blue">${coa.royalty_pct || 0}% royalty</span>
-                        <span class="c-badge c-badge-gray">${escapeHtml(coa.network) || 'Polygon'}</span>
-                        ${o.is_original_purchase ? '<span class="c-badge c-badge-gray">Original buyer</span>' : '<span class="c-badge c-badge-gray">Secondary owner</span>'}
-                    </div>
-                    <div class="c-coa-actions">
-                        <button onclick="openCertView('${coa.id}')" style="background:white;border:1px solid #d1d1d1;color:#000;" onmouseenter="this.style.borderColor='#000'" onmouseleave="this.style.borderColor='#d1d1d1'">View CoA</button>
-                        <button data-coa-id="${coa.id}" data-artwork-title="${escapeHtml(artwork.title || '')}" onclick="openDisputeModal(this.dataset.coaId, this.dataset.artworkTitle)" style="background:white;border:1px solid #d1d1d1;color:#b91c1c;" onmouseenter="this.style.borderColor='#b91c1c'" onmouseleave="this.style.borderColor='#d1d1d1'">Report an Issue</button>
-                    </div>
+        // Same conveyor-belt layout as app.html's Dashboard/Blockchain -
+        // reuses .conveyor-belt-container/-track/-item and
+        // .artwork-title/.artwork-details. Badges and both actions are
+        // unchanged from the previous card markup, just moved into the new
+        // structure. data-artwork-* attributes on the img feed the click-to-
+        // expand popup below.
+        grid.innerHTML = `
+            <div class="conveyor-belt-container">
+                <div class="conveyor-belt-track">
+                    ${items.map(({ ownership: o, coa, artwork }) => {
+                        const meta = [artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).map(escapeHtml).join(' · ');
+                        return `
+                        <div class="conveyor-item artwork-card" data-coa-id="${coa.id}">
+                            <div class="artwork-image">
+                                ${artwork.image_url
+                                    ? `<img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title || '')}" loading="lazy"
+                                           data-artwork-title="${escapeHtml(artwork.title || 'Untitled')}"
+                                           data-artwork-year="${escapeHtml(artwork.year || '')}"
+                                           data-artwork-medium="${escapeHtml(artwork.medium || '')}"
+                                           data-artwork-dimensions="${escapeHtml(artwork.dimensions || '')}">`
+                                    : `<div style="width:100%;height:100%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`
+                                }
+                            </div>
+                            <div class="artwork-info">
+                                <div>
+                                    <h3 class="artwork-title">${escapeHtml(artwork.title) || 'Untitled'}</h3>
+                                    <div class="artwork-details">${meta || 'Physical artwork'}</div>
+                                    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.5rem;">
+                                        <span class="c-badge c-badge-green">Certified</span>
+                                        <span class="c-badge c-badge-blue">${coa.royalty_pct || 0}% royalty</span>
+                                        <span class="c-badge c-badge-gray">${escapeHtml(coa.network) || 'Polygon'}</span>
+                                        ${o.is_original_purchase ? '<span class="c-badge c-badge-gray">Original buyer</span>' : '<span class="c-badge c-badge-gray">Secondary owner</span>'}
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
+                                    <button onclick="openCertView('${coa.id}')" style="flex:1;padding:0.6rem;font-size:0.8rem;border-radius:8px;font-family:inherit;cursor:pointer;transition:all 0.2s;background:white;border:1px solid #d1d1d1;color:#000;" onmouseenter="this.style.borderColor='#000'" onmouseleave="this.style.borderColor='#d1d1d1'">View CoA</button>
+                                    <button data-coa-id="${coa.id}" data-artwork-title="${escapeHtml(artwork.title || '')}" onclick="openDisputeModal(this.dataset.coaId, this.dataset.artworkTitle)" style="flex:1;padding:0.6rem;font-size:0.8rem;border-radius:8px;font-family:inherit;cursor:pointer;transition:all 0.2s;background:white;border:1px solid #d1d1d1;color:#b91c1c;" onmouseenter="this.style.borderColor='#b91c1c'" onmouseleave="this.style.borderColor='#d1d1d1'">Report an Issue</button>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('')}
                 </div>
-            </div>`;
-        }).join('');
+            </div>
+        `;
     }
+
+    // ==================== ARTWORK IMAGE POPUP ====================
+    // Click-to-expand, matching Blockchain's behavior in app.html (not
+    // Dashboard's - app.html deliberately disables this there via
+    // disableDashboardPopups). Self-contained: collector.html shares no JS
+    // with app.html, so this doesn't call or import anything from it.
+    // Scoped to #c-coa-grid and to the <img> itself specifically, so it
+    // can never fire from clicking "View CoA" or "Report an Issue".
+    document.addEventListener('click', function (e) {
+        const grid = document.getElementById('c-coa-grid');
+        if (!grid || !e.target.matches('.artwork-image img')) return;
+        if (!grid.contains(e.target)) return;
+
+        const img = e.target;
+        openCArtworkPopup(
+            img.src,
+            img.getAttribute('data-artwork-title') || 'Untitled',
+            img.getAttribute('data-artwork-year') || '',
+            img.getAttribute('data-artwork-medium') || '',
+            img.getAttribute('data-artwork-dimensions') || ''
+        );
+    });
+
+    function openCArtworkPopup(imageSrc, title, year, medium, dimensions) {
+        const popup = document.getElementById('c-artwork-popup');
+        const popupImg = document.getElementById('c-popup-img');
+        const popupInfo = document.getElementById('c-popup-info');
+        if (!popup || !popupImg || !popupInfo) return;
+
+        popupImg.src = imageSrc;
+        popupImg.alt = title || '';
+
+        let infoHTML = `<div class="title">${escapeHtml(title)}</div>`;
+        if (year) infoHTML += `<div class="detail">${escapeHtml(year)}</div>`;
+        if (medium) infoHTML += `<div class="detail">${escapeHtml(medium)}</div>`;
+        if (dimensions) infoHTML += `<div class="detail">${escapeHtml(dimensions)}</div>`;
+        popupInfo.innerHTML = infoHTML;
+
+        popup.style.display = 'flex';
+    }
+
+    function closeCArtworkPopup() {
+        const popup = document.getElementById('c-artwork-popup');
+        if (popup) popup.style.display = 'none';
+    }
+
+    // Close on background click, same as Blockchain's artworkPopup.
+    document.addEventListener('click', function (e) {
+        if (e.target.id === 'c-artwork-popup') closeCArtworkPopup();
+    });
 
     // ==================== COA CERTIFICATE VIEW ====================
     async function openCertView(coaId) {
