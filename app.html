@@ -3362,7 +3362,9 @@
                             </div>
 
                             <!-- STATS ROW -->
-                            <p class="stat-caption" id="blockchainStatLine" style="margin-bottom: 2.5rem;"></p>
+                            <section class="stats-section">
+                                <p class="stat-caption" id="blockchainStatLine"></p>
+                            </section>
 
                             <!-- ROYALTY NOTIFICATIONS -->
                             <div id="bc-royalty-panel" style="display: none; background: #fffbeb; border: 1px solid #f59e0b; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 2rem;">
@@ -3382,28 +3384,27 @@
                                 <div id="bc-pending-transfers-list"></div>
                             </div>
 
-                            <!-- TWO COLUMN LAYOUT -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start;">
-
-                                <!-- LEFT: ARTWORKS ELIGIBLE FOR COA -->
-                                <div>
-                                    <h3 style="font-size: 1rem; font-weight: 500; margin-bottom: 1rem; letter-spacing: -0.01em;">Your Artworks</h3>
-                                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 1.25rem;">Select an artwork to mint a CoA.</p>
-                                    <div id="bc-artworks-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                        <div style="color: #999; font-size: 0.85rem; padding: 2rem; text-align: center; border: 1px dashed #e5e5e5; border-radius: 8px;">Loading artworks…</div>
-                                    </div>
+                            <!-- YOUR ARTWORKS -->
+                            <section class="artworks-section">
+                                <div class="section-header" style="padding: 0; max-width: none;">
+                                    <h3 class="section-title">Your Artworks</h3>
                                 </div>
-
-                                <!-- RIGHT: ISSUED COAs -->
-                                <div>
-                                    <h3 style="font-size: 1rem; font-weight: 500; margin-bottom: 1rem; letter-spacing: -0.01em;">Issued CoAs</h3>
-                                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 1.25rem;">Manage CoAs and view provenance chains.</p>
-                                    <div id="bc-coas-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                        <div style="color: #999; font-size: 0.85rem; padding: 2rem; text-align: center; border: 1px dashed #e5e5e5; border-radius: 8px;">No CoAs yet.</div>
-                                    </div>
+                                <p style="font-size: 0.8rem; color: #666; margin: -1.5rem 0 1.25rem;">Select an artwork to mint a CoA.</p>
+                                <div id="bc-artworks-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <div style="color: #999; font-size: 0.85rem; padding: 2rem; text-align: center; border: 1px dashed #e5e5e5; border-radius: 8px;">Loading artworks…</div>
                                 </div>
+                            </section>
 
-                            </div>
+                            <!-- ISSUED COAs -->
+                            <section class="artworks-section" style="border-top: 1px solid #e5e5e5; padding-top: 3rem;">
+                                <div class="section-header" style="padding: 0; max-width: none;">
+                                    <h3 class="section-title">Issued CoAs</h3>
+                                </div>
+                                <p style="font-size: 0.8rem; color: #666; margin: -1.5rem 0 1.25rem;">Manage CoAs and view provenance chains.</p>
+                                <div id="bc-coas-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                    <div style="color: #999; font-size: 0.85rem; padding: 2rem; text-align: center; border: 1px dashed #e5e5e5; border-radius: 8px;">No CoAs yet.</div>
+                                </div>
+                            </section>
                         </main>
                     </div>
                     <!-- ==================== END BLOCKCHAIN SECTION ==================== -->
