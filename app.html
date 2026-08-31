@@ -105,10 +105,23 @@
                         .hero-title { font-size: 2.25rem; font-weight: 500; margin-bottom: 0.75rem; letter-spacing: -0.02em; }
                         .hero-subtitle { font-size: 1rem; color: #666; font-weight: 400; }
                         .stats-section { padding: 2rem 0; border-bottom: 1px solid #e5e5e5; }
-                        .stats-container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
-                        .stat-item { text-align: center; }
-                        .stat-number { font-size: 2rem; font-weight: 400; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
-                        .stat-label { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
+                        .stat-caption {
+                          margin: 0;
+                          font-size: 0.7rem;
+                          letter-spacing: 0.1em;
+                          text-transform: uppercase;
+                          color: #999;
+                          text-align: center;
+                          opacity: 0;
+                          animation: statCaptionIn 0.32s cubic-bezier(0.16,1,0.3,1) forwards;
+                        }
+                        @keyframes statCaptionIn {
+                          from { opacity: 0; transform: translateY(6px); }
+                          to   { opacity: 1; transform: translateY(0); }
+                        }
+                        @media (prefers-reduced-motion: reduce) {
+                          .stat-caption { animation: none; opacity: 1; }
+                        }
                         .artworks-section { padding: 4rem 0; }
                         .section-header { max-width: 1400px; margin: 0 auto 3rem; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
                         .section-title { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; }
@@ -2357,12 +2370,6 @@
                             transform: none !important;
                           }
 
-                          /* 11. STATS SECTION STACKING */
-                          .stats-container {
-                            grid-template-columns: 1fr;
-                            gap: 1.5rem;
-                          }
-
                           /* 12. 2×2 GRID STACKING */
                           .dashboard-grid-2x2 {
                             grid-template-columns: 1fr;
@@ -3090,20 +3097,7 @@
 
                             <!-- Stats Section -->
                             <section class="stats-section">
-                                <div class="stats-container">
-                                    <div class="stat-item">
-                                        <div class="stat-number" id="artworksCount">0</div>
-                                        <div class="stat-label">Artworks</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-number" id="collectionsCount">0</div>
-                                        <div class="stat-label">Collections</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-number" id="eventsCount">0</div>
-                                        <div class="stat-label">Events</div>
-                                    </div>
-                                </div>
+                                <p class="stat-caption" id="dashboardStatLine"></p>
                             </section>
 
                             <!-- Artworks Grid Section -->
@@ -3362,29 +3356,13 @@
                         <main style="max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem;">
 
                             <!-- PAGE TITLE -->
-                            <div style="margin-bottom: 2.5rem;">
-                                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                                    <h2 style="font-size: 1.75rem; font-weight: 500; letter-spacing: -0.02em;">Blockchain</h2>
-                                </div>
-                                <p style="color: #666; font-size: 0.9rem;">Mint Certificates of Authenticity for your physical artworks on Polygon. Track provenance and collect resale royalties.</p>
+                            <div style="margin-bottom: 2.5rem; text-align: center;">
+                                <h2 style="font-size: 2.25rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.5rem;">Blockchain</h2>
+                                <p style="color: #666; font-size: 1rem;">Mint CoAs for your physical artworks on Polygon. Track provenance and collect resale royalties.</p>
                             </div>
 
                             <!-- STATS ROW -->
-                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2.5rem;">
-                                <div style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem 1.5rem;">
-                                    <div style="font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Certificates Issued</div>
-                                    <div style="font-size: 2rem; font-weight: 500;" id="bc-stat-total">0</div>
-                                </div>
-                                <div style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem 1.5rem;">
-                                    <div style="font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Pending Royalties</div>
-                                    <div style="font-size: 2rem; font-weight: 500;" id="bc-stat-royalties">0</div>
-                                </div>
-                                <div style="background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem 1.5rem;">
-                                    <div style="font-size: 0.75rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Ownership Transfers</div>
-                                    <div style="font-size: 2rem; font-weight: 500;" id="bc-stat-transfers">0</div>
-                                </div>
-                            </div>
+                            <p class="stat-caption" id="blockchainStatLine" style="margin-bottom: 2.5rem;"></p>
 
                             <!-- ROYALTY NOTIFICATIONS -->
                             <div id="bc-royalty-panel" style="display: none; background: #fffbeb; border: 1px solid #f59e0b; border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 2rem;">
@@ -3410,7 +3388,7 @@
                                 <!-- LEFT: ARTWORKS ELIGIBLE FOR COA -->
                                 <div>
                                     <h3 style="font-size: 1rem; font-weight: 500; margin-bottom: 1rem; letter-spacing: -0.01em;">Your Artworks</h3>
-                                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 1.25rem;">Select an artwork to mint a Certificate of Authenticity.</p>
+                                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 1.25rem;">Select an artwork to mint a CoA.</p>
                                     <div id="bc-artworks-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
                                         <div style="color: #999; font-size: 0.85rem; padding: 2rem; text-align: center; border: 1px dashed #e5e5e5; border-radius: 8px;">Loading artworks…</div>
                                     </div>
@@ -3418,10 +3396,10 @@
 
                                 <!-- RIGHT: ISSUED COAs -->
                                 <div>
-                                    <h3 style="font-size: 1rem; font-weight: 500; margin-bottom: 1rem; letter-spacing: -0.01em;">Issued Certificates</h3>
-                                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 1.25rem;">Manage certificates and view provenance chains.</p>
+                                    <h3 style="font-size: 1rem; font-weight: 500; margin-bottom: 1rem; letter-spacing: -0.01em;">Issued CoAs</h3>
+                                    <p style="font-size: 0.8rem; color: #666; margin-bottom: 1.25rem;">Manage CoAs and view provenance chains.</p>
                                     <div id="bc-coas-list" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                                        <div style="color: #999; font-size: 0.85rem; padding: 2rem; text-align: center; border: 1px dashed #e5e5e5; border-radius: 8px;">No certificates yet.</div>
+                                        <div style="color: #999; font-size: 0.85rem; padding: 2rem; text-align: center; border: 1px dashed #e5e5e5; border-radius: 8px;">No CoAs yet.</div>
                                     </div>
                                 </div>
 
@@ -4229,6 +4207,10 @@
                                 .replace(/>/g, '&gt;')
                                 .replace(/"/g, '&quot;')
                                 .replace(/'/g, '&#39;');
+                        }
+
+                        function countLabel(n, singular, plural) {
+                            return `${n} ${n === 1 ? singular : plural}`;
                         }
 
                         // Per-artwork portfolio card sizing ("small" is the default -
@@ -6688,13 +6670,13 @@
                             displayProfileCollections(collections || []);
 
                             // ✅ FORCE UPDATE THE COUNT IMMEDIATELY
-                            document.getElementById('collectionsCount').textContent = window.currentCollections.length;
+                            updateStats();
 
                         } catch (error) {
                             console.error('Error loading collections:', error);
                             document.getElementById('collectionsContainer').innerHTML = '<p style="color: #666; font-size: 0.9rem;">Error loading collections</p>';
                             window.currentCollections = [];
-                            document.getElementById('collectionsCount').textContent = '0';
+                            updateStats();
                         }
                     }
 
@@ -10569,11 +10551,20 @@
                         }
 
                         // ==================== STATS AND DASHBOARD ====================
+                        function renderDashboardStatLine(artworksCount, collectionsCount, eventsCount) {
+                            const line = document.getElementById('dashboardStatLine');
+                            if (!line) return;
+                            line.textContent = [
+                                countLabel(artworksCount, 'Artwork', 'Artworks'),
+                                countLabel(collectionsCount, 'Collection', 'Collections'),
+                                countLabel(eventsCount, 'Upcoming Event', 'Upcoming Events')
+                            ].join(' · ');
+                        }
+
                         function updateStats() {
                             try {
                                 // Update artwork count
                                 const artworksCount = AppState.currentArtworks.length;
-                                document.getElementById('artworksCount').textContent = artworksCount;
 
                                 // Update events count
                                 const eventsGrid = document.getElementById('eventsGrid');
@@ -10587,8 +10578,6 @@
                                         eventsCount = window.currentEvents.length;
                                     }
                                 }
-
-                                document.getElementById('eventsCount').textContent = eventsCount;
 
                                 // ✅ FIXED COLLECTIONS COUNT - USE window.currentCollections
                                 let collectionsCount = 0;
@@ -10605,20 +10594,18 @@
                                     }
                                 }
 
-                                document.getElementById('collectionsCount').textContent = collectionsCount;
+                                renderDashboardStatLine(artworksCount, collectionsCount, eventsCount);
 
-                                console.log('📊 Stats updated:', { 
-                                    artworks: artworksCount, 
-                                    events: eventsCount, 
-                                    collections: collectionsCount 
+                                console.log('📊 Stats updated:', {
+                                    artworks: artworksCount,
+                                    events: eventsCount,
+                                    collections: collectionsCount
                                 });
 
                             } catch (error) {
                                 console.error('Error updating stats:', error);
                                 // Fallback to basic counts
-                                document.getElementById('artworksCount').textContent = AppState.currentArtworks.length;
-                                document.getElementById('eventsCount').textContent = '0';
-                                document.getElementById('collectionsCount').textContent = '0';
+                                renderDashboardStatLine(AppState.currentArtworks.length, 0, 0);
                             }
                         }
 
@@ -13010,10 +12997,15 @@
             supabaseClient.from('royalty_notifications').select('*').eq('artist_id', user.id).eq('status', 'pending')
         ]);
         const el = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v ?? 0; };
-        el('bc-stat-total', total ?? 0);
-        el('bc-stat-transfers', transfers ?? 0);
-        el('bc-stat-royalties', (pending || []).length);
         el('coaCount', total ?? 0);
+        const statLine = document.getElementById('blockchainStatLine');
+        if (statLine) {
+            statLine.textContent = [
+                countLabel(total ?? 0, 'CoA Issued', 'CoAs Issued'),
+                `${(pending || []).length} Pending Royalties`,
+                countLabel(transfers ?? 0, 'Ownership Transfer', 'Ownership Transfers')
+            ].join(' · ');
+        }
     }
 
     async function loadBcArtworks(user) {
@@ -13068,7 +13060,7 @@
         if (!container) return;
 
         if (!coas || coas.length === 0) {
-            container.innerHTML = '<div style="color:#999;font-size:0.85rem;padding:2rem;text-align:center;border:1px dashed #e5e5e5;border-radius:8px;">No certificates issued yet.</div>';
+            container.innerHTML = '<div style="color:#999;font-size:0.85rem;padding:2rem;text-align:center;border:1px dashed #e5e5e5;border-radius:8px;">No CoAs issued yet.</div>';
             return;
         }
 
