@@ -72,6 +72,29 @@ serve(async (req) => {
       return json({ error: "Minting isn't available yet." }, 403);
     }
 
+    // Per-artist mint throttle, checked against blockchain_coas directly -
+    // no new table needed, artist_id/created_at already exist there. 20/24h
+    // is well above any real usage seen so far (busiest artist: 4 mints over
+    // ~33h; busiest artwork-upload burst: 3 uploads in ~66s, so a real batch-
+    // minting session after a show is still comfortably covered) while
+    // bounding how much gas a compromised account can burn from the platform
+    // wallet before this kicks in - checked before the ownership lookup or
+    // any chain call, so a blocked attempt costs nothing.
+    const RATE_LIMIT_WINDOW_HOURS = 24;
+    const RATE_LIMIT_MAX_MINTS = 20;
+    const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
+    const { count: recentMintCount } = await supabase
+      .from("blockchain_coas")
+      .select("id", { count: "exact", head: true })
+      .eq("artist_id", user.id)
+      .gte("created_at", windowStart);
+
+    if ((recentMintCount ?? 0) >= RATE_LIMIT_MAX_MINTS) {
+      return json({
+        error: `You've reached the limit of ${RATE_LIMIT_MAX_MINTS} certificates minted per ${RATE_LIMIT_WINDOW_HOURS} hours. Please try again later.`,
+      }, 429);
+    }
+
     // Ownership check is baked into the query itself, not a separate branch:
     // this can only ever return a row if the artwork belongs to the caller.
     const { data: artwork, error: artworkError } = await supabase
