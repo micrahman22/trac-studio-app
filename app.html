@@ -4724,14 +4724,40 @@
     // neither matches. Relies on the collector_accounts read-policy fix
     // already live on staging to see an unlinked row by email.
     async function resolveRole(user) {
-        const metaRole = user.user_metadata?.role;
-        if (metaRole === 'artist' || metaRole === 'collector') return metaRole;
         const { data: profileRow } = await supabaseClient
             .from('profiles').select('id').eq('id', user.id).maybeSingle();
         if (profileRow) return 'artist';
         const { data: collectorRow } = await supabaseClient
             .from('collector_accounts').select('id').eq('email', user.email.toLowerCase()).maybeSingle();
         return collectorRow ? 'collector' : 'artist';
+    }
+
+    // contact_email/cv_url are no longer selectable directly off profiles for
+    // anon or authenticated (see profile_public_contact / get_my_contact_info
+    // migration) - a plain profiles select('*') never returns them, so every
+    // caller that needs them merges one of these two in afterward instead.
+    // Owner reading their own row: real values regardless of show_footer_contact.
+    async function attachOwnContactInfo(profile) {
+        if (!profile) return profile;
+        const { data } = await supabaseClient.rpc('get_my_contact_info');
+        const info = data?.[0];
+        profile.contact_email = info?.contact_email ?? null;
+        profile.cv_url = info?.cv_url ?? null;
+        return profile;
+    }
+
+    // Anyone viewing someone else's portfolio: only returns a value if that
+    // artist has show_footer_contact on, enforced server-side by the view.
+    async function attachPublicContactInfo(profile) {
+        if (!profile) return profile;
+        const { data } = await supabaseClient
+            .from('profile_public_contact')
+            .select('contact_email, cv_url')
+            .eq('profile_id', profile.id)
+            .maybeSingle();
+        profile.contact_email = data?.contact_email ?? null;
+        profile.cv_url = data?.cv_url ?? null;
+        return profile;
     }
 
     // Shared by both the one-time initial-load check and the live
@@ -6601,9 +6627,10 @@
 
                                 const { data: profile, error } = await supabaseClient
                                     .from('profiles')
-                                    .select('*, portfolio_layout, image_size')
+                                    .select('id, username, created_at, bio, artist_statement, website, instagram, cv_file_path, gallery_image_size, gallery_aspect_ratio, full_name, has_cv, social_links, profile_photo_url, has_profile_photo, show_events, show_blog, image_size, portfolio_style, portfolio_font_family, portfolio_font_size, header_font_size, nav_font_size, body_font_size, footer_font_size, header_font_family, body_title_size, body_desc_size, body_meta_size, body_font_family, footer_font_family, titles_size, desc_size, artwork_size, artist_name_color, nav_color, titles_color, desc_color, artwork_details_color, footer_text_color, footer_contact, show_footer_contact, portfolio_layout, portfolio_spacing, portfolio_navigation, header_layout, footer_style, collection_title_layout, custom_colors, custom_fonts, card_padding')
                                     .eq('id', user.id)
                                     .single();
+                                if (profile) await attachOwnContactInfo(profile);
 
                                 if (error) {
                                     console.error('Error loading profile:', error);
@@ -6952,9 +6979,10 @@
 
                                 const { data: profile, error } = await supabaseClient
                                     .from('profiles')
-                                    .select('*')
+                                    .select('id, username, created_at, bio, artist_statement, website, instagram, cv_file_path, gallery_image_size, gallery_aspect_ratio, full_name, has_cv, social_links, profile_photo_url, has_profile_photo, show_events, show_blog, image_size, portfolio_style, portfolio_font_family, portfolio_font_size, header_font_size, nav_font_size, body_font_size, footer_font_size, header_font_family, body_title_size, body_desc_size, body_meta_size, body_font_family, footer_font_family, titles_size, desc_size, artwork_size, artist_name_color, nav_color, titles_color, desc_color, artwork_details_color, footer_text_color, footer_contact, show_footer_contact, portfolio_layout, portfolio_spacing, portfolio_navigation, header_layout, footer_style, collection_title_layout, custom_colors, custom_fonts, card_padding')
                                     .eq('username', username)
                                     .single();
+                                if (profile) await attachPublicContactInfo(profile);
 
                                 if (error || !profile) {
                                     document.getElementById('portfolioPage').innerHTML = `
@@ -7107,9 +7135,10 @@
                                     // PUBLIC VIEW - Load by username
                                     const { data: profileData, error: profileError } = await supabaseClient
                                         .from('profiles')
-                                        .select('*')
+                                        .select('id, username, created_at, bio, artist_statement, website, instagram, cv_file_path, gallery_image_size, gallery_aspect_ratio, full_name, has_cv, social_links, profile_photo_url, has_profile_photo, show_events, show_blog, image_size, portfolio_style, portfolio_font_family, portfolio_font_size, header_font_size, nav_font_size, body_font_size, footer_font_size, header_font_family, body_title_size, body_desc_size, body_meta_size, body_font_family, footer_font_family, titles_size, desc_size, artwork_size, artist_name_color, nav_color, titles_color, desc_color, artwork_details_color, footer_text_color, footer_contact, show_footer_contact, portfolio_layout, portfolio_spacing, portfolio_navigation, header_layout, footer_style, collection_title_layout, custom_colors, custom_fonts, card_padding')
                                         .eq('username', targetUsername)
                                         .single();
+                                    if (profileData) await attachPublicContactInfo(profileData);
 
                                     if (profileError) {
                                         console.error('Portfolio not found:', profileError);
@@ -7170,9 +7199,10 @@
 
                                     const { data: profileData, error: profileError } = await supabaseClient
                                         .from('profiles')
-                                        .select('*')
+                                        .select('id, username, created_at, bio, artist_statement, website, instagram, cv_file_path, gallery_image_size, gallery_aspect_ratio, full_name, has_cv, social_links, profile_photo_url, has_profile_photo, show_events, show_blog, image_size, portfolio_style, portfolio_font_family, portfolio_font_size, header_font_size, nav_font_size, body_font_size, footer_font_size, header_font_family, body_title_size, body_desc_size, body_meta_size, body_font_family, footer_font_family, titles_size, desc_size, artwork_size, artist_name_color, nav_color, titles_color, desc_color, artwork_details_color, footer_text_color, footer_contact, show_footer_contact, portfolio_layout, portfolio_spacing, portfolio_navigation, header_layout, footer_style, collection_title_layout, custom_colors, custom_fonts, card_padding')
                                         .eq('id', user.id)
                                         .single();
+                                    if (profileData) await attachOwnContactInfo(profileData);
 
                                     profile = profileData;
 
@@ -11864,9 +11894,10 @@
 
                                 const { data: profile } = await supabaseClient
                                     .from('profiles')
-                                    .select('*')
+                                    .select('id, username, created_at, bio, artist_statement, website, instagram, cv_file_path, gallery_image_size, gallery_aspect_ratio, full_name, has_cv, social_links, profile_photo_url, has_profile_photo, show_events, show_blog, image_size, portfolio_style, portfolio_font_family, portfolio_font_size, header_font_size, nav_font_size, body_font_size, footer_font_size, header_font_family, body_title_size, body_desc_size, body_meta_size, body_font_family, footer_font_family, titles_size, desc_size, artwork_size, artist_name_color, nav_color, titles_color, desc_color, artwork_details_color, footer_text_color, footer_contact, show_footer_contact, portfolio_layout, portfolio_spacing, portfolio_navigation, header_layout, footer_style, collection_title_layout, custom_colors, custom_fonts, card_padding')
                                     .eq('id', user.id)
                                     .single();
+                                if (profile) await attachOwnContactInfo(profile);
 
                                 return profile;
                             } catch (error) {
@@ -11956,9 +11987,10 @@
 
                                 const { data: profile, error } = await supabaseClient
                                     .from('profiles')
-                                    .select('*')
+                                    .select('id, username, created_at, bio, artist_statement, website, instagram, cv_file_path, gallery_image_size, gallery_aspect_ratio, full_name, has_cv, social_links, profile_photo_url, has_profile_photo, show_events, show_blog, image_size, portfolio_style, portfolio_font_family, portfolio_font_size, header_font_size, nav_font_size, body_font_size, footer_font_size, header_font_family, body_title_size, body_desc_size, body_meta_size, body_font_family, footer_font_family, titles_size, desc_size, artwork_size, artist_name_color, nav_color, titles_color, desc_color, artwork_details_color, footer_text_color, footer_contact, show_footer_contact, portfolio_layout, portfolio_spacing, portfolio_navigation, header_layout, footer_style, collection_title_layout, custom_colors, custom_fonts, card_padding')
                                     .eq('id', user.id)
                                     .single();
+                                if (profile) await attachOwnContactInfo(profile);
 
                                 if (error) { console.error('Database error:', error); return; }
 
@@ -12543,12 +12575,13 @@
                                                                                 // No new CV file - check existing CV status
                                                                                 const { data: currentProfile } = await supabaseClient
                                                                                     .from('profiles')
-                                                                                    .select('has_cv, cv_url')
+                                                                                    .select('has_cv')
                                                                                     .eq('id', user.id)
                                                                                     .single();
+                                                                                const { data: ownContact } = await supabaseClient.rpc('get_my_contact_info');
 
                                                                                 hasCV = currentProfile?.has_cv || false;
-                                                                                cvUrl = currentProfile?.cv_url || null;
+                                                                                cvUrl = ownContact?.[0]?.cv_url || null;
                                                                             }
 
                                                                             const updateData = {

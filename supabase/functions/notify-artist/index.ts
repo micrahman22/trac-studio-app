@@ -50,25 +50,59 @@ serve(async (req) => {
     // still-pending request. cv_requests.id is an unguessable UUID and its
     // own RLS select policy restricts reads to the owning artist, so an
     // attacker cannot discover someone else's request id to feed in here.
-    const { data: cvRequest, error: fetchError } = await supabase
+    //
+    // Claimed atomically, same pattern as send-cv-email's pending->approved
+    // claim: flipping notified_at as part of the same UPDATE that checks it's
+    // still null, instead of a separate SELECT-then-later-UPDATE. Concurrent
+    // calls for the same id used to all pass the SELECT check before any of
+    // them had written back, so all of them sent a real email - confirmed via
+    // live pentest (5 concurrent calls, 5 duplicate emails). Only one
+    // concurrent UPDATE can ever match "notified_at is null" and return a
+    // row; whichever loses the race gets an empty result here and stops
+    // immediately, before any email is sent.
+    const { data: cvRequest, error: claimError } = await supabase
       .from("cv_requests")
-      .select("id, artist_id, requester_name, requester_company, requester_email, requester_phone, message, status")
+      .update({ notified_at: new Date().toISOString() })
       .eq("id", requestId)
       .eq("status", "pending")
       .is("notified_at", null)
+      .select("id, artist_id, requester_name, requester_company, requester_email, requester_phone, message, status")
       .single();
 
-    if (fetchError || !cvRequest) {
+    if (claimError || !cvRequest) {
       return new Response(JSON.stringify({ error: "Request not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    // The claim above already flipped notified_at. Every failure path from
+    // here on needs to hand it back to null - otherwise a request that hit
+    // e.g. a transient Resend outage would be stuck permanently "notified"
+    // with no email ever having gone out, and no way to retry.
+    async function revertClaim() {
+      await supabase
+        .from("cv_requests")
+        .update({ notified_at: null })
+        .eq("id", requestId);
+    }
+
+    // Everything from here runs after the claim above has already set
+    // notified_at - any exception between here and the final success
+    // response, anticipated or not, must hand the claim back before this
+    // function exits. The specific branches below still call revertClaim()
+    // themselves so they can return their own clear error message; this
+    // wrapping try/catch exists for anything they didn't anticipate (e.g. a
+    // thrown network error from a query, rather than a normal returned
+    // {error}) - without it, that kind of failure would leave the row stuck
+    // at "notified" with no email ever having gone out.
+    try {
+
     // Get artist's email via admin API
     const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(cvRequest.artist_id);
     if (userError || !user?.email) {
       console.error("Could not get artist email:", userError);
+      await revertClaim();
       return new Response(JSON.stringify({ error: "Artist not found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -138,23 +172,28 @@ serve(async (req) => {
     if (!emailRes.ok) {
       const errText = await emailRes.text();
       console.error("Resend error:", errText);
+      await revertClaim();
       return new Response(JSON.stringify({ error: "Email failed", detail: errText }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Mark as notified so a replayed call with the same id can't re-trigger
-    // this email. Guard checked in the query above via .is("notified_at", null).
-    await supabase
-      .from("cv_requests")
-      .update({ notified_at: new Date().toISOString() })
-      .eq("id", requestId);
-
+    // Status was already claimed as "notified" atomically above, before the
+    // email was sent - nothing left to update here on success.
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+
+    } catch (postClaimErr) {
+      console.error("Unexpected error after claiming notify:", postClaimErr.message);
+      await revertClaim();
+      return new Response(JSON.stringify({ error: "Could not send notification. Please try again." }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
   } catch (err) {
     console.error("Unhandled error:", err);

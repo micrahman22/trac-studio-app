@@ -144,7 +144,10 @@ serve(async (req) => {
         tx_hash: txHash,
         contract_address: POLYGON_CONTRACT_ADDRESS,
         chain_id: POLYGON_CHAIN_ID,
-        royalty_pct: Number.isFinite(royalty_pct) ? royalty_pct : 10,
+        // Clamped to the same 1-25 range the mint modal's own slider enforces
+        // (app.html #bc-royalty-slider) - a direct call bypassing the UI
+        // could otherwise send any value, e.g. 0 or 100000.
+        royalty_pct: Number.isFinite(royalty_pct) ? Math.min(25, Math.max(1, royalty_pct)) : 10,
         network: "Polygon Amoy",
         status: "minted",
         metadata: JSON.stringify(metadata),

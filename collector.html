@@ -408,8 +408,6 @@
     // shared by domain (no storage isolation), this is what actually stops an
     // artist's session from landing on a collector dashboard, not storage.
     async function resolveRole(user) {
-        const metaRole = user.user_metadata?.role;
-        if (metaRole === 'artist' || metaRole === 'collector') return metaRole;
         const { data: profileRow } = await supabaseClient
             .from('profiles').select('id').eq('id', user.id).maybeSingle();
         if (profileRow) return 'artist';
