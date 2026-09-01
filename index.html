@@ -6,6 +6,14 @@
 <title>TRAC | Ownership, On Record</title>
 <meta name="description" content="TRAC is where artists build a portfolio, organize their studio, and manage their creative practice, all in one place.">
 
+<!-- Cloudflare Turnstile - explicit render (onload callback) rather than
+     the auto-render data-sitekey attribute, since the sign-in/sign-up
+     panes here are toggled via display:none/block on a persistent overlay,
+     not created fresh each time - explicit render + reset gives control
+     over exactly when each widget gets a fresh token instead of relying on
+     auto-render firing once at page load. -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad" async defer></script>
+
 <!--
   ============================================================================
   TRAC MARKETING LANDING PAGE
@@ -652,6 +660,7 @@
           </button>
         </div>
       </div>
+      <div id="turnstileSignIn" style="margin-bottom:0.75rem;"></div>
       <button id="authSignInBtn" class="auth-submit" onclick="signIn()">Sign in</button>
       <div class="auth-forgot"><a href="#" onclick="requestPasswordReset(); return false;">Forgot your password?</a></div>
       <div class="auth-switch">Don't have an account? <a href="#" onclick="showAuthTab('signup'); return false;">Sign up</a></div>
@@ -705,6 +714,7 @@
         <input type="checkbox" id="authAgreeTerms">
         <label for="authAgreeTerms">I agree to the <a href="#" onclick="showTermsPopup(); return false;">Terms of Service</a> and <a href="#" onclick="showPrivacyPopup(); return false;">Privacy Policy</a></label>
       </div>
+      <div id="turnstileSignUp" style="margin-bottom:0.75rem;"></div>
       <button id="authSignUpBtn" class="auth-submit" onclick="signUp()">Create account</button>
       <div class="auth-switch">Already have an account? <a href="#" onclick="showAuthTab('signin'); return false;">Sign in</a></div>
       <div id="authSignUpMsg" class="auth-msg"></div>
@@ -791,6 +801,48 @@
     document.getElementById('authSignInPane').style.display = which === 'signin' ? 'block' : 'none';
     document.getElementById('authSignUpPane').style.display = which === 'signup' ? 'block' : 'none';
     document.getElementById('authCheckEmailPane').style.display = which === 'checkemail' ? 'block' : 'none';
+    // Fresh token every time a pane becomes visible - Turnstile tokens are
+    // single-use and expire after a few minutes, so a stale one left over
+    // from a previous open (or from switching tabs and back) would fail
+    // verification silently otherwise.
+    resetTurnstileWidget(which);
+  }
+
+  // Cloudflare Turnstile - explicit render/reset rather than auto-render,
+  // since authSignInPane/authSignUpPane are toggled via display:none/block
+  // on a persistent overlay, not created fresh each time.
+  const TURNSTILE_SITE_KEY = '0x4AAAAAAEjcopS85Yb7ZhnL';
+  let turnstileSignInWidgetId = null;
+  let turnstileSignUpWidgetId = null;
+  let turnstileSignInToken = null;
+  let turnstileSignUpToken = null;
+
+  function onTurnstileLoad() {
+    turnstileSignInWidgetId = turnstile.render('#turnstileSignIn', {
+      sitekey: TURNSTILE_SITE_KEY,
+      theme: 'auto',
+      callback: (token) => { turnstileSignInToken = token; },
+      'expired-callback': () => { turnstileSignInToken = null; },
+      'error-callback': () => { turnstileSignInToken = null; },
+    });
+    turnstileSignUpWidgetId = turnstile.render('#turnstileSignUp', {
+      sitekey: TURNSTILE_SITE_KEY,
+      theme: 'auto',
+      callback: (token) => { turnstileSignUpToken = token; },
+      'expired-callback': () => { turnstileSignUpToken = null; },
+      'error-callback': () => { turnstileSignUpToken = null; },
+    });
+  }
+
+  function resetTurnstileWidget(which) {
+    if (typeof turnstile === 'undefined') return;
+    if (which === 'signin' && turnstileSignInWidgetId !== null) {
+      turnstile.reset(turnstileSignInWidgetId);
+      turnstileSignInToken = null;
+    } else if (which === 'signup' && turnstileSignUpWidgetId !== null) {
+      turnstile.reset(turnstileSignUpWidgetId);
+      turnstileSignUpToken = null;
+    }
   }
   document.getElementById('authCloseBtn').addEventListener('click', closeAuthModal);
   document.getElementById('authOverlay').addEventListener('click', function (e) {
@@ -819,13 +871,33 @@
     const email = document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     if (!email || !password) { authMsg('authSignInMsg', 'Please enter email and password', true); return; }
+    if (!turnstileSignInToken) { authMsg('authSignInMsg', 'Please complete the verification check first', true); return; }
 
     const btn = document.getElementById('authSignInBtn');
     btn.disabled = true;
     btn.textContent = 'Signing in…';
     try {
-      const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      if (error) throw error;
+      // The real brute-force defense is the Turnstile token below, verified
+      // server-side by Supabase Auth itself regardless of caller - that's
+      // what a direct REST API call can't get around. This function was
+      // originally built as the sole defense before that was in place; it
+      // turned out NOT to close that gap on its own (a direct grant_type=
+      // password call bypasses it entirely, confirmed live), so it's kept
+      // now only as a secondary layer against anyone going through this
+      // form specifically - real defense in depth, not the load-bearing
+      // control.
+      const loginRes = await fetch(`${TRAC_CONFIG.supabaseUrl}/functions/v1/secure-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': TRAC_CONFIG.supabaseKey },
+        body: JSON.stringify({ email, password, captchaToken: turnstileSignInToken })
+      });
+      const loginBody = await loginRes.json();
+      resetTurnstileWidget('signin');
+      if (!loginRes.ok) throw new Error(loginBody.error || 'Sign in failed');
+
+      const { error: sessionError } = await supabaseClient.auth.setSession(loginBody.session);
+      if (sessionError) throw sessionError;
+      const data = { user: loginBody.user };
 
       let role = data.user?.user_metadata?.role;
       if (role !== 'artist' && role !== 'collector') {
@@ -867,6 +939,7 @@
     if (!fullName || !email || !password || !confirmPassword) { authMsg('authSignUpMsg', 'Please fill in all fields', true); return; }
     if (password !== confirmPassword) { authMsg('authSignUpMsg', 'Passwords do not match', true); return; }
     if (!agreeTerms) { authMsg('authSignUpMsg', 'Please agree to the Terms and Privacy Policy', true); return; }
+    if (!turnstileSignUpToken) { authMsg('authSignUpMsg', 'Please complete the verification check first', true); return; }
 
     const btn = document.getElementById('authSignUpBtn');
     btn.disabled = true;
@@ -877,9 +950,11 @@
         email, password,
         options: {
           data: { full_name: fullName, role: selectedRole },
-          emailRedirectTo: window.location.origin + redirectPath
+          emailRedirectTo: window.location.origin + redirectPath,
+          captchaToken: turnstileSignUpToken
         }
       });
+      resetTurnstileWidget('signup');
       if (error) throw error;
 
       if (data.session) {
@@ -932,14 +1007,18 @@
   async function requestPasswordReset() {
     const email = document.getElementById('authEmail').value.trim();
     if (!email) { authMsg('authSignInMsg', 'Enter your email above first', true); return; }
+    if (!turnstileSignInToken) { authMsg('authSignInMsg', 'Please complete the verification check first', true); return; }
     try {
       const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/'
+        redirectTo: window.location.origin + '/',
+        captchaToken: turnstileSignInToken
       });
       if (error) throw error;
       authMsg('authSignInMsg', 'Password reset email sent, check your inbox', false);
+      resetTurnstileWidget('signin');
     } catch (err) {
       authMsg('authSignInMsg', err.message || 'Could not send reset email', true);
+      resetTurnstileWidget('signin');
     }
   }
 
