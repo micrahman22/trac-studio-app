@@ -151,27 +151,33 @@ serve(async (req) => {
         to: cvRequest.requester_email,
         subject: `CV from ${escapeHtml(artistName)} - TRAC`,
         html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem; color: #333;">
-            <h2 style="font-weight: 300; font-size: 1.8rem; margin-bottom: 1rem;">
-              Hi ${escapeHtml(cvRequest.requester_name)},
-            </h2>
-            <p style="line-height: 1.6; margin-bottom: 1rem;">
-              Thank you for your interest. <strong>${escapeHtml(artistName)}</strong> has approved your request and shared their CV with you via TRAC.
-            </p>
-            <div style="margin: 2rem 0; text-align: center;">
-              <a href="${signedData.signedUrl}"
-                 style="background: #000; color: #fff; padding: 0.85rem 2.5rem; text-decoration: none;
-                        border-radius: 6px; font-size: 1rem; display: inline-block; letter-spacing: 0.02em;">
-                Download CV
-              </a>
+          <div style="font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; max-width: 560px; margin: 0 auto; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden;">
+            <div style="padding: 1.75rem 2rem; border-bottom: 1px solid #e5e5e5;">
+              <span style="font-size: 1rem; font-weight: 600; letter-spacing: 0.1em; color: #000;">TRAC</span>
             </div>
-            <p style="color: #888; font-size: 0.85rem; margin-top: 2rem; line-height: 1.5;">
-              This download link expires in <strong>48 hours</strong>. If you need a fresh link, please contact ${escapeHtml(artistName)} directly.
-            </p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 2rem 0;">
-            <p style="color: #bbb; font-size: 0.75rem; text-align: center; margin: 0;">
-              Sent via <a href="https://tracstudio.app" style="color: #bbb;">TRAC Artist Platform</a>
-            </p>
+            <div style="padding: 2rem; color: #333;">
+              <h2 style="font-weight: 300; font-size: 1.6rem; margin: 0 0 1rem;">
+                Hi ${escapeHtml(cvRequest.requester_name)},
+              </h2>
+              <p style="line-height: 1.6; margin: 0 0 1.5rem;">
+                Thank you for your interest. <strong>${escapeHtml(artistName)}</strong> has approved your request and shared their CV with you via TRAC.
+              </p>
+              <div style="text-align: center; margin-bottom: 1.5rem;">
+                <a href="${signedData.signedUrl}"
+                   style="background: #000; color: #fff; padding: 0.85rem 2.5rem; text-decoration: none;
+                          border-radius: 6px; font-size: 0.95rem; display: inline-block; letter-spacing: 0.02em;">
+                  Download CV
+                </a>
+              </div>
+              <p style="color: #888; font-size: 0.85rem; line-height: 1.5; margin: 0;">
+                This download link expires in <strong>48 hours</strong>. If you need a fresh link, please contact ${escapeHtml(artistName)} directly.
+              </p>
+            </div>
+            <div style="padding: 1.25rem 2rem; border-top: 1px solid #e5e5e5; text-align: center;">
+              <p style="color: #999; font-size: 0.75rem; margin: 0; line-height: 1.5;">
+                Sent via <a href="https://tracstudio.app" style="color: #999; text-decoration: underline;">TRAC</a> - where artists build a career, not just a portfolio.
+              </p>
+            </div>
           </div>
         `,
       }),

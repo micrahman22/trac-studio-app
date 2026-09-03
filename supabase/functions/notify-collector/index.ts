@@ -145,10 +145,18 @@ serve(async (req) => {
     const actionText = eventType === "transfer"
       ? `recorded a transfer of <strong>${escapeHtml(artworkTitle)}</strong> to your TRAC Collector account`
       : eventType === "transfer_pending"
-      ? `initiated a transfer of <strong>${escapeHtml(artworkTitle)}</strong> away from your TRAC Collector account. It isn't final yet`
+      ? `initiated a transfer of <strong>${escapeHtml(artworkTitle)}</strong> away from your TRAC Collector account`
       : eventType === "invite"
-      ? `is sending you <strong>${escapeHtml(artworkTitle)}</strong> as a Certificate of Authenticity on TRAC. It isn't final yet`
+      ? `initiated a transfer of <strong>${escapeHtml(artworkTitle)}</strong> to you as a Certificate of Authenticity`
       : `recorded you as the owner of a new certificate of authenticity for <strong>${escapeHtml(artworkTitle)}</strong>`;
+
+    // transfer_pending and invite are the only two states where finalize-transfer
+    // hasn't run yet - only the artist can call it (finalize-transfer enforces
+    // artist_id = caller server-side, and app.html's finalize button is the only
+    // call site in the repo), so recipients never have anything to do here.
+    const pendingNote = (eventType === "transfer_pending" || eventType === "invite")
+      ? " This will be confirmed once they finalize the transfer."
+      : "";
 
     // transfer_pending, invite, and transfer all go to someone who's either
     // already registered or should be by the time this fires - "Sign up" is
@@ -187,26 +195,32 @@ serve(async (req) => {
     const collectorLink = APP_URL + "/?auth=collector&intent=" + (isRegistered ? "signin" : "signup");
 
     const emailHtml = [
-      '<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 2rem; color: #333;">',
-      '  <h2 style="font-weight: 300; font-size: 1.8rem; margin-bottom: 1rem;">',
-      '    Hi ' + escapeHtml(ownerName || "there") + ',',
-      '  </h2>',
-      '  <p style="line-height: 1.6; margin-bottom: 1rem;">',
-      '    ' + escapeHtml(artistName) + ' has ' + actionText + ' on TRAC.',
-      '  </p>',
-      '  <div style="margin: 2rem 0; text-align: center;">',
-      '    <a href="' + collectorLink + '"',
-      '       style="background: #000; color: #fff; padding: 0.85rem 2.5rem; text-decoration: none; border-radius: 6px; font-size: 1rem; display: inline-block; letter-spacing: 0.02em;">',
-      '      ' + buttonText,
-      '    </a>',
+      '<div style="font-family: -apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif; max-width: 560px; margin: 0 auto; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden;">',
+      '  <div style="padding: 1.75rem 2rem; border-bottom: 1px solid #e5e5e5;">',
+      '    <span style="font-size: 1rem; font-weight: 600; letter-spacing: 0.1em; color: #000;">TRAC</span>',
       '  </div>',
-      '  <p style="color: #888; font-size: 0.85rem; line-height: 1.5;">',
-      '    Sign in with this email address to view the certificate and its full ownership history.',
-      '  </p>',
-      '  <hr style="border: none; border-top: 1px solid #eee; margin: 2rem 0;">',
-      '  <p style="color: #bbb; font-size: 0.75rem; text-align: center; margin: 0;">',
-      '    Sent via <a href="https://tracstudio.app" style="color: #bbb;">TRAC Artist Platform</a>',
-      '  </p>',
+      '  <div style="padding: 2rem; color: #333;">',
+      '    <h2 style="font-weight: 300; font-size: 1.6rem; margin: 0 0 1rem;">',
+      '      Hi ' + escapeHtml(ownerName || "there") + ',',
+      '    </h2>',
+      '    <p style="line-height: 1.6; margin: 0 0 1.5rem;">',
+      '      ' + escapeHtml(artistName) + ' has ' + actionText + ' on TRAC.' + pendingNote,
+      '    </p>',
+      '    <div style="text-align: center; margin-bottom: 1.5rem;">',
+      '      <a href="' + collectorLink + '"',
+      '         style="background: #000; color: #fff; padding: 0.85rem 2.5rem; text-decoration: none; border-radius: 6px; font-size: 0.95rem; display: inline-block; letter-spacing: 0.02em;">',
+      '        ' + buttonText,
+      '      </a>',
+      '    </div>',
+      '    <p style="color: #888; font-size: 0.85rem; line-height: 1.5; margin: 0;">',
+      '      Sign in with this email address to view the certificate and its full ownership history.',
+      '    </p>',
+      '  </div>',
+      '  <div style="padding: 1.25rem 2rem; border-top: 1px solid #e5e5e5; text-align: center;">',
+      '    <p style="color: #999; font-size: 0.75rem; margin: 0; line-height: 1.5;">',
+      '      Sent via <a href="https://tracstudio.app" style="color: #999; text-decoration: underline;">TRAC</a> - certificates of authenticity, permanently linked to the work.',
+      '    </p>',
+      '  </div>',
       '</div>',
     ].join("\n");
 
