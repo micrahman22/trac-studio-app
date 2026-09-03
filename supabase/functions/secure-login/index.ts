@@ -151,6 +151,6 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("Unhandled error:", err.message);
-    return json({ error: err.message }, 500);
+    return json({ error: "Something went wrong. Please try again." }, 500);
   }
 });

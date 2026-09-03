@@ -248,7 +248,7 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("Unhandled error:", err.message);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: "Something went wrong. Please try again." }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

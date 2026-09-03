@@ -44,6 +44,21 @@ serve(async (req) => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyer_email)) {
       return json({ error: "Invalid buyer email" }, 400);
     }
+    // sale_price is optional (falsy values fall through to null below), but
+    // once present it should look like a real sale - not negative, and
+    // capped well above anything this platform's actual sales look like
+    // (comfortably above a serious original-artwork sale) so a bogus/
+    // overflow-style value can't land in coa_ownership_history or
+    // royalty_notifications.
+    if (sale_price !== undefined && sale_price !== null && sale_price !== "") {
+      const parsedPrice = Number(sale_price);
+      if (!Number.isFinite(parsedPrice) || parsedPrice < 0 || parsedPrice > 10_000_000) {
+        return json({ error: "Sale price must be between 0 and 10,000,000." }, 400);
+      }
+    }
+    if (notes && String(notes).length > 1000) {
+      return json({ error: "Notes must be 1000 characters or fewer." }, 400);
+    }
 
     // Verify the caller is authenticated via their own JWT (same pattern as
     // send-cv-email). This user is who we'll check artwork ownership against below
@@ -245,6 +260,6 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("Unhandled error:", err.message);
-    return json({ error: err.message }, 500);
+    return json({ error: "Something went wrong. Please try again." }, 500);
   }
 });

@@ -149,6 +149,6 @@ serve(async (req) => {
     return json({ success: true, pending_transfer_id: pending.id, notified, collector_invited: collectorInvited });
   } catch (err) {
     console.error("Unhandled error:", err);
-    return json({ error: err.message }, 500);
+    return json({ error: "Something went wrong. Please try again." }, 500);
   }
 });
