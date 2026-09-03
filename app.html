@@ -103,7 +103,11 @@
                         .hero-section { padding: 3rem 0 2rem; text-align: center; }
                         .hero-container { max-width: 800px; margin: 0 auto; padding: 0 2rem; }
                         .hero-title { font-size: 2.25rem; font-weight: 500; margin-bottom: 0.75rem; letter-spacing: -0.02em; }
-                        .hero-subtitle { font-size: 1rem; color: #666; font-weight: 400; }
+                        /* Smaller than .stat-caption (0.7rem) on purpose - the stat
+                           counters below this (e.g. "3 Artworks - 1 Collection - 0
+                           Upcoming Events") are meant to be the visual focus of this
+                           header, not the descriptive tagline sitting above them. */
+                        .hero-subtitle { font-size: 0.65rem; color: #999; font-weight: 400; letter-spacing: 0.02em; }
                         .stats-section { padding: 2rem 0; border-bottom: 1px solid #e5e5e5; }
                         .stat-caption {
                           margin: 0;
@@ -3582,6 +3586,24 @@
                                                     </button>
                                                 </div>
 
+                                                <div class="form-section" style="margin-bottom: 0;">
+                                                    <div class="section-head">
+                                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                                        <div>
+                                                            <h3>Notification Preferences</h3>
+                                                            <p>Choose which activity on your certificates sends you an email.</p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group" style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.6rem;">
+                                                        <input type="checkbox" id="notifyOnMint" name="notifyOnMint" style="width: auto; margin: 0;">
+                                                        <label for="notifyOnMint" style="margin: 0;">Email me when one of my artworks is minted as a certificate</label>
+                                                    </div>
+                                                    <div class="form-group" style="margin-bottom: 0;">
+                                                        <input type="checkbox" id="notifyOnTransfer" name="notifyOnTransfer" style="width: auto; margin: 0;">
+                                                        <label for="notifyOnTransfer" style="margin: 0;">Email me when a certificate I minted changes ownership</label>
+                                                    </div>
+                                                </div>
+
                                             </div>
 
                                             <div class="form-actions">
@@ -3591,6 +3613,43 @@
                                                 </button>
                                             </div>
                                         </form>
+
+                                        <!-- Account & Security is its own form, separate from profileSettingsForm -
+                                             a password/email change is an immediate auth action, not part of the
+                                             profile-fields save. -->
+                                        <div class="form-body" style="margin-top: 2rem;">
+                                            <div class="form-section">
+                                                <div class="section-head">
+                                                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                                    <h3>Account &amp; Security</h3>
+                                                </div>
+                                                <div class="form-grid" style="margin-bottom: 1.25rem;">
+                                                    <div class="form-group" style="margin-bottom: 0;">
+                                                        <label for="accountEmail">Account Email</label>
+                                                        <input type="email" id="accountEmail" name="accountEmail" placeholder="you@example.com">
+                                                        <small style="color: #666; font-size: 0.8rem;">This is your sign-in email, separate from the public "Contact Email" above. Changing it sends a confirmation link.</small>
+                                                    </div>
+                                                    <div class="form-group" style="margin-bottom: 0; align-self: end;">
+                                                        <button type="button" class="btn-secondary" id="changeEmailBtn" onclick="changeAccountEmail()">Update Email</button>
+                                                    </div>
+                                                </div>
+                                                <div class="form-grid" style="margin-bottom: 0;">
+                                                    <div class="form-group" style="margin-bottom: 0;">
+                                                        <label for="newPassword">New Password</label>
+                                                        <input type="password" id="newPassword" name="newPassword" placeholder="At least 6 characters" autocomplete="new-password">
+                                                    </div>
+                                                    <div class="form-group" style="margin-bottom: 0;">
+                                                        <label for="confirmNewPassword">Confirm New Password</label>
+                                                        <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Repeat new password" autocomplete="new-password">
+                                                    </div>
+                                                </div>
+                                                <div class="form-actions" style="justify-content: flex-start; margin-top: 1rem;">
+                                                    <button type="button" class="btn-primary" id="changePasswordBtn" onclick="changeAccountPassword()">
+                                                        <span id="changePasswordText">Update Password</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                         <div class="settings-collections-head">
                                             <h3>Portfolio Collections</h3>
@@ -6627,10 +6686,15 @@
 
                                 const { data: profile, error } = await supabaseClient
                                     .from('profiles')
-                                    .select('id, username, created_at, bio, artist_statement, website, instagram, cv_file_path, gallery_image_size, gallery_aspect_ratio, full_name, has_cv, social_links, profile_photo_url, has_profile_photo, show_events, show_blog, image_size, portfolio_style, portfolio_font_family, portfolio_font_size, header_font_size, nav_font_size, body_font_size, footer_font_size, header_font_family, body_title_size, body_desc_size, body_meta_size, body_font_family, footer_font_family, titles_size, desc_size, artwork_size, artist_name_color, nav_color, titles_color, desc_color, artwork_details_color, footer_text_color, footer_contact, show_footer_contact, portfolio_layout, portfolio_spacing, portfolio_navigation, header_layout, footer_style, collection_title_layout, custom_colors, custom_fonts, card_padding')
+                                    .select('id, username, created_at, bio, artist_statement, website, instagram, cv_file_path, gallery_image_size, gallery_aspect_ratio, full_name, has_cv, social_links, profile_photo_url, has_profile_photo, show_events, show_blog, image_size, portfolio_style, portfolio_font_family, portfolio_font_size, header_font_size, nav_font_size, body_font_size, footer_font_size, header_font_family, body_title_size, body_desc_size, body_meta_size, body_font_family, footer_font_family, titles_size, desc_size, artwork_size, artist_name_color, nav_color, titles_color, desc_color, artwork_details_color, footer_text_color, footer_contact, show_footer_contact, portfolio_layout, portfolio_spacing, portfolio_navigation, header_layout, footer_style, collection_title_layout, custom_colors, custom_fonts, card_padding, notify_on_mint, notify_on_transfer')
                                     .eq('id', user.id)
                                     .single();
                                 if (profile) await attachOwnContactInfo(profile);
+
+                                // Account email lives on the auth user, not the profiles
+                                // row - always from user.email, regardless of whether the
+                                // profile row itself loaded.
+                                document.getElementById('accountEmail').value = user.email;
 
                                 if (error) {
                                     console.error('Error loading profile:', error);
@@ -6640,6 +6704,8 @@
                                     document.getElementById('bio').value = '';
                                     document.getElementById('website').value = '';
                                     document.getElementById('contactEmail').value = user.email;
+                                    document.getElementById('notifyOnMint').checked = true;
+                                    document.getElementById('notifyOnTransfer').checked = true;
                                     const fallbackPortfolioUrl = `${window.location.origin}/${user.email.split('@')[0]}`;
                                     document.getElementById('settingsAvatarName').textContent = user.user_metadata?.full_name || '';
                                     document.getElementById('settingsAvatarHandle').textContent = '@' + user.email.split('@')[0];
@@ -6662,6 +6728,10 @@
                                 document.getElementById('bio').value = profile.bio || '';
                                 document.getElementById('website').value = profile.website || '';
                                 document.getElementById('contactEmail').value = profile.contact_email || user.email;
+                                // Defaults to true (opted in) for rows created before these
+                                // columns existed - matches the column's own DB default.
+                                document.getElementById('notifyOnMint').checked = profile.notify_on_mint !== false;
+                                document.getElementById('notifyOnTransfer').checked = profile.notify_on_transfer !== false;
                                 const portfolioUrl = `${window.location.origin}/${profile.username || user.email.split('@')[0]}`;
                                 document.getElementById('settingsAvatarName').textContent = profile.full_name || user.user_metadata?.full_name || '';
                                 document.getElementById('settingsAvatarHandle').textContent = '@' + (profile.username || user.email.split('@')[0]);
@@ -6700,9 +6770,68 @@
                                     document.getElementById('settingsAvatarHandle').textContent = '@' + user.email.split('@')[0];
                                     document.getElementById('settingsAvatarLink').textContent = fallbackPortfolioUrl2;
                                     document.getElementById('settingsAvatarLink').href = fallbackPortfolioUrl2;
+                                    document.getElementById('notifyOnMint').checked = true;
+                                    document.getElementById('notifyOnTransfer').checked = true;
                                     updateCVStatusDisplay(false);
                                     loadSocialPlatforms('');
                                 }
+                            }
+                        }
+
+                        // ==================== ACCOUNT & SECURITY ====================
+                        // Both of these are auth-level operations (Supabase's own
+                        // updateUser), not profiles-table writes - deliberately separate
+                        // from profileSettingsForm's submit handler above. Neither is
+                        // captcha-gated (only signUp/signInWithPassword/
+                        // resetPasswordForEmail are), so no Turnstile token is needed here
+                        // - confirmed earlier this session while testing the password-
+                        // reset escape hatch against the brute-force lockout.
+                        async function changeAccountEmail() {
+                            const newEmail = document.getElementById('accountEmail').value.trim();
+                            if (!newEmail) { showToast('Enter an email address', 'error'); return; }
+
+                            const btn = document.getElementById('changeEmailBtn');
+                            btn.disabled = true;
+                            try {
+                                const { data: { user } } = await supabaseClient.auth.getUser();
+                                if (user && newEmail.toLowerCase() === user.email.toLowerCase()) {
+                                    showToast('That\'s already your account email', 'error');
+                                    return;
+                                }
+                                const { error } = await supabaseClient.auth.updateUser({ email: newEmail });
+                                if (error) throw error;
+                                showToast('Confirmation link sent to ' + newEmail + '. Your email changes once you click it.');
+                            } catch (error) {
+                                console.error('Change email error:', error);
+                                showToast('Error updating email: ' + (error.message || 'Unknown error'), 'error');
+                            } finally {
+                                btn.disabled = false;
+                            }
+                        }
+
+                        async function changeAccountPassword() {
+                            const newPassword = document.getElementById('newPassword').value;
+                            const confirmPassword = document.getElementById('confirmNewPassword').value;
+                            if (!newPassword || !confirmPassword) { showToast('Enter and confirm a new password', 'error'); return; }
+                            if (newPassword !== confirmPassword) { showToast('Passwords do not match', 'error'); return; }
+                            if (newPassword.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+
+                            const btn = document.getElementById('changePasswordBtn');
+                            const btnText = document.getElementById('changePasswordText');
+                            btn.disabled = true;
+                            btnText.innerHTML = '<span class="loading-spinner"></span> Updating...';
+                            try {
+                                const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+                                if (error) throw error;
+                                document.getElementById('newPassword').value = '';
+                                document.getElementById('confirmNewPassword').value = '';
+                                showToast('Password updated');
+                            } catch (error) {
+                                console.error('Change password error:', error);
+                                showToast('Error updating password: ' + (error.message || 'Unknown error'), 'error');
+                            } finally {
+                                btn.disabled = false;
+                                btnText.textContent = 'Update Password';
                             }
                         }
 
@@ -12592,7 +12721,9 @@
                                                                                 contact_email: document.getElementById('contactEmail').value,
                                                                                 social_links: getSocialPlatformsData(),
                                                                                 has_cv: hasCV,
-                                                                                cv_url: cvUrl
+                                                                                cv_url: cvUrl,
+                                                                                notify_on_mint: document.getElementById('notifyOnMint').checked,
+                                                                                notify_on_transfer: document.getElementById('notifyOnTransfer').checked
                                                                             };
 
                                                                             console.log('🔄 updateData being saved:', JSON.stringify(updateData, null, 2));
