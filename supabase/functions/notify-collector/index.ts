@@ -26,6 +26,18 @@ function escapeHtml(value: unknown): string {
     .replace(/'/g, "&#39;");
 }
 
+// Constant-time compare - a plain !== short-circuits on the first
+// mismatched character, which turns this into a timing side-channel for
+// guessing SUPABASE_SERVICE_ROLE_KEY one character at a time. Length is
+// compared first (safe to leak - the key's length isn't a secret), then
+// every byte is checked regardless of earlier mismatches.
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -39,7 +51,7 @@ serve(async (req) => {
   // present the service-role key itself as a shared secret.
   const authHeader = req.headers.get("Authorization") || "";
   const presentedKey = authHeader.replace(/^Bearer\s+/i, "");
-  if (presentedKey !== SUPABASE_SERVICE_ROLE_KEY) {
+  if (!timingSafeEqual(presentedKey, SUPABASE_SERVICE_ROLE_KEY)) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
