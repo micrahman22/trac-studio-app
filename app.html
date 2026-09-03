@@ -1738,6 +1738,15 @@
                             to { transform: rotate(360deg); }
                         }
 
+                        @keyframes softPulse {
+                            0%, 100% { opacity: 1; }
+                            50% { opacity: 0.5; }
+                        }
+
+                        .coming-soon-label {
+                            animation: softPulse 2.4s ease-in-out infinite;
+                        }
+
                         textarea {
                             width: 100%;
                             min-height: 120px;
@@ -3323,7 +3332,7 @@
                                     <div id="advancedToolsGrid" class="dashboard-grid-2x2" style="display: grid; grid-template-columns: 1fr; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem; position: relative;">
 
                                     <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.85); z-index: 1; border-radius: 12px; pointer-events: none;"></div>
-                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; color: #666; padding: 0.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 0.9rem; pointer-events: none; white-space: nowrap;">Advanced Tools • Launching Soon</div>
+                                    <div class="coming-soon-label" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; color: #666; padding: 0.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 500; font-size: 0.9rem; pointer-events: none; white-space: nowrap;">Advanced Tools • Launching Soon</div>
 
                                     <!-- ALERTS -->
                                     <div class="dashboard-card" onclick="showAlertsManager()">
@@ -13438,7 +13447,7 @@
 
         const btn = document.getElementById('bc-mint-btn');
         btn.disabled = true;
-        btn.textContent = 'Minting…';
+        btn.innerHTML = '<span class="loading-spinner"></span> Minting…';
 
         try {
             // blockchain_coas / coa_ownership_history no longer accept direct
