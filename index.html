@@ -285,6 +285,11 @@
     width: 100%;
   }
   .hero h1 {
+    /* Fixed, not themed: this sits on the real hero photo (light gallery
+       walls), which doesn't change with the site theme, so the text
+       can't either -- var(--ink) would go near-white in dark mode and
+       vanish against that same light photo. */
+    color: #141412;
     font-size: clamp(1.9rem, 5vw, 4.6rem);
     font-weight: 500;
     line-height: 1.06;
@@ -294,7 +299,7 @@
   }
   .hero .sub {
     max-width: 40ch;
-    color: var(--ink-soft);
+    color: #524f48;
     font-size: clamp(0.85rem, 1.6vw, 1.05rem);
     line-height: 1.5;
     margin: 0 0 clamp(16px, 3vw, 34px);
