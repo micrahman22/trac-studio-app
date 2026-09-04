@@ -113,25 +113,50 @@
 
                         [data-theme="dark"] body { background: var(--tc-bg, #fff); color: var(--tc-ink, #000); }
 
-                        /* Text colors */
-                        [data-theme="dark"] [style*="color: #666"]:not(#portfolioPage *) { color: var(--tc-ink-soft) !important; }
-                        [data-theme="dark"] [style*="color: #999"]:not(#portfolioPage *) { color: var(--tc-ink-faint) !important; }
-                        [data-theme="dark"] [style*="color: #333"]:not(#portfolioPage *) { color: var(--tc-ink) !important; }
-                        [data-theme="dark"] [style*="color: #000"]:not(#portfolioPage *) { color: var(--tc-black) !important; }
-                        [data-theme="dark"] [style*="color: #fff"]:not(#portfolioPage *) { color: var(--tc-white) !important; }
+                        /* Text colors. Two variants of each: "prop: #hex" (with a
+                           space, the common case) and "prop:#hex" (no space --
+                           turned up in a later audit covering ~58 occurrences the
+                           spaced-only version missed, since attribute selectors do
+                           exact substring matching with no whitespace flexibility). */
+                        [data-theme="dark"] [style*="color: #666"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="color:#666"]:not(#portfolioPage *) { color: var(--tc-ink-soft) !important; }
+                        [data-theme="dark"] [style*="color: #999"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="color:#999"]:not(#portfolioPage *) { color: var(--tc-ink-faint) !important; }
+                        [data-theme="dark"] [style*="color: #333"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="color:#333"]:not(#portfolioPage *) { color: var(--tc-ink) !important; }
+                        [data-theme="dark"] [style*="color: #000"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="color:#000"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="color: black"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="color:black"]:not(#portfolioPage *) { color: var(--tc-black) !important; }
+                        [data-theme="dark"] [style*="color: #fff"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="color:#fff"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="color: white"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="color:white"]:not(#portfolioPage *) { color: var(--tc-white) !important; }
 
-                        /* Backgrounds */
+                        /* Backgrounds -- same spaced/unspaced + hex/keyword doubling */
                         [data-theme="dark"] [style*="background: #fff"]:not(#portfolioPage *),
-                        [data-theme="dark"] [style*="background-color: #fff"]:not(#portfolioPage *) { background: var(--tc-surface) !important; }
-                        [data-theme="dark"] [style*="background: #fafafa"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
-                        [data-theme="dark"] [style*="background: #f5f5f5"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
-                        [data-theme="dark"] [style*="background: #f8f8f8"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
-                        [data-theme="dark"] [style*="background: #f0f0f0"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
+                        [data-theme="dark"] [style*="background:#fff"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background: white"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background:white"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background-color: #fff"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background-color:#fff"]:not(#portfolioPage *) { background: var(--tc-surface) !important; }
+                        [data-theme="dark"] [style*="background: #fafafa"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background:#fafafa"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
+                        [data-theme="dark"] [style*="background: #f5f5f5"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background:#f5f5f5"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
+                        [data-theme="dark"] [style*="background: #f8f8f8"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background:#f8f8f8"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
+                        [data-theme="dark"] [style*="background: #f0f0f0"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background:#f0f0f0"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
                         [data-theme="dark"] [style*="background: #000"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background:#000"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background: black"]:not(#portfolioPage *),
                         [data-theme="dark"] [style*="background-color: #000"]:not(#portfolioPage *) { background: var(--tc-black) !important; }
                         [data-theme="dark"] [style*="background: #e5e5e5"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background:#e5e5e5"]:not(#portfolioPage *),
                         [data-theme="dark"] [style*="background-color: #e5e5e5"]:not(#portfolioPage *) { background: var(--tc-border) !important; }
-                        [data-theme="dark"] [style*="background: #ddd"]:not(#portfolioPage *) { background: var(--tc-border-soft) !important; }
+                        [data-theme="dark"] [style*="background: #ddd"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background:#ddd"]:not(#portfolioPage *) { background: var(--tc-border-soft) !important; }
 
                         /* Borders */
                         [data-theme="dark"] [style*="#e5e5e5"]:not(#portfolioPage *) { border-color: var(--tc-border) !important; }
