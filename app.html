@@ -241,6 +241,16 @@
                         [data-theme="dark"] .connected-artwork:hover:not(#portfolioPage *),
                         [data-theme="dark"] .moodboard-type-btn.active:not(#portfolioPage *),
                         [data-theme="dark"] #moodboardUploadZone.dragover:not(#portfolioPage *) { border-color: var(--tc-black) !important; }
+                        /* General fallback: any bare <input>/<textarea>/<select> not
+                           wrapped in .form-group (found via the Mint CoA modal, whose
+                           fields have no explicit background at all -- just the
+                           browser's native white default, which no attribute selector
+                           can target since there's no inline style to match). Other
+                           modals may have the same pattern; this catches all of them,
+                           not just the one found so far. */
+                        [data-theme="dark"] input:not(#portfolioPage *),
+                        [data-theme="dark"] textarea:not(#portfolioPage *),
+                        [data-theme="dark"] select:not(#portfolioPage *),
                         [data-theme="dark"] .form-group input,
                         [data-theme="dark"] .form-group textarea,
                         [data-theme="dark"] .form-group select {
