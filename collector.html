@@ -2,6 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script>
+        // Sync, before any CSS/paint - avoids a flash of the wrong theme.
+        // Shared `trac-theme` key with index.html/app.html: one preference,
+        // multiple toggle entry points.
+        (function () {
+            try {
+                var stored = localStorage.getItem('trac-theme');
+                if (stored) document.documentElement.setAttribute('data-theme', stored);
+            } catch (e) {}
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <title>TRAC Collector — Certificate of Authenticity</title>
@@ -55,18 +66,88 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Space Grotesk', 'Space Grotesk Fallback', sans-serif; }
-        body { background: #fff; color: #000; line-height: 1.6; min-height: 100vh; opacity: 0; }
-        body.loaded { opacity: 1; transition: opacity 0.2s ease; }
+
+        /* Dark mode tokens - same names/values as app.html's --tc-* set, kept
+           consistent across the site even though this file shares no CSS
+           with app.html. Light values live on :root; dark values apply via
+           OS preference (unless explicitly overridden to light) or an
+           explicit [data-theme="dark"] choice, whichever wins. */
+        :root {
+            --tc-bg: #ffffff;
+            --tc-surface: #fafafa;
+            --tc-surface-soft: #f5f5f5;
+            --tc-border: #e5e5e5;
+            --tc-border-soft: #d1d1d1;
+            --tc-ink: #000000;
+            --tc-ink-soft: #666666;
+            --tc-ink-faint: #999999;
+            --tc-black: #000000;
+            --tc-white: #ffffff;
+            --c-badge-green-bg: #f0fdf4; --c-badge-green-fg: #16a34a; --c-badge-green-border: #bbf7d0;
+            --c-badge-blue-bg: #eff6ff; --c-badge-blue-fg: #1d4ed8; --c-badge-blue-border: #bfdbfe;
+            --c-alert-blue-bg: #eff6ff; --c-alert-blue-fg: #1e3a8a; --c-alert-blue-border: #bfdbfe;
+            --c-alert-red-bg: #fef2f2; --c-alert-red-fg: #991b1b; --c-alert-red-border: #fecaca;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                --tc-bg: #121110;
+                --tc-surface: #1c1a18;
+                --tc-surface-soft: #201e1b;
+                --tc-border: #322f2b;
+                --tc-border-soft: #3a3733;
+                --tc-ink: #efeeea;
+                --tc-ink-soft: #a8a29b;
+                --tc-ink-faint: #7a756e;
+                --tc-black: #efeeea;
+                --tc-white: #121110;
+                --c-badge-green-bg: #16281c; --c-badge-green-fg: #4ade80; --c-badge-green-border: #1f4a30;
+                --c-badge-blue-bg: #131f30; --c-badge-blue-fg: #60a5fa; --c-badge-blue-border: #1e3a5f;
+                --c-alert-blue-bg: #131f30; --c-alert-blue-fg: #93c5fd; --c-alert-blue-border: #1e3a5f;
+                --c-alert-red-bg: #2a1515; --c-alert-red-fg: #fca5a5; --c-alert-red-border: #4a1f1f;
+            }
+        }
+        :root[data-theme="dark"] {
+            --tc-bg: #121110;
+            --tc-surface: #1c1a18;
+            --tc-surface-soft: #201e1b;
+            --tc-border: #322f2b;
+            --tc-border-soft: #3a3733;
+            --tc-ink: #efeeea;
+            --tc-ink-soft: #a8a29b;
+            --tc-ink-faint: #7a756e;
+            --tc-black: #efeeea;
+            --tc-white: #121110;
+            --c-badge-green-bg: #16281c; --c-badge-green-fg: #4ade80; --c-badge-green-border: #1f4a30;
+            --c-badge-blue-bg: #131f30; --c-badge-blue-fg: #60a5fa; --c-badge-blue-border: #1e3a5f;
+            --c-alert-blue-bg: #131f30; --c-alert-blue-fg: #93c5fd; --c-alert-blue-border: #1e3a5f;
+            --c-alert-red-bg: #2a1515; --c-alert-red-fg: #fca5a5; --c-alert-red-border: #4a1f1f;
+        }
+
+        body { background: var(--tc-bg); color: var(--tc-ink); line-height: 1.6; min-height: 100vh; opacity: 0; transition: background-color 0.2s ease, color 0.2s ease; }
+        body.loaded { opacity: 1; transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease; }
+
+        .theme-toggle { background: none; border: none; padding: 0.5rem; cursor: pointer; color: var(--tc-ink-soft); transition: color 0.2s; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .theme-toggle:hover { color: var(--tc-ink); background: var(--tc-surface-soft); }
+        .theme-icon-dark { display: none; }
+        [data-theme="dark"] .theme-icon-light { display: none; }
+        [data-theme="dark"] .theme-icon-dark { display: block; }
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) .theme-icon-light { display: none; }
+            :root:not([data-theme="light"]) .theme-icon-dark { display: block; }
+        }
 
         /* NAV - same header classes as app.html's Dashboard, verbatim, minus
            .header-left/.gallery-nav (collector has no multi-page nav to show). */
-        .gallery-header { background: white; border-bottom: 1px solid #e5e5e5; padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
+        .gallery-header { background: var(--tc-bg); border-bottom: 1px solid var(--tc-border); padding: 1rem 0; position: sticky; top: 0; z-index: 100; }
         .header-container { max-width: 1400px; margin: 0 auto; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
+        /* Brand mark - deliberately NOT theme-reactive, same as app.html's
+           Dashboard header logo box: always a solid black square. */
         .logo-container { background: #000000; border-radius: 12px; padding: 0.75rem 1.25rem; display: inline-flex; align-items: center; justify-content: center; }
         .gallery-logo { font-size: 2.2rem; font-weight: 600; letter-spacing: -0.02em; color: #ffffff; margin: 0; line-height: 1; }
-        .icon-button { background: none; border: none; padding: 0.5rem; cursor: pointer; color: #666; transition: color 0.2s; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-        .icon-button:hover { color: #000; background: #f5f5f5; }
-        /* Still used by the certificate view's own branded header (openCertView). */
+        .icon-button { background: none; border: none; padding: 0.5rem; cursor: pointer; color: var(--tc-ink-soft); transition: color 0.2s; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .icon-button:hover { color: var(--tc-ink); background: var(--tc-surface-soft); }
+        /* Still used by the certificate view's own branded header (openCertView).
+           Also a brand mark, kept always-black/white like .logo-container above. */
         .c-logo-badge { display: inline-flex; align-items: center; justify-content: center; background: #000; color: #fff; font-weight: 600; letter-spacing: 0.02em; border-radius: 6px; padding: 0.5rem 0.9rem; font-size: 1rem; }
         .c-btn { padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.85rem; font-family: inherit; cursor: pointer; transition: all 0.2s; }
         .c-btn-primary { background: #000; color: white; border: none; }
@@ -80,7 +161,7 @@
         .c-auth-box h2 { font-size: 1.5rem; font-weight: 500; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
         .c-auth-box .sub { color: #666; font-size: 0.875rem; margin-bottom: 2rem; }
         .c-form-group { margin-bottom: 1rem; }
-        .c-form-group label { display: block; font-size: 0.83rem; font-weight: 500; margin-bottom: 0.4rem; color: #333; }
+        .c-form-group label { display: block; font-size: 0.83rem; font-weight: 500; margin-bottom: 0.4rem; color: var(--tc-ink-soft); }
         .c-form-group input { width: 100%; padding: 0.8rem 1rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem; font-family: inherit; transition: border-color 0.2s; }
         .c-form-group input:focus { outline: none; border-color: #000; }
         .c-submit { width: 100%; padding: 0.875rem; background: #000; color: white; border: none; border-radius: 8px; font-size: 0.9rem; font-family: inherit; font-weight: 500; cursor: pointer; margin-top: 0.5rem; }
@@ -97,16 +178,16 @@
         .hero-section { padding: 3rem 0 2rem; text-align: center; }
         .hero-container { max-width: 800px; margin: 0 auto; padding: 0 2rem; }
         .hero-title { font-size: 2.25rem; font-weight: 500; margin-bottom: 0.75rem; letter-spacing: -0.02em; }
-        .hero-subtitle { font-size: 1rem; color: #666; font-weight: 400; }
+        .hero-subtitle { font-size: 1rem; color: var(--tc-ink-soft); font-weight: 400; }
         .section-header { max-width: 1400px; margin: 0 auto 3rem; padding: 0 2rem; display: flex; justify-content: space-between; align-items: center; }
         .section-title { font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; }
 
         /* COLLECTION TOOLBAR */
         .c-collection-toolbar { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-        .c-collection-toolbar input[type="search"] { flex: 1; min-width: 200px; padding: 0.7rem 1rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.88rem; font-family: inherit; }
-        .c-collection-toolbar input[type="search"]:focus { outline: none; border-color: #000; }
-        .c-collection-toolbar select { padding: 0.7rem 1rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.88rem; font-family: inherit; background: white; cursor: pointer; }
-        .c-collection-toolbar select:focus { outline: none; border-color: #000; }
+        .c-collection-toolbar input[type="search"] { flex: 1; min-width: 200px; padding: 0.7rem 1rem; border: 1px solid var(--tc-border-soft); border-radius: 8px; font-size: 0.88rem; font-family: inherit; background: var(--tc-bg); color: var(--tc-ink); }
+        .c-collection-toolbar input[type="search"]:focus { outline: none; border-color: var(--tc-ink); }
+        .c-collection-toolbar select { padding: 0.7rem 1rem; border: 1px solid var(--tc-border-soft); border-radius: 8px; font-size: 0.88rem; font-family: inherit; background: var(--tc-bg); color: var(--tc-ink); cursor: pointer; }
+        .c-collection-toolbar select:focus { outline: none; border-color: var(--tc-ink); }
 
         /* CoA conveyor belt - same classes as app.html's Dashboard/Blockchain
            conveyor belt, verbatim (event-card variants omitted, unused here). */
@@ -124,8 +205,8 @@
         }
         .conveyor-belt-container::-webkit-scrollbar { height: none; }
         .conveyor-belt-container::-webkit-scrollbar-track { background: transparent; }
-        .conveyor-belt-container::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.15); border-radius: 1px; width: 30% !important; margin: 0 auto; }
-        .conveyor-belt-container::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.25); width: 40% !important; }
+        .conveyor-belt-container::-webkit-scrollbar-thumb { background: var(--tc-ink); opacity: 0.15; border-radius: 1px; width: 30% !important; margin: 0 auto; }
+        .conveyor-belt-container::-webkit-scrollbar-thumb:hover { background: var(--tc-ink); opacity: 0.25; width: 40% !important; }
         .conveyor-belt-track {
             display: flex;
             gap: 2rem;
@@ -144,31 +225,31 @@
         .conveyor-item .artwork-info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 1.5rem; }
         .conveyor-item.artwork-card .artwork-info { background: transparent; padding: 1rem 0.5rem; border: none; }
         .artwork-title { font-size: 0.8rem; font-weight: 500; margin-bottom: 0.2rem; }
-        .artwork-details { color: #666; font-size: 0.7rem; line-height: 1.2; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
+        .artwork-details { color: var(--tc-ink-soft); font-size: 0.7rem; line-height: 1.2; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
         .artwork-details div { max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; }
         .c-badge { font-size: 0.68rem; padding: 0.2rem 0.6rem; border-radius: 20px; font-weight: 500; }
-        .c-badge-green { background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
-        .c-badge-blue { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
-        .c-badge-gray { background: #f5f5f5; color: #666; border: 1px solid #e5e5e5; }
+        .c-badge-green { background: var(--c-badge-green-bg); color: var(--c-badge-green-fg); border: 1px solid var(--c-badge-green-border); }
+        .c-badge-blue { background: var(--c-badge-blue-bg); color: var(--c-badge-blue-fg); border: 1px solid var(--c-badge-blue-border); }
+        .c-badge-gray { background: var(--tc-surface-soft); color: var(--tc-ink-soft); border: 1px solid var(--tc-border); }
 
         /* MODAL */
         .c-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2147483647; }
-        .c-modal { background: white; border-radius: 16px; max-width: 580px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 2rem; }
+        .c-modal { background: var(--tc-bg); color: var(--tc-ink); border-radius: 16px; max-width: 580px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 2rem; }
         .c-modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; }
         .c-modal-header h3 { font-size: 1.2rem; font-weight: 500; letter-spacing: -0.02em; }
-        .c-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; }
+        .c-modal-close { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--tc-ink-soft); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0; }
 
         /* COA CERTIFICATE VIEW */
-        .coa-cert { border: 2px solid #000; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; position: relative; }
-        .coa-cert::before { content: ''; position: absolute; inset: 6px; border: 1px solid #e5e5e5; border-radius: 8px; pointer-events: none; }
-        .coa-cert-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid #e5e5e5; }
-        .coa-cert-header .cert-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: #666; }
+        .coa-cert { border: 2px solid var(--tc-ink); border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; position: relative; }
+        .coa-cert::before { content: ''; position: absolute; inset: 6px; border: 1px solid var(--tc-border); border-radius: 8px; pointer-events: none; }
+        .coa-cert-header { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--tc-border); }
+        .coa-cert-header .cert-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--tc-ink-soft); }
         .coa-cert-row { display: flex; justify-content: space-between; margin-bottom: 0.75rem; align-items: baseline; }
-        .coa-cert-row .key { font-size: 0.72rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; }
+        .coa-cert-row .key { font-size: 0.72rem; color: var(--tc-ink-faint); text-transform: uppercase; letter-spacing: 0.05em; }
         .coa-cert-row .val { font-size: 0.875rem; font-weight: 500; text-align: right; max-width: 65%; }
-        .coa-cert-hash { background: #f5f5f5; border-radius: 6px; padding: 0.625rem 0.75rem; margin-top: 1rem; }
-        .coa-cert-hash .key { font-size: 0.68rem; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
-        .coa-cert-hash .val { font-size: 0.68rem; font-family: monospace; word-break: break-all; color: #555; }
+        .coa-cert-hash { background: var(--tc-surface); border-radius: 6px; padding: 0.625rem 0.75rem; margin-top: 1rem; }
+        .coa-cert-hash .key { font-size: 0.68rem; color: var(--tc-ink-faint); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.2rem; }
+        .coa-cert-hash .val { font-size: 0.68rem; font-family: monospace; word-break: break-all; color: var(--tc-ink-soft); }
 
         /* ARTWORK IMAGE POPUP - same expand-on-click treatment as Blockchain's
            artworkPopup/openPopup in app.html, self-contained here since
@@ -193,14 +274,15 @@
         #c-popup-info .title { color: white; font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
         #c-popup-info .detail { color: white; font-size: 0.8rem; opacity: 0.8; margin-bottom: 0.2rem; }
 
-        /* TOAST */
-        #c-toast { position: fixed; top: 1.25rem; right: 1.25rem; background: #000; color: white; padding: 0.875rem 1.25rem; border-radius: 8px; font-size: 0.875rem; z-index: 9999999; display: none; max-width: 300px; }
-        #c-toast.error { background: #dc2626; }
+        /* TOAST - inverts with --tc-black/--tc-white like app.html's CTA
+           buttons, so it doesn't blend into a near-black page in dark mode. */
+        #c-toast { position: fixed; top: 1.25rem; right: 1.25rem; background: var(--tc-black); color: var(--tc-white); padding: 0.875rem 1.25rem; border-radius: 8px; font-size: 0.875rem; z-index: 9999999; display: none; max-width: 300px; }
+        #c-toast.error { background: #dc2626; color: #fff; }
 
         /* EMPTY STATE */
-        .c-empty { text-align: center; padding: 4rem 2rem; color: #999; }
+        .c-empty { text-align: center; padding: 4rem 2rem; color: var(--tc-ink-faint); }
         .c-empty svg { margin-bottom: 1rem; opacity: 0.3; }
-        .c-empty h3 { font-size: 1.1rem; font-weight: 500; color: #666; margin-bottom: 0.5rem; }
+        .c-empty h3 { font-size: 1.1rem; font-weight: 500; color: var(--tc-ink-soft); margin-bottom: 0.5rem; }
         .c-empty p { font-size: 0.875rem; }
 
         @media (max-width: 600px) {
@@ -467,13 +549,29 @@
         const nav = document.getElementById('c-header-nav');
         if (!nav) return;
         nav.innerHTML = `
-            <button class="icon-button" onclick="collectorSignOut()" title="Sign Out">
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M6 14H3.333C2.98 14 2.641 13.86 2.391 13.61C2.14 13.36 2 13.02 2 12.667V3.333C2 2.98 2.14 2.641 2.391 2.391C2.641 2.14 2.98 2 3.333 2H6"></path>
-                    <path d="M10.667 11.333L14 8l-3.333-3.333"></path>
-                    <path d="M14 8H6"></path>
-                </svg>
-            </button>`;
+            <div style="display:flex;align-items:center;gap:0.25rem;">
+                <button class="theme-toggle" onclick="toggleCollectorTheme()" title="Toggle dark mode">
+                    <svg class="theme-icon-light" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                    <svg class="theme-icon-dark" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                </button>
+                <button class="icon-button" onclick="collectorSignOut()" title="Sign Out">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M6 14H3.333C2.98 14 2.641 13.86 2.391 13.61C2.14 13.36 2 13.02 2 12.667V3.333C2 2.98 2.14 2.641 2.391 2.391C2.641 2.14 2.98 2 3.333 2H6"></path>
+                        <path d="M10.667 11.333L14 8l-3.333-3.333"></path>
+                        <path d="M14 8H6"></path>
+                    </svg>
+                </button>
+            </div>`;
+    }
+
+    // Same toggle logic as index.html/app.html, shared `trac-theme` key.
+    function toggleCollectorTheme() {
+        const root = document.documentElement;
+        const current = root.getAttribute('data-theme');
+        const isDark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        const next = isDark ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('trac-theme', next); } catch (e) {}
     }
 
     // ==================== AUTH ====================
@@ -561,13 +659,13 @@
 
         section.style.display = 'block';
         section.innerHTML = `
-            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
-                <div style="font-size:0.85rem;font-weight:600;color:#1e3a8a;margin-bottom:0.6rem;">Incoming</div>
+            <div style="background:var(--c-alert-blue-bg);border:1px solid var(--c-alert-blue-border);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+                <div style="font-size:0.85rem;font-weight:600;color:var(--c-alert-blue-fg);margin-bottom:0.6rem;">Incoming</div>
                 <div style="display:flex;flex-direction:column;gap:0.5rem;">
                     ${pending.map(p => {
                         const title = p.blockchain_coas?.artworks?.title || 'An artwork';
                         const senderName = artistNames[p.blockchain_coas?.artist_id] || 'an artist';
-                        return `<div style="font-size:0.83rem;color:#1e3a8a;">
+                        return `<div style="font-size:0.83rem;color:var(--c-alert-blue-fg);">
                             <strong>${escapeHtml(title)}</strong> from ${escapeHtml(senderName)} - pending finalization
                         </div>`;
                     }).join('')}
@@ -667,7 +765,7 @@
                                            data-artwork-year="${escapeHtml(artwork.year || '')}"
                                            data-artwork-medium="${escapeHtml(artwork.medium || '')}"
                                            data-artwork-dimensions="${escapeHtml(artwork.dimensions || '')}">`
-                                    : `<div style="width:100%;height:100%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`
+                                    : `<div style="width:100%;height:100%;background:var(--tc-surface);display:flex;align-items:center;justify-content:center;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--tc-border-soft)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`
                                 }
                             </div>
                             <div class="artwork-info">
@@ -682,8 +780,8 @@
                                     </div>
                                 </div>
                                 <div style="display:flex;gap:0.5rem;margin-top:0.75rem;">
-                                    <button onclick="openCertView('${coa.id}')" style="flex:1;padding:0.6rem;font-size:0.8rem;border-radius:8px;font-family:inherit;cursor:pointer;transition:all 0.2s;background:white;border:1px solid #d1d1d1;color:#000;" onmouseenter="this.style.borderColor='#000'" onmouseleave="this.style.borderColor='#d1d1d1'">View CoA</button>
-                                    <button data-coa-id="${coa.id}" data-artwork-title="${escapeHtml(artwork.title || '')}" onclick="openDisputeModal(this.dataset.coaId, this.dataset.artworkTitle)" style="flex:1;padding:0.6rem;font-size:0.8rem;border-radius:8px;font-family:inherit;cursor:pointer;transition:all 0.2s;background:white;border:1px solid #d1d1d1;color:#b91c1c;" onmouseenter="this.style.borderColor='#b91c1c'" onmouseleave="this.style.borderColor='#d1d1d1'">Report an Issue</button>
+                                    <button onclick="openCertView('${coa.id}')" style="flex:1;padding:0.6rem;font-size:0.8rem;border-radius:8px;font-family:inherit;cursor:pointer;transition:all 0.2s;background:var(--tc-bg);border:1px solid var(--tc-border-soft);color:var(--tc-ink);" onmouseenter="this.style.borderColor='var(--tc-ink)'" onmouseleave="this.style.borderColor='var(--tc-border-soft)'">View CoA</button>
+                                    <button data-coa-id="${coa.id}" data-artwork-title="${escapeHtml(artwork.title || '')}" onclick="openDisputeModal(this.dataset.coaId, this.dataset.artworkTitle)" style="flex:1;padding:0.6rem;font-size:0.8rem;border-radius:8px;font-family:inherit;cursor:pointer;transition:all 0.2s;background:var(--tc-bg);border:1px solid var(--tc-border-soft);color:#b91c1c;" onmouseenter="this.style.borderColor='#b91c1c'" onmouseleave="this.style.borderColor='var(--tc-border-soft)'">Report an Issue</button>
                                 </div>
                             </div>
                         </div>`;
@@ -773,24 +871,24 @@
                 </div>
 
                 <!-- ARTWORK CARD -->
-                <div style="border:1px solid #e5e5e5;border-radius:10px;padding:1.25rem;margin-bottom:1rem;">
+                <div style="border:1px solid var(--tc-border);border-radius:10px;padding:1.25rem;margin-bottom:1rem;">
                     ${artwork.image_url ? `
                     <div style="display:flex;justify-content:center;margin-bottom:1rem;">
-                        <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title || '')}" style="width:220px;height:165px;object-fit:cover;border-radius:8px;border:1px solid #e5e5e5;">
+                        <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title || '')}" style="width:220px;height:165px;object-fit:cover;border-radius:8px;border:1px solid var(--tc-border);">
                     </div>` : ''}
                     <div style="text-align:center;margin-bottom:1rem;">
                         <div style="font-size:0.95rem;font-weight:600;margin-bottom:0.3rem;letter-spacing:-0.01em;">${escapeHtml(artwork.title) || 'Untitled'}</div>
-                        <div style="font-size:0.78rem;color:#666;">${[meta.artist_name, artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).map(escapeHtml).join(' · ')}</div>
+                        <div style="font-size:0.78rem;color:var(--tc-ink-soft);">${[meta.artist_name, artwork.year, artwork.medium, artwork.dimensions].filter(Boolean).map(escapeHtml).join(' · ')}</div>
                     </div>
                     ${artwork.description ? `
-                    <div style="padding-top:0.9rem;border-top:1px solid #f0f0f0;">
-                        <div style="font-size:0.72rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">Description</div>
-                        <div style="font-size:0.83rem;font-weight:400;line-height:1.55;color:#333;">${escapeHtml(artwork.description)}</div>
+                    <div style="padding-top:0.9rem;border-top:1px solid var(--tc-border-soft);">
+                        <div style="font-size:0.72rem;color:var(--tc-ink-faint);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">Description</div>
+                        <div style="font-size:0.83rem;font-weight:400;line-height:1.55;color:var(--tc-ink-soft);">${escapeHtml(artwork.description)}</div>
                     </div>` : ''}
                 </div>
 
                 <!-- MINT CARD -->
-                <div style="border:1px solid #e5e5e5;border-radius:10px;padding:1.25rem;">
+                <div style="border:1px solid var(--tc-border);border-radius:10px;padding:1.25rem;">
                     <div class="coa-cert-row">
                         <span class="key">Resale Royalty</span>
                         <span class="val">${coa.royalty_pct}% (EIP-2981)</span>
@@ -805,14 +903,14 @@
                     </div>
                     ${meta.notes ? `
                     <div style="margin-bottom:0.75rem;padding-top:0.25rem;">
-                        <div style="font-size:0.72rem;color:#999;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">Notes</div>
-                        <div style="font-size:0.83rem;font-weight:400;line-height:1.55;color:#333;">${escapeHtml(meta.notes)}</div>
+                        <div style="font-size:0.72rem;color:var(--tc-ink-faint);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.35rem;">Notes</div>
+                        <div style="font-size:0.83rem;font-weight:400;line-height:1.55;color:var(--tc-ink-soft);">${escapeHtml(meta.notes)}</div>
                     </div>` : ''}
                     <div class="coa-cert-hash">
                         <div class="key">Transaction Hash</div>
                         <div class="val">${escapeHtml(coa.tx_hash) || '—'}</div>
                         ${explorerUrl ? `
-                        <a href="${explorerUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.78rem;font-weight:500;color:#000;border:1px solid #d1d1d1;border-radius:20px;padding:0.35rem 0.75rem;margin-top:0.6rem;">
+                        <a href="${explorerUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:0.35rem;font-size:0.78rem;font-weight:500;color:var(--tc-ink);border:1px solid var(--tc-border-soft);border-radius:20px;padding:0.35rem 0.75rem;margin-top:0.6rem;">
                             View on PolygonScan
                             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7"/><path d="M8 7h9v9"/></svg>
                         </a>` : ''}
@@ -824,20 +922,20 @@
             <h4 style="font-size:0.875rem;font-weight:500;margin-bottom:0.875rem;letter-spacing:-0.01em;">Provenance</h4>
             <div style="display:flex;flex-direction:column;gap:0.625rem;margin-bottom:1.5rem;">
                 ${history.map((h, i) => `
-                <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;background:#fafafa;border-radius:8px;">
-                    <div style="width:28px;height:28px;border-radius:50%;background:${h.is_original_purchase?'#000':'#e5e5e5'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem;background:var(--tc-surface);border-radius:8px;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:${h.is_original_purchase?'var(--tc-black)':'var(--tc-surface-soft)'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
                         ${h.is_original_purchase
-                            ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
-                            : `<span style="font-size:0.7rem;font-weight:600;color:#666;">${i+1}</span>`}
+                            ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--tc-white)" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+                            : `<span style="font-size:0.7rem;font-weight:600;color:var(--tc-ink-soft);">${i+1}</span>`}
                     </div>
                     <div style="flex:1;">
                         <div style="font-size:0.83rem;font-weight:500;">${escapeHtml(h.owner_name)}</div>
-                        <div style="font-size:0.72rem;color:#666;">${h.is_original_purchase?'Original purchase':'Secondary sale'} · ${new Date(h.transfer_date).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}</div>
+                        <div style="font-size:0.72rem;color:var(--tc-ink-soft);">${h.is_original_purchase?'Original purchase':'Secondary sale'} · ${new Date(h.transfer_date).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})}</div>
                     </div>
                 </div>`).join('')}
             </div>
 
-            <div style="font-size:0.75rem;color:#999;text-align:center;line-height:1.5;background:#f5f5f5;border-radius:8px;padding:0.75rem;">
+            <div style="font-size:0.75rem;color:var(--tc-ink-faint);text-align:center;line-height:1.5;background:var(--tc-surface);border-radius:8px;padding:0.75rem;">
                 This certificate is permanently linked to the physical artwork. It cannot be transferred or sold independently. It has no value as a standalone digital asset.
             </div>
         </div>`;
@@ -862,22 +960,22 @@
             <div class="c-modal-header">
                 <div>
                     <h3>Report an Issue</h3>
-                    <p style="font-size:0.8rem;color:#666;margin-top:0.2rem;">${escapeHtml(artworkTitle)}</p>
+                    <p style="font-size:0.8rem;color:var(--tc-ink-soft);margin-top:0.2rem;">${escapeHtml(artworkTitle)}</p>
                 </div>
                 <button class="c-modal-close" onclick="this.closest('.c-modal-overlay').remove()">×</button>
             </div>
 
-            <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:0.875rem;margin-bottom:1.5rem;font-size:0.8rem;color:#991b1b;line-height:1.5;">
+            <div style="background:var(--c-alert-red-bg);border:1px solid var(--c-alert-red-border);border-radius:8px;padding:0.875rem;margin-bottom:1.5rem;font-size:0.8rem;color:var(--c-alert-red-fg);line-height:1.5;">
                 This flags the record for TRAC to review — it doesn't change or correct anything automatically.
             </div>
 
             <div class="c-form-group">
                 <label>What's wrong? (optional)</label>
-                <textarea id="d-note" rows="3" placeholder="Describe the issue..." style="width:100%;padding:0.75rem;border:1px solid #d1d1d1;border-radius:8px;font-size:0.9rem;font-family:inherit;resize:vertical;"></textarea>
+                <textarea id="d-note" rows="3" placeholder="Describe the issue..." style="width:100%;padding:0.75rem;border:1px solid var(--tc-border-soft);border-radius:8px;font-size:0.9rem;font-family:inherit;resize:vertical;background:var(--tc-bg);color:var(--tc-ink);"></textarea>
             </div>
 
             <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
-                <button onclick="this.closest('.c-modal-overlay').remove()" style="flex:1;padding:0.875rem;border:1px solid #d1d1d1;border-radius:8px;background:white;font-size:0.9rem;cursor:pointer;font-family:inherit;">Cancel</button>
+                <button onclick="this.closest('.c-modal-overlay').remove()" style="flex:1;padding:0.875rem;border:1px solid var(--tc-border-soft);border-radius:8px;background:var(--tc-bg);color:var(--tc-ink);font-size:0.9rem;cursor:pointer;font-family:inherit;">Cancel</button>
                 <button id="d-submit-btn" data-coa-id="${coaId}" onclick="submitDispute(this.dataset.coaId)" style="flex:2;padding:0.875rem;background:#b91c1c;color:white;border:none;border-radius:8px;font-size:0.9rem;cursor:pointer;font-family:inherit;font-weight:500;">Submit Report</button>
             </div>
         </div>`;
