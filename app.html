@@ -7,6 +7,16 @@
                     <meta http-equiv="Pragma" content="no-cache">
                     <meta http-equiv="Expires" content="0">
                     <title>TRAC - Artist Portal</title>
+                    <script>
+                      (function () {
+                        try {
+                          var stored = localStorage.getItem('trac-theme');
+                          if (stored === 'light' || stored === 'dark') {
+                            document.documentElement.setAttribute('data-theme', stored);
+                          }
+                        } catch (e) {}
+                      })();
+                    </script>
                     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23000'/><text x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Arial,sans-serif' font-weight='700' font-size='18' fill='%23fff'>T</text></svg>">
                     <link rel="preload" href="/fonts/space-grotesk-400.woff2" as="font" type="font/woff2" crossorigin>
                     <link rel="preload" href="/fonts/space-grotesk-500.woff2" as="font" type="font/woff2" crossorigin>
@@ -58,10 +68,122 @@
 
                         /* BASIC RESET */
                         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Space Grotesk', 'Space Grotesk Fallback', sans-serif; }
-                        body { 
-                            background: #ffffff; 
-                            color: #000000; 
-                            line-height: 1.6; 
+
+                        /* ==================== DARK MODE (item 6) ====================
+                           Same token approach as index.html: light values live as
+                           plain values below (this file has no existing color-token
+                           system), dark values apply via [data-theme="dark"] or OS
+                           prefers-color-scheme (unless the user explicitly chose
+                           "light"). localStorage key ("trac-theme") is shared with
+                           index.html/collector.html -- one preference, several toggle
+                           entry points, never independent state.
+
+                           Everything here is scoped with :not(#portfolioPage *) --
+                           #portfolioPage renders the artist's own public portfolio
+                           using its own style-preset color system (a separate,
+                           intentional customization feature). Dark mode is for TRAC's
+                           own app chrome only; it must never override an artist's
+                           chosen portfolio colors. */
+                        @media (prefers-color-scheme: dark) {
+                          :root:not([data-theme="light"]) {
+                            --tc-bg: #121110;
+                            --tc-surface: #1a1918;
+                            --tc-surface-soft: #201f1d;
+                            --tc-border: #333230;
+                            --tc-border-soft: #454340;
+                            --tc-ink: #efeeea;
+                            --tc-ink-soft: #a8a29b;
+                            --tc-ink-faint: #7d7972;
+                            --tc-black: #f0eee9;
+                            --tc-white: #141412;
+                          }
+                        }
+                        :root[data-theme="dark"] {
+                          --tc-bg: #121110;
+                          --tc-surface: #1a1918;
+                          --tc-surface-soft: #201f1d;
+                          --tc-border: #333230;
+                          --tc-border-soft: #454340;
+                          --tc-ink: #efeeea;
+                          --tc-ink-soft: #a8a29b;
+                          --tc-ink-faint: #7d7972;
+                          --tc-black: #f0eee9;
+                          --tc-white: #141412;
+                        }
+
+                        [data-theme="dark"] body { background: var(--tc-bg, #fff); color: var(--tc-ink, #000); }
+
+                        /* Text colors */
+                        [data-theme="dark"] [style*="color: #666"]:not(#portfolioPage *) { color: var(--tc-ink-soft) !important; }
+                        [data-theme="dark"] [style*="color: #999"]:not(#portfolioPage *) { color: var(--tc-ink-faint) !important; }
+                        [data-theme="dark"] [style*="color: #333"]:not(#portfolioPage *) { color: var(--tc-ink) !important; }
+                        [data-theme="dark"] [style*="color: #000"]:not(#portfolioPage *) { color: var(--tc-black) !important; }
+                        [data-theme="dark"] [style*="color: #fff"]:not(#portfolioPage *) { color: var(--tc-white) !important; }
+
+                        /* Backgrounds */
+                        [data-theme="dark"] [style*="background: #fff"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background-color: #fff"]:not(#portfolioPage *) { background: var(--tc-surface) !important; }
+                        [data-theme="dark"] [style*="background: #fafafa"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
+                        [data-theme="dark"] [style*="background: #f5f5f5"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
+                        [data-theme="dark"] [style*="background: #f8f8f8"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
+                        [data-theme="dark"] [style*="background: #f0f0f0"]:not(#portfolioPage *) { background: var(--tc-surface-soft) !important; }
+                        [data-theme="dark"] [style*="background: #000"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background-color: #000"]:not(#portfolioPage *) { background: var(--tc-black) !important; }
+                        [data-theme="dark"] [style*="background: #e5e5e5"]:not(#portfolioPage *),
+                        [data-theme="dark"] [style*="background-color: #e5e5e5"]:not(#portfolioPage *) { background: var(--tc-border) !important; }
+                        [data-theme="dark"] [style*="background: #ddd"]:not(#portfolioPage *) { background: var(--tc-border-soft) !important; }
+
+                        /* Borders */
+                        [data-theme="dark"] [style*="#e5e5e5"]:not(#portfolioPage *) { border-color: var(--tc-border) !important; }
+                        [data-theme="dark"] [style*="#d1d1d1"]:not(#portfolioPage *) { border-color: var(--tc-border-soft) !important; }
+                        [data-theme="dark"] [style*="solid #ddd"]:not(#portfolioPage *) { border-color: var(--tc-border-soft) !important; }
+                        [data-theme="dark"] [style*="solid #f0f0f0"]:not(#portfolioPage *) { border-color: var(--tc-surface-soft) !important; }
+                        [data-theme="dark"] [style*="solid #000"]:not(#portfolioPage *) { border-color: var(--tc-black) !important; }
+                        [data-theme="dark"] [style*="solid #333"]:not(#portfolioPage *) { border-color: var(--tc-ink) !important; }
+
+                        /* Stylesheet rules (not inline) that use hardcoded colors --
+                           these are real CSS rules, not attribute-selector patches,
+                           since they're not inline styles. */
+                        [data-theme="dark"] .dashboard-card,
+                        [data-theme="dark"] .upload-form,
+                        [data-theme="dark"] .form-section,
+                        [data-theme="dark"] .collection-card,
+                        [data-theme="dark"] .social-platform-item,
+                        [data-theme="dark"] .profile-header {
+                          background: var(--tc-surface) !important;
+                          border-color: var(--tc-border) !important;
+                        }
+                        [data-theme="dark"] .btn-secondary { color: var(--tc-ink) !important; border-color: var(--tc-border-soft) !important; }
+                        [data-theme="dark"] .form-group input,
+                        [data-theme="dark"] .form-group textarea,
+                        [data-theme="dark"] .form-group select {
+                          background: var(--tc-surface) !important;
+                          border-color: var(--tc-border-soft) !important;
+                          color: var(--tc-ink) !important;
+                        }
+                        [data-theme="dark"] .gallery-header,
+                        [data-theme="dark"] .form-header,
+                        [data-theme="dark"] .form-actions { background: var(--tc-surface) !important; border-color: var(--tc-border) !important; }
+                        [data-theme="dark"] .icon-button { color: var(--tc-ink-soft) !important; }
+                        [data-theme="dark"] .icon-button:hover { color: var(--tc-ink) !important; background: var(--tc-surface-soft) !important; }
+
+                        /* Theme toggle button, shared across every header that has one */
+                        .theme-toggle { background: none; border: none; padding: 0.5rem; cursor: pointer; color: #666; transition: color 0.2s; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+                        .theme-toggle:hover { color: #000; background: #f5f5f5; }
+                        [data-theme="dark"] .theme-toggle { color: var(--tc-ink-soft) !important; }
+                        [data-theme="dark"] .theme-toggle:hover { color: var(--tc-ink) !important; background: var(--tc-surface-soft) !important; }
+                        .theme-icon-light { display: none; }
+                        [data-theme="dark"] .theme-icon-dark { display: none; }
+                        [data-theme="dark"] .theme-icon-light { display: block; }
+                        @media (prefers-color-scheme: dark) {
+                          :root:not([data-theme="light"]) .theme-icon-dark { display: none; }
+                          :root:not([data-theme="light"]) .theme-icon-light { display: block; }
+                        }
+
+                        body {
+                            background: #ffffff;
+                            color: #000000;
+                            line-height: 1.6;
                             font-weight: 400;
                             min-height: 100vh;
                             margin: 0;
@@ -3126,6 +3248,10 @@
                                     </nav>
                                 </div>
                                 <div class="header-right">
+                                    <button class="theme-toggle" title="Toggle dark mode">
+                                        <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                    </button>
                                     <button class="icon-button" onclick="signOut()" title="Sign Out">
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                                             <path d="M6 14H3.333C2.98 14 2.641 13.86 2.391 13.61C2.14 13.36 2 13.02 2 12.667V3.333C2 2.98 2.14 2.641 2.391 2.391C2.641 2.14 2.98 2 3.333 2H6"></path>
@@ -3398,6 +3524,10 @@
                                     </nav>
                                 </div>
                                 <div class="header-right">
+                                    <button class="theme-toggle" title="Toggle dark mode">
+                                        <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                    </button>
                                     <button class="icon-button" onclick="signOut()" title="Sign Out">
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H2m0 0l3-3M2 8l3 3M6 4V2h8v12H6v-2"/></svg>
                                     </button>
@@ -3482,6 +3612,10 @@
                                     </nav>
                                 </div>
                                 <div class="header-right">
+                                    <button class="theme-toggle" title="Toggle dark mode">
+                                        <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                    </button>
                                     <button class="icon-button" onclick="signOut()" title="Sign Out">
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                                             <path d="M6 14H3.333C2.98 14 2.641 13.86 2.391 13.61C2.14 13.36 2 13.02 2 12.667V3.333C2 2.98 2.14 2.641 2.391 2.391C2.641 2.14 2.98 2 3.333 2H6"></path>
@@ -12662,6 +12796,20 @@
                                                                 document.addEventListener('DOMContentLoaded', function() {
                                                                 initializeApp();
                                                                 initPopupHandlers();
+
+                                                                // Theme toggle -- one .theme-toggle button per section header
+                                                                // (each section is its own DOM copy, not shared markup), all
+                                                                // wired to the same localStorage key index.html/collector.html
+                                                                // use, so there's one preference with several entry points.
+                                                                document.querySelectorAll('.theme-toggle').forEach(function (btn) {
+                                                                    btn.addEventListener('click', function () {
+                                                                        var current = document.documentElement.getAttribute('data-theme');
+                                                                        var isDark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                                                                        var next = isDark ? 'light' : 'dark';
+                                                                        document.documentElement.setAttribute('data-theme', next);
+                                                                        try { localStorage.setItem('trac-theme', next); } catch (e) {}
+                                                                    });
+                                                                });
 
                                                                 // ✅ FIX STYLE BROWSER AUTO-CLOSE - KEEP ONLY THIS (REMOVE THE DUPLICATE)
                                                                 const styleBrowserModal = document.getElementById('styleBrowserModal');
