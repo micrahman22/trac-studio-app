@@ -175,8 +175,11 @@
                         [data-theme="dark"] .form-section h3:not(#portfolioPage *),
                         [data-theme="dark"] .event-title:not(#portfolioPage *),
                         [data-theme="dark"] .close-form:hover:not(#portfolioPage *),
-                        [data-theme="dark"] .close-editor:hover:not(#portfolioPage *),
-                        [data-theme="dark"] .toggle-slider:before:not(#portfolioPage *) { color: var(--tc-ink) !important; }
+                        [data-theme="dark"] .close-editor:hover:not(#portfolioPage *) { color: var(--tc-ink) !important; }
+                        /* :not() can't follow a pseudo-element (::before), so this one is
+                           its own rule instead of joining the list above -- it's part of
+                           the style editor, never inside #portfolioPage anyway. */
+                        [data-theme="dark"] .toggle-slider::before { color: var(--tc-ink) !important; }
                         [data-theme="dark"] .section-head p:not(#portfolioPage *),
                         [data-theme="dark"] .profile-header .handle:not(#portfolioPage *),
                         [data-theme="dark"] .empty-state p:not(#portfolioPage *),
