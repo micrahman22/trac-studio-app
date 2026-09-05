@@ -4530,11 +4530,18 @@
                         console.log(`🔧 TRAC environment: ${TRAC_ENV} (${supabaseUrl})`);
                         if (TRAC_ENV === 'staging') document.title = '[STAGING] ' + document.title;
 
-                        // Opportunity Alerts / Blockchain Tools aren't ready for real users yet.
-                        // Keep them visible on staging for testing; hide on production until launch.
+                        // Advanced Tools / Opportunity Alerts: taken out of view on the
+                        // user's request (not deleted - markup/CSS/JS below is untouched,
+                        // purely inert since showAlertsManager() was never defined and
+                        // alertsCount is a hardcoded "0", nothing live to disable). Was
+                        // previously staging-only visible for testing; now hidden
+                        // unconditionally on both environments. To bring it back, remove
+                        // this unconditional hide and restore the old
+                        // `if (TRAC_ENV === 'production')` gate around it.
+                        const advancedToolsGrid = document.getElementById('advancedToolsGrid');
+                        if (advancedToolsGrid) advancedToolsGrid.style.display = 'none';
+
                         if (TRAC_ENV === 'production') {
-                            const advancedToolsGrid = document.getElementById('advancedToolsGrid');
-                            if (advancedToolsGrid) advancedToolsGrid.style.display = 'none';
                             document.querySelectorAll('.nav-item-blockchain').forEach(el => el.style.display = 'none');
                         }
 
