@@ -11,6 +11,9 @@ const POLYGON_PRIVATE_KEY = Deno.env.get("PLATFORM_WALLET_PRIVATE_KEY")!;
 const POLYGON_CONTRACT_ADDRESS = Deno.env.get("POLYGON_CONTRACT_ADDRESS")!;
 const POLYGON_CHAIN_ID = 80002; // Polygon Amoy testnet - fixed, not a secret.
 
+const C2PA_SIGNING_SERVICE_URL = Deno.env.get("C2PA_SIGNING_SERVICE_URL")!;
+const C2PA_SERVICE_SHARED_SECRET = Deno.env.get("C2PA_SERVICE_SHARED_SECRET")!;
+
 const CONTRACT_ABI = [
   "function mintCoa(string metadataURI) returns (uint256)",
   "function recordTransfer(uint256 tokenId, string note)",
@@ -233,6 +236,56 @@ serve(async (req) => {
       },
       { onConflict: "email", ignoreDuplicates: false }
     );
+
+    // C2PA Content Credentials: embeds a signed provenance manifest (artist,
+    // mint date, tx hash, verify link) into the image file itself. Purely
+    // additive on top of the blockchain CoA, which stays the source of truth
+    // - a failure anywhere in this block must not fail the mint, same
+    // defensive pattern as the notify-collector call a few lines below.
+    try {
+      const imageRes = await fetch(artwork.image_url);
+      if (!imageRes.ok) throw new Error(`Could not fetch artwork image: ${imageRes.status}`);
+      const imageFormat = imageRes.headers.get("content-type") || "image/jpeg";
+      const imageBytes = await imageRes.blob();
+
+      const signForm = new FormData();
+      signForm.set("image", imageBytes, "artwork");
+      signForm.set("format", imageFormat);
+      signForm.set("artist_name", metadata.artist_name);
+      signForm.set("artwork_title", artwork.title);
+      signForm.set("mint_date", new Date().toISOString());
+      signForm.set("tx_hash", txHash);
+      signForm.set("token_id", tokenId);
+      signForm.set("verify_url", `https://amoy.polygonscan.com/tx/${txHash}`);
+
+      const signRes = await fetch(`${C2PA_SIGNING_SERVICE_URL}/sign`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${C2PA_SERVICE_SHARED_SECRET}` },
+        body: signForm,
+      });
+
+      if (!signRes.ok) {
+        throw new Error(`Signing service returned ${signRes.status}: ${await signRes.text()}`);
+      }
+
+      const signedBytes = await signRes.blob();
+      // Overwrites the same storage path - artwork.image_url stays valid with
+      // no other row or UI needing to change. The credentialed file becomes
+      // the one every viewer/downloader already gets.
+      const objectPath = artwork.image_url.split("/artwork-images/")[1];
+      const { error: uploadError } = await supabase.storage
+        .from("artwork-images")
+        .upload(objectPath, signedBytes, { contentType: imageFormat, upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      await supabase
+        .from("blockchain_coas")
+        .update({ c2pa_embedded: true, c2pa_embedded_at: new Date().toISOString() })
+        .eq("id", coa.id);
+    } catch (c2paErr) {
+      console.error("C2PA embedding failed (non-fatal):", (c2paErr as Error).message);
+    }
 
     let notified = true;
     try {

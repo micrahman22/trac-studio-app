@@ -4,6 +4,7 @@
 .env.production
 .env*.local
 *.env
+.local-secrets/
 
 # Replit internals
 .replit
