@@ -6,21 +6,6 @@
 <title>TRAC | Ownership, On Record</title>
 <meta name="description" content="TRAC is where artists build a portfolio, organize their studio, and manage their creative practice, all in one place.">
 
-<!-- Applies a stored theme choice before first paint, so there's no flash
-     of the wrong theme. No stored value = no data-theme attribute at all,
-     which leaves the [data-theme="dark"]/:not([data-theme="light"]) CSS
-     free to fall back to the OS's prefers-color-scheme. -->
-<script>
-  (function () {
-    try {
-      var stored = localStorage.getItem('trac-theme');
-      if (stored === 'light' || stored === 'dark') {
-        document.documentElement.setAttribute('data-theme', stored);
-      }
-    } catch (e) {}
-  })();
-</script>
-
 <!-- Cloudflare Turnstile - explicit render (onload callback) rather than
      the auto-render data-sitekey attribute, since the sign-in/sign-up
      panes here are toggled via display:none/block on a persistent overlay,
@@ -110,38 +95,6 @@
     --critical: #b23a2e;
   }
 
-  /* Dark theme: OS preference (unless the user picked "light" explicitly
-     via the toggle) ... */
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --ink: #efeeea;
-      --ink-soft: #b8b4ac;
-      --muted: #8f8b83;
-      --faint: #625e58;
-      --line: #322f2b;
-      --bg-warm: #1c1a18;
-      --bg-white: #121110;
-      --bg-soft: #181614;
-      --black: #f2f0ec;
-      --white: #141412;
-      --critical: #e0685a;
-    }
-  }
-  /* ...or explicit "dark" always wins, regardless of OS preference. */
-  :root[data-theme="dark"] {
-    --ink: #efeeea;
-    --ink-soft: #b8b4ac;
-    --muted: #8f8b83;
-    --faint: #625e58;
-    --line: #322f2b;
-    --bg-warm: #1c1a18;
-    --bg-white: #121110;
-    --bg-soft: #181614;
-    --black: #f2f0ec;
-    --white: #141412;
-    --critical: #e0685a;
-  }
-
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
 
@@ -208,29 +161,6 @@
     font-size: 0.82rem;
     font-weight: 500;
   }
-  .theme-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    background: none;
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    color: var(--ink);
-    cursor: pointer;
-    transition: background-color 0.15s ease, border-color 0.2s ease;
-  }
-  .theme-toggle:hover { background: var(--bg-warm); }
-  .theme-icon-light { display: none; }
-  [data-theme="dark"] .theme-icon-dark { display: none; }
-  [data-theme="dark"] .theme-icon-light { display: block; }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .theme-icon-dark { display: none; }
-    :root:not([data-theme="light"]) .theme-icon-light { display: block; }
-  }
-
   .nav-toggle { display: none; }
   @media (max-width: 720px) {
     .nav-links .nav-item { display: none; }
@@ -340,6 +270,15 @@
     font-size: 0.98rem;
     max-width: 46ch;
   }
+  .status-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-top: 8px;
+  }
   .feature-arrow {
     width: 40px;
     height: 40px;
@@ -401,8 +340,17 @@
     color: var(--muted);
     line-height: 1.4;
   }
+  footer .foot-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  footer .foot-right a:hover { color: var(--ink); }
   @media (max-width: 640px) {
     footer .foot-top { flex-direction: column; }
+    footer .foot-right { margin-top: 4px; }
   }
 
   /* ---------- Auth modal ---------- */
@@ -555,10 +503,6 @@
         Sign In
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
       </a>
-      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
-        <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-        <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-      </button>
     </div>
   </div>
 </nav>
@@ -579,7 +523,7 @@
   <div class="hero-overlay">
     <div class="wrap">
       <h1>Ownership, On Record.</h1>
-      <p class="sub">Manage your studio archive. Track your shows and collections. Own your practice.</p>
+      <p class="sub">A free portfolio for your practice, with blockchain certificates of authenticity coming soon.</p>
       <!--
         Same routing note as Sign In above: no dedicated /signup URL exists
         today. This points at app.html; a visitor lands on Sign In and taps
@@ -616,45 +560,18 @@
           <div class="feature-num">01</div>
           <div class="feature-name">Portfolio</div>
         </div>
-        <div class="feature-desc">Present your work with a clean, shareable portfolio page.</div>
+        <div class="feature-desc">A clean, shareable home for your work. Free, no catch.</div>
         <div class="feature-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
       </a>
 
-      <a class="feature-row js-cta-signup" href="app.html">
+      <div class="feature-row">
         <div>
           <div class="feature-num">02</div>
-          <div class="feature-name">Studio</div>
+          <div class="feature-name">Blockchain Certificates</div>
+          <div class="status-badge uc">Coming Soon</div>
         </div>
-        <div class="feature-desc">Organize your process with moodboards, sketches, and notes.</div>
-        <div class="feature-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
-      </a>
-
-      <a class="feature-row js-cta-signup" href="app.html">
-        <div>
-          <div class="feature-num">03</div>
-          <div class="feature-name">Collections</div>
-        </div>
-        <div class="feature-desc">Group work into collections.</div>
-        <div class="feature-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
-      </a>
-
-      <a class="feature-row js-cta-signup" href="app.html">
-        <div>
-          <div class="feature-num">04</div>
-          <div class="feature-name">Events</div>
-        </div>
-        <div class="feature-desc">Track every show, past and upcoming, alongside the work that was in it.</div>
-        <div class="feature-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
-      </a>
-
-      <a class="feature-row js-cta-signup" href="app.html">
-        <div>
-          <div class="feature-num">05</div>
-          <div class="feature-name">CV, on request</div>
-        </div>
-        <div class="feature-desc">Visitors request your CV straight from your portfolio, no account needed. You approve every request.</div>
-        <div class="feature-arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
-      </a>
+        <div class="feature-desc">Provenance and authenticity, recorded on-chain, for every piece you choose to certify.</div>
+      </div>
 
     </div>
   </div>
@@ -679,8 +596,7 @@
   <div class="wrap" style="padding-bottom: 88px; border-top: 1px solid var(--line); padding-top: 64px;">
     <div class="section-kicker uc">Pricing</div>
     <div style="max-width: 46ch;">
-      <div class="feature-name" style="font-size:1.9rem; margin: 6px 0 14px;">Free, during early access.</div>
-      <p class="feature-desc" style="max-width: 50ch;">Portfolio, Studio, Collections, Events, and CV requests are all free to use while TRAC is in early access. No tiers, no card required to start.</p>
+      <p class="feature-desc" style="max-width: 50ch; margin-top: 6px;">Your portfolio is free, now and always. Blockchain certification is coming soon.</p>
     </div>
   </div>
 </section>
@@ -700,7 +616,10 @@
         <a href="#" class="logo-mark">TRAC</a>
         <div class="copyright">© 2026 TRAC.<br>All rights reserved.</div>
       </div>
-      <!-- Terms, Privacy, and Contact links removed per request. -->
+      <div class="foot-right">
+        <a href="#" onclick="showTermsPopup(); return false;">Terms</a>
+        <a href="#" onclick="showPrivacyPopup(); return false;">Privacy</a>
+      </div>
     </div>
   </div>
 </footer>
@@ -1211,14 +1130,6 @@
   // Worst case that lands on app.html, which immediately bounces back
   // here if there's no session.
   document.addEventListener('DOMContentLoaded', function () {
-    document.getElementById('themeToggle').addEventListener('click', function () {
-      var current = document.documentElement.getAttribute('data-theme');
-      var isDark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme: dark)').matches);
-      var next = isDark ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      try { localStorage.setItem('trac-theme', next); } catch (e) {}
-    });
-
     document.querySelector('.nav-signin').addEventListener('click', function (e) {
       e.preventDefault();
       openAuthModal('signin');
