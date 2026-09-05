@@ -1,0 +1,5 @@
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+c2pa-python==0.37.10
+cryptography==50.0.1
+python-multipart==0.0.32
