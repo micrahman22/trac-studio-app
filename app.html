@@ -602,6 +602,13 @@
                         #settings-section .form-section { background: white; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.5rem 1.75rem; margin-bottom: 1.25rem; }
                         #settings-section .form-section h3 { margin: 0; font-size: 1.05rem; font-weight: 500; text-transform: none; letter-spacing: normal; color: #000; }
 
+                        /* Settings menu (gear icon in the header) reuses the same card look
+                           as #settings-section's own .form-section groups, but lives outside
+                           that section (as a top-level modal, since the gear icon must work
+                           from every header, not just Profile Settings'). */
+                        #settingsMenuModal .form-section { background: #fafafa; border: 1px solid #e5e5e5; border-radius: 12px; padding: 1.25rem 1.5rem; }
+                        #settingsMenuModal .form-section h3 { margin: 0; font-size: 1rem; font-weight: 500; text-transform: none; letter-spacing: normal; color: #000; }
+
                         /* Icon + heading + description header for each section */
                         .section-head { display: flex; align-items: flex-start; gap: 0.85rem; margin-bottom: 1.4rem; }
                         .section-head svg { flex-shrink: 0; margin-top: 0.1rem; color: #000; }
@@ -2801,6 +2808,8 @@
                         /* 2. Make modal fill screen and be visible */
                         #wipStudioModal[style*="display: flex"] {
                             background: rgba(0,0,0,0.9) !important;
+                            backdrop-filter: blur(10px) !important;
+                            -webkit-backdrop-filter: blur(10px) !important;
                             display: flex !important;
                         }
 
@@ -2841,6 +2850,8 @@
                             /* Modal background */
                             #wipStudioModal {
                                 background: rgba(0,0,0,0.9) !important;
+                                backdrop-filter: blur(10px) !important;
+                                -webkit-backdrop-filter: blur(10px) !important;
                             }
                         }
 
@@ -3356,16 +3367,11 @@
                                     </nav>
                                 </div>
                                 <div class="header-right">
-                                    <button class="theme-toggle" title="Toggle dark mode">
-                                        <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                        <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                    <button class="icon-button" onclick="openSettingsMenu()" title="Settings">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                                     </button>
                                     <button class="icon-button" onclick="signOut()" title="Sign Out">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                                            <path d="M6 14H3.333C2.98 14 2.641 13.86 2.391 13.61C2.14 13.36 2 13.02 2 12.667V3.333C2 2.98 2.14 2.641 2.391 2.391C2.641 2.14 2.98 2 3.333 2H6"></path>
-                                            <path d="M10.667 11.333L14 8l-3.333-3.333"></path>
-                                            <path d="M14 8H6"></path>
-                                        </svg>
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H2m0 0l3-3M2 8l3 3M6 4V2h8v12H6v-2"/></svg>
                                     </button>
                                 </div>
                             </div>
@@ -3590,7 +3596,7 @@
                                     </section>
 
                         <!-- Archived Works Popup -->
-                        <div id="archivedPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center;">
+                        <div id="archivedPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 9999; align-items: center; justify-content: center;">
                             <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 1200px; width: 90%; max-height: 80vh; overflow-y: auto;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                                     <h3 style="margin: 0;">Archived Works</h3>
@@ -3632,9 +3638,8 @@
                                     </nav>
                                 </div>
                                 <div class="header-right">
-                                    <button class="theme-toggle" title="Toggle dark mode">
-                                        <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                        <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                    <button class="icon-button" onclick="openSettingsMenu()" title="Settings">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                                     </button>
                                     <button class="icon-button" onclick="signOut()" title="Sign Out">
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H2m0 0l3-3M2 8l3 3M6 4V2h8v12H6v-2"/></svg>
@@ -3720,16 +3725,11 @@
                                     </nav>
                                 </div>
                                 <div class="header-right">
-                                    <button class="theme-toggle" title="Toggle dark mode">
-                                        <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                        <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                    <button class="icon-button" onclick="openSettingsMenu()" title="Settings">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                                     </button>
                                     <button class="icon-button" onclick="signOut()" title="Sign Out">
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                                            <path d="M6 14H3.333C2.98 14 2.641 13.86 2.391 13.61C2.14 13.36 2 13.02 2 12.667V3.333C2 2.98 2.14 2.641 2.391 2.391C2.641 2.14 2.98 2 3.333 2H6"></path>
-                                            <path d="M10.667 11.333L14 8l-3.333-3.333"></path>
-                                            <path d="M14 8H6"></path>
-                                        </svg>
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H2m0 0l3-3M2 8l3 3M6 4V2h8v12H6v-2"/></svg>
                                     </button>
                                 </div>
                             </div>
@@ -3837,24 +3837,6 @@
                                                     </button>
                                                 </div>
 
-                                                <div class="form-section" style="margin-bottom: 0;">
-                                                    <div class="section-head">
-                                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                                                        <div>
-                                                            <h3>Notification Preferences</h3>
-                                                            <p>Choose which activity on your certificates sends you an email.</p>
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group" style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.6rem;">
-                                                        <input type="checkbox" id="notifyOnMint" name="notifyOnMint" style="width: auto; margin: 0;">
-                                                        <label for="notifyOnMint" style="margin: 0;">Email me when one of my artworks is minted as a certificate</label>
-                                                    </div>
-                                                    <div class="form-group" style="margin-bottom: 0;">
-                                                        <input type="checkbox" id="notifyOnTransfer" name="notifyOnTransfer" style="width: auto; margin: 0;">
-                                                        <label for="notifyOnTransfer" style="margin: 0;">Email me when a certificate I minted changes ownership</label>
-                                                    </div>
-                                                </div>
-
                                             </div>
 
                                             <div class="form-actions">
@@ -3865,42 +3847,9 @@
                                             </div>
                                         </form>
 
-                                        <!-- Account & Security is its own form, separate from profileSettingsForm -
-                                             a password/email change is an immediate auth action, not part of the
-                                             profile-fields save. -->
-                                        <div class="form-body" style="margin-top: 2rem;">
-                                            <div class="form-section">
-                                                <div class="section-head">
-                                                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                                    <h3>Account &amp; Security</h3>
-                                                </div>
-                                                <div class="form-grid" style="margin-bottom: 1.25rem;">
-                                                    <div class="form-group" style="margin-bottom: 0;">
-                                                        <label for="accountEmail">Account Email</label>
-                                                        <input type="email" id="accountEmail" name="accountEmail" placeholder="you@example.com">
-                                                        <small style="color: #666; font-size: 0.8rem;">This is your sign-in email, separate from the public "Contact Email" above. Changing it sends a confirmation link.</small>
-                                                    </div>
-                                                    <div class="form-group" style="margin-bottom: 0; align-self: end;">
-                                                        <button type="button" class="btn-secondary" id="changeEmailBtn" onclick="changeAccountEmail()">Update Email</button>
-                                                    </div>
-                                                </div>
-                                                <div class="form-grid" style="margin-bottom: 0;">
-                                                    <div class="form-group" style="margin-bottom: 0;">
-                                                        <label for="newPassword">New Password</label>
-                                                        <input type="password" id="newPassword" name="newPassword" placeholder="At least 6 characters" autocomplete="new-password">
-                                                    </div>
-                                                    <div class="form-group" style="margin-bottom: 0;">
-                                                        <label for="confirmNewPassword">Confirm New Password</label>
-                                                        <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Repeat new password" autocomplete="new-password">
-                                                    </div>
-                                                </div>
-                                                <div class="form-actions" style="justify-content: flex-start; margin-top: 1rem;">
-                                                    <button type="button" class="btn-primary" id="changePasswordBtn" onclick="changeAccountPassword()">
-                                                        <span id="changePasswordText">Update Password</span>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <!-- Notification Preferences and Account & Security moved to the
+                                             Settings menu (gear icon in the header) - see openSettingsMenu()
+                                             and #settingsMenuModal near the other top-level modals. -->
 
                                         <div class="settings-collections-head">
                                             <h3>Portfolio Collections</h3>
@@ -3931,8 +3880,124 @@
                       </div>
                     </div>
 
+                    <!-- SETTINGS MENU MODAL: opened from the gear icon in every dashboard
+                         header (Dashboard/Blockchain/Profile Settings). Lives here, as a
+                         top-level sibling of the four *-section divs, not inside any one
+                         of them, so it isn't hidden by that section's own display:none
+                         when the gear icon is clicked from a different tab. -->
+                    <div id="settingsMenuModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10001; align-items: center; justify-content: center;">
+                        <div style="background: white; border-radius: 16px; max-width: 520px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 2rem;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                                <h3 style="font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; margin: 0;">Settings</h3>
+                                <button onclick="closeSettingsMenu()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;">×</button>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+                                <div class="form-section">
+                                    <div class="section-head">
+                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                        <div>
+                                            <h3>Notification Preferences</h3>
+                                            <p>Choose which activity on your certificates sends you an email.</p>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.6rem;">
+                                        <input type="checkbox" id="notifyOnMint" name="notifyOnMint" style="width: auto; margin: 0;" onchange="saveNotificationPreferences()">
+                                        <label for="notifyOnMint" style="margin: 0;">Email me when one of my artworks is minted as a certificate</label>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <input type="checkbox" id="notifyOnTransfer" name="notifyOnTransfer" style="width: auto; margin: 0;" onchange="saveNotificationPreferences()">
+                                        <label for="notifyOnTransfer" style="margin: 0;">Email me when a certificate I minted changes ownership</label>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <div class="section-head">
+                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                        <h3>Account &amp; Security</h3>
+                                    </div>
+                                    <div class="form-grid" style="margin-bottom: 1.25rem;">
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label for="accountEmail">Account Email</label>
+                                            <input type="email" id="accountEmail" name="accountEmail" placeholder="you@example.com">
+                                            <small style="color: #666; font-size: 0.8rem;">This is your sign-in email, separate from the public "Contact Email" in Profile Settings. Changing it sends a confirmation link.</small>
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0; align-self: end;">
+                                            <button type="button" class="btn-secondary" id="changeEmailBtn" onclick="changeAccountEmail()">Update Email</button>
+                                        </div>
+                                    </div>
+                                    <div class="form-grid" style="margin-bottom: 0;">
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label for="newPassword">New Password</label>
+                                            <input type="password" id="newPassword" name="newPassword" placeholder="At least 6 characters" autocomplete="new-password">
+                                        </div>
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label for="confirmNewPassword">Confirm New Password</label>
+                                            <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Repeat new password" autocomplete="new-password">
+                                        </div>
+                                    </div>
+                                    <div class="form-actions" style="justify-content: flex-start; margin-top: 1rem; background: transparent; border-top: none; padding: 0;">
+                                        <button type="button" class="btn-primary" id="changePasswordBtn" onclick="changeAccountPassword()">
+                                            <span id="changePasswordText">Update Password</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <div class="section-head" style="margin-bottom: 0;">
+                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        <h3 style="flex: 1;">Appearance</h3>
+                                        <button class="theme-toggle" title="Toggle dark mode" style="border: 1px solid #d1d1d1; flex-shrink: 0;">
+                                            <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                            <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <div class="section-head">
+                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                                        <h3>Legal</h3>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                                        <a href="index.html?legal=terms" target="_blank" rel="noopener" style="font-size: 0.88rem; color: #000; text-decoration: underline;">Terms of Service</a>
+                                        <a href="index.html?legal=privacy" target="_blank" rel="noopener" style="font-size: 0.88rem; color: #000; text-decoration: underline;">Privacy Policy</a>
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <div class="section-head" style="margin-bottom: 0.85rem;">
+                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                        <h3>Support</h3>
+                                    </div>
+                                    <a href="mailto:support@tracstudio.app" style="font-size: 0.88rem; color: #000; text-decoration: underline;">Contact / Get Help</a>
+                                </div>
+
+                                <div class="form-section">
+                                    <div class="section-head">
+                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H2m0 0l3-3M2 8l3 3M6 4V2h8v12H6v-2"/></svg>
+                                        <h3>Account</h3>
+                                    </div>
+                                    <!-- Download My Data (downloadMyData(), #downloadDataBtn) is built and
+                                         deployed but held back from this list until it's fully shipped -
+                                         drop a button back in here calling downloadMyData() when it is.
+                                         Sign Out lives on the header now, as a standalone button next to
+                                         the gear icon - not in this menu. -->
+                                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.85rem;">
+                                        <!-- Privacy Policy Section 6 says this is "a manual process handled
+                                             by request" - mailto is the actual mechanism that promise refers
+                                             to, not a placeholder. -->
+                                        <a href="mailto:support@tracstudio.app?subject=Account%20Deletion%20Request" style="font-size: 0.82rem; color: #b23a2e; text-decoration: underline;">Request Account Deletion</a>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- STYLE BROWSER MODAL -->
-                    <div id="styleBrowserModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+                    <div id="styleBrowserModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center;">
                         <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 1000px; width: 90%; max-height: 80vh; overflow-y: auto;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                                 <h3 style="margin: 0;">Browse Portfolio Styles</h3>
@@ -3979,7 +4044,7 @@
                     </div>
 
                     <!-- ADD EVENT FORM -->
-                    <div id="addEventPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                    <div id="addEventPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center;">
                         <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                                 <h3 style="margin: 0;" id="eventFormTitle">Add New Event</h3>
@@ -4058,7 +4123,7 @@
                     </div>
 
                     <!-- ACTIVITY HISTORY POPUP -->
-                    <div id="activityHistoryPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                    <div id="activityHistoryPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center;">
                         <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 800px; width: 90%; max-height: 80vh; overflow-y: auto;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                                 <h3 style="margin: 0;">Activity History</h3>
@@ -4086,7 +4151,7 @@
                     </div>
 
                     <!-- CV REQUESTS PANEL (artist view) -->
-                    <div id="cvRequestsPanel" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                    <div id="cvRequestsPanel" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center;">
                         <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 720px; width: 90%; max-height: 85vh; overflow-y: auto;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                                 <div>
@@ -4110,7 +4175,7 @@
                     </div>
 
                     <!-- CV REQUEST MODAL -->
-                    <div id="cvRequestModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+                    <div id="cvRequestModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 1000; align-items: center; justify-content: center;">
                         <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 500px; width: 90%;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                                 <h3 style="margin: 0;">Request Artist CV</h3>
@@ -4154,7 +4219,7 @@
                     </div>
 
                     <!-- WIP STUDIO MODAL -->
-                        <div id="wipStudioModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10001; align-items: center; justify-content: center;">
+                        <div id="wipStudioModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10001; align-items: center; justify-content: center;">
                         <div style="background: white; border-radius: 16px; max-width: 1200px; width: 95%; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;">
                             <!-- Header -->
                             <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid #e5e5e5; background: #fafafa;">
@@ -4350,7 +4415,7 @@
                                     </div>
 
                                     <!-- WIP PROJECT CREATION MODAL -->
-                                        <div id="wipProjectCreateModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10002; align-items: center; justify-content: center;">
+                                        <div id="wipProjectCreateModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10002; align-items: center; justify-content: center;">
                                         <div style="background: white; border-radius: 16px; max-width: 600px; width: 95%; max-height: 80vh; overflow-y: auto;">
                                             <!-- Header -->
                                             <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid #e5e5e5;">
@@ -4420,7 +4485,7 @@
                                     </div>
 
                                     <!-- ADD MOODBOARD ITEM MODAL -->
-                                        <div id="moodboardItemModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10003; align-items: center; justify-content: center;">
+                                        <div id="moodboardItemModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10003; align-items: center; justify-content: center;">
                                         <div style="background: white; border-radius: 16px; max-width: 600px; width: 95%; max-height: 80vh; overflow-y: auto;">
                                             <!-- Header -->
                                             <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 2rem; border-bottom: 1px solid #e5e5e5;">
@@ -4498,7 +4563,7 @@
                                          with the login form that used to reference them. -->
 
                     <!-- ARTWORK POPUP -->
-                    <div id="artworkPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 10000; align-items: center; justify-content: center;">
+                    <div id="artworkPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center;">
                         <!-- Close button -->
                         <button onclick="closePopup()" style="position: absolute; top: 2rem; right: 2rem; background: rgba(0,0,0,0.7); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 1.5rem; cursor: pointer; z-index: 10001; backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;">×</button>
 
@@ -7090,6 +7155,96 @@
                             } finally {
                                 btn.disabled = false;
                                 btnText.textContent = 'Update Password';
+                            }
+                        }
+
+                        // ==================== SETTINGS MENU ====================
+                        // Gear icon in every dashboard header opens this one shared modal,
+                        // rather than each section having its own copy - notification
+                        // preferences, account/security, dark mode, sign out, legal links,
+                        // support, and account deletion all live here now instead of being
+                        // split across Profile Settings and each header.
+                        function openSettingsMenu() {
+                            // loadProfileData() otherwise only runs when navigating to the
+                            // Profile Settings tab - the gear icon needs to work correctly
+                            // from Dashboard/Blockchain too, so refresh accountEmail/
+                            // notifyOnMint/notifyOnTransfer here regardless of which tab
+                            // the modal was opened from.
+                            loadProfileData();
+                            document.getElementById('settingsMenuModal').style.display = 'flex';
+                        }
+                        function closeSettingsMenu() {
+                            document.getElementById('settingsMenuModal').style.display = 'none';
+                        }
+
+                        // Notification preferences save immediately on toggle, separate from
+                        // the main Profile Settings "Save Profile" button, since they no
+                        // longer live inside that form.
+                        async function saveNotificationPreferences() {
+                            const { data: { user } } = await supabaseClient.auth.getUser();
+                            if (!user) return;
+                            const { error } = await supabaseClient
+                                .from('profiles')
+                                .update({
+                                    notify_on_mint: document.getElementById('notifyOnMint').checked,
+                                    notify_on_transfer: document.getElementById('notifyOnTransfer').checked
+                                })
+                                .eq('id', user.id);
+                            if (error) {
+                                console.error('Save notification preferences error:', error);
+                                showToast('Error saving notification preferences', 'error');
+                                return;
+                            }
+                            showToast('Notification preferences saved');
+                        }
+
+                        // Raw fetch rather than supabaseClient.functions.invoke() - this
+                        // response is a file (Content-Disposition attachment), not JSON to
+                        // parse, and invoke() doesn't give clean access to the raw blob.
+                        async function downloadMyData() {
+                            const btn = document.getElementById('downloadDataBtn');
+                            const btnText = document.getElementById('downloadDataBtnText');
+                            btn.disabled = true;
+                            btnText.innerHTML = '<span class="loading-spinner"></span> Preparing...';
+                            try {
+                                const { data: { session } } = await supabaseClient.auth.getSession();
+                                if (!session) throw new Error('Not signed in');
+
+                                // apikey is required by the gateway to route the request at
+                                // all (confirmed live - omitting it gets rejected before the
+                                // function's own auth check even runs), separate from the
+                                // Authorization bearer token that identifies the caller.
+                                // supabaseClient.functions.invoke() adds this automatically;
+                                // raw fetch() does not.
+                                const res = await fetch(`${supabaseUrl}/functions/v1/export-my-data`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Authorization': `Bearer ${session.access_token}`,
+                                        'apikey': supabaseKey
+                                    }
+                                });
+                                if (!res.ok) {
+                                    const body = await res.json().catch(() => ({}));
+                                    throw new Error(body.error || 'Could not generate export');
+                                }
+
+                                const blob = await res.blob();
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `trac-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                                URL.revokeObjectURL(url);
+
+                                showToast('Your data export has downloaded');
+                            } catch (error) {
+                                console.error('Download data error:', error);
+                                showToast('Error: ' + (error.message || 'Could not download your data'), 'error');
+                            } finally {
+                                btn.disabled = false;
+                                btnText.textContent = 'Download My Data';
                             }
                         }
 
@@ -11463,7 +11618,7 @@
 
                             const overlay = document.createElement('div');
                             overlay.id = 'style-preview-overlay';
-                            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+                            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:99999;display:flex;align-items:center;justify-content:center;';
                             overlay.innerHTML = `
                                 <div style="background:${style.colors.bg};color:${style.colors.text};border-radius:16px;padding:3rem;max-width:600px;width:90%;font-family:'${style.fonts.primary}',sans-serif;box-shadow:0 20px 60px rgba(0,0,0,0.4);">
                                     <h2 style="margin:0 0 0.5rem;font-size:1.8rem;font-weight:600;">${style.name}</h2>
@@ -12707,6 +12862,8 @@
                                         width: 100% !important;
                                         height: 100% !important;
                                         background: rgba(0,0,0,0.95) !important;
+                                        backdrop-filter: blur(10px) !important;
+                                        -webkit-backdrop-filter: blur(10px) !important;
                                         z-index: 99999 !important;
                                         display: none !important;
                                         align-items: center !important;
@@ -12936,6 +13093,15 @@
                                                                     });
                                                                 }
 
+                                                                const settingsMenuModal = document.getElementById('settingsMenuModal');
+                                                                if (settingsMenuModal) {
+                                                                    settingsMenuModal.addEventListener('click', function(e) {
+                                                                        if (e.target === this) {
+                                                                            closeSettingsMenu();
+                                                                        }
+                                                                    });
+                                                                }
+
                                                                     // Artwork form
                                                                     document.getElementById('artworkUploadForm').addEventListener('submit', function(e) {
                                                                         e.preventDefault();
@@ -12993,9 +13159,10 @@
                                                                                 contact_email: document.getElementById('contactEmail').value,
                                                                                 social_links: getSocialPlatformsData(),
                                                                                 has_cv: hasCV,
-                                                                                cv_url: cvUrl,
-                                                                                notify_on_mint: document.getElementById('notifyOnMint').checked,
-                                                                                notify_on_transfer: document.getElementById('notifyOnTransfer').checked
+                                                                                cv_url: cvUrl
+                                                                                // notify_on_mint/notify_on_transfer save independently
+                                                                                // from the Settings menu now (saveNotificationPreferences()),
+                                                                                // not as part of this form.
                                                                             };
 
                                                                             console.log('🔄 updateData being saved:', JSON.stringify(updateData, null, 2));
@@ -13631,7 +13798,7 @@
 
         const modal = document.createElement('div');
         modal.id = 'bc-mint-modal';
-        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
         modal.innerHTML = `
         <div style="background:white;border-radius:16px;max-width:520px;width:95%;max-height:90vh;overflow-y:auto;padding:2rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
@@ -13755,7 +13922,7 @@
 
     function showMintSuccessModal(artworkTitle, buyerName, buyerEmail, tokenId, coaId) {
         const modal = document.createElement('div');
-        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
         modal.innerHTML = `
         <div style="background:white;border-radius:16px;max-width:480px;width:95%;padding:2.5rem;text-align:center;">
             <div style="width:64px;height:64px;background:#f0fdf4;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;">
@@ -13805,7 +13972,7 @@
 
         const modal = document.createElement('div');
         modal.id = 'bc-initiate-modal';
-        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
         modal.innerHTML = `
         <div style="background:white;border-radius:16px;max-width:480px;width:95%;padding:2rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
@@ -13963,7 +14130,7 @@
         const history = (coa.coa_ownership_history || []).sort((a, b) => new Date(a.transfer_date) - new Date(b.transfer_date));
 
         const modal = document.createElement('div');
-        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;z-index:2147483647;';
         modal.innerHTML = `
         <div style="background:white;border-radius:16px;max-width:580px;width:95%;max-height:88vh;overflow-y:auto;padding:2rem;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">

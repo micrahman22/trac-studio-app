@@ -363,6 +363,8 @@
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(13,13,12,0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     z-index: 1000;
     align-items: center;
     justify-content: center;
@@ -462,6 +464,8 @@
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(13,13,12,0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     z-index: 1001;
     align-items: center;
     justify-content: center;
@@ -1157,6 +1161,14 @@
       const collectorRadio = document.querySelector('input[name="authSignupRole"][value="collector"]');
       if (collectorRadio) collectorRadio.checked = true;
     }
+
+    // app.html's settings menu links here with ?legal=terms/privacy instead
+    // of duplicating the legal text into that file - this is the one place
+    // either popup's markup lives. Opens in a new tab from app.html, so a
+    // signed-in artist re-reading these doesn't lose their dashboard state.
+    const legalParam = urlParams.get('legal');
+    if (legalParam === 'terms') showTermsPopup();
+    if (legalParam === 'privacy') showPrivacyPopup();
   });
 </script>
 

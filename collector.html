@@ -233,7 +233,7 @@
         .c-badge-gray { background: var(--tc-surface-soft); color: var(--tc-ink-soft); border: 1px solid var(--tc-border); }
 
         /* MODAL */
-        .c-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2147483647; }
+        .c-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2147483647; }
         .c-modal { background: var(--tc-bg); color: var(--tc-ink); border-radius: 16px; max-width: 580px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 2rem; }
         .c-modal-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; }
         .c-modal-header h3 { font-size: 1.2rem; font-weight: 500; letter-spacing: -0.02em; }
@@ -262,6 +262,8 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             z-index: 999999;
             align-items: center;
             justify-content: center;
