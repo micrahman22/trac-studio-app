@@ -3951,11 +3951,33 @@
                                         <span id="changePasswordText">Update Password</span>
                                     </button>
 
-                                    <div style="margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid #efeeea; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.85rem;">
+                                    <div style="margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid #efeeea;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.85rem;">
                                         <button type="button" class="btn-secondary" id="downloadDataBtn" onclick="downloadMyData()">
                                             <span id="downloadDataBtnText">Download My Data</span>
                                         </button>
-                                        <a href="mailto:support@tracstudio.app?subject=Account%20Deletion%20Request" style="font-size: 0.82rem; color: #b23a2e; text-decoration: underline;">Request Account Deletion</a>
+                                        <button type="button" id="deletionRequestToggle" onclick="openDeletionForm()" style="background: none; border: none; padding: 0; font-size: 0.82rem; color: #b23a2e; text-decoration: underline; cursor: pointer; font-family: inherit;">Request Account Deletion</button>
+                                    </div>
+
+                                    <!-- Reuses send-support-message, same pattern as the Support form
+                                         below - deletion stays a manual, human-reviewed process (per
+                                         the Privacy Policy) but no longer dumps the user into a mail
+                                         client to start it. Subject is fixed, not user-editable, so
+                                         it's unambiguous on the receiving end. -->
+                                    <div id="deletionRequestForm" style="display: none; margin-top: 1rem; padding: 1rem 1.1rem; background: #fdf5f4; border: 1px solid #f0d4d0; border-radius: 8px;">
+                                        <p style="margin: 0 0 0.75rem; font-size: 0.82rem; color: #7a3229; line-height: 1.5;">Account deletion is a manual process handled by our team, not immediate or automated. Let us know if there's anything we should know (optional) and we'll follow up at your account email.</p>
+                                        <textarea id="deletionRequestMessage" rows="3" placeholder="Anything we should know? (optional)" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem; font-family: inherit; background: white; resize: vertical; box-sizing: border-box;"></textarea>
+                                        <div id="deletionRequestError" style="display: none; color: #b23a2e; font-size: 0.82rem; margin-top: 0.6rem;"></div>
+                                        <div style="display: flex; gap: 0.75rem; margin-top: 0.85rem;">
+                                            <button type="button" class="btn-primary" id="deletionRequestSendBtn" onclick="sendDeletionRequest()" style="background: #b23a2e;">
+                                                <span id="deletionRequestSendText">Submit Request</span>
+                                            </button>
+                                            <button type="button" class="btn-secondary" onclick="closeDeletionForm()">Cancel</button>
+                                        </div>
+                                    </div>
+
+                                    <div id="deletionRequestSuccess" style="display: none; margin-top: 1rem; padding: 0.75rem 0; font-size: 0.9rem; color: #333;">
+                                        Request sent. We'll follow up at your account email.
                                     </div>
                                 </div>
 
@@ -3994,9 +4016,9 @@
                                         <h3>Support</h3>
                                     </div>
 
-                                    <button type="button" id="supportContactToggle" onclick="openSupportForm()" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 0; font-size: 0.9rem; color: #000; text-decoration: none; background: none; border: none; cursor: pointer; text-align: left; font-family: inherit;">
-                                        Contact / Get Help
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #999;"><path d="M9 18l6-6-6-6"/></svg>
+                                    <button type="button" id="supportContactToggle" onclick="openSupportForm()" aria-expanded="false" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 0; font-size: 0.9rem; color: #000; text-decoration: none; background: none; border: none; cursor: pointer; text-align: left; font-family: inherit;">
+                                        Send us a message
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #999;"><path d="M6 9l6 6 6-6"/></svg>
                                     </button>
 
                                     <!-- Replaces the old mailto link - jumping to an external mail app
@@ -7290,15 +7312,73 @@
                         // Help" row - replaces the old mailto link, which always jumped to
                         // an external mail app regardless of styling.
                         function openSupportForm() {
-                            document.getElementById('supportContactToggle').style.display = 'none';
+                            const toggle = document.getElementById('supportContactToggle');
+                            toggle.style.display = 'none';
+                            toggle.setAttribute('aria-expanded', 'true');
                             document.getElementById('supportMessageForm').style.display = 'block';
                             document.getElementById('supportSuccessMessage').style.display = 'none';
                             document.getElementById('supportMessage').focus();
                         }
                         function closeSupportForm() {
                             document.getElementById('supportMessageForm').style.display = 'none';
-                            document.getElementById('supportContactToggle').style.display = 'flex';
+                            const toggle = document.getElementById('supportContactToggle');
+                            toggle.style.display = 'flex';
+                            toggle.setAttribute('aria-expanded', 'false');
                             document.getElementById('supportFormError').style.display = 'none';
+                        }
+
+                        function openDeletionForm() {
+                            document.getElementById('deletionRequestToggle').style.display = 'none';
+                            document.getElementById('deletionRequestForm').style.display = 'block';
+                            document.getElementById('deletionRequestSuccess').style.display = 'none';
+                            document.getElementById('deletionRequestMessage').focus();
+                        }
+                        function closeDeletionForm() {
+                            document.getElementById('deletionRequestForm').style.display = 'none';
+                            document.getElementById('deletionRequestToggle').style.display = 'inline-block';
+                            document.getElementById('deletionRequestError').style.display = 'none';
+                        }
+                        async function sendDeletionRequest() {
+                            const message = document.getElementById('deletionRequestMessage').value.trim();
+                            const errorEl = document.getElementById('deletionRequestError');
+                            errorEl.style.display = 'none';
+
+                            const btn = document.getElementById('deletionRequestSendBtn');
+                            const btnText = document.getElementById('deletionRequestSendText');
+                            btn.disabled = true;
+                            btnText.innerHTML = '<span class="loading-spinner"></span> Sending...';
+
+                            try {
+                                const { data, error } = await supabaseClient.functions.invoke('send-support-message', {
+                                    body: {
+                                        subject: 'Account Deletion Request',
+                                        message: message || 'No additional details provided.'
+                                    }
+                                });
+
+                                let errorMessage = null;
+                                if (error) {
+                                    errorMessage = error.message || 'Could not send your request';
+                                    try {
+                                        const body = await error.context.json();
+                                        if (body?.error) errorMessage = body.error;
+                                    } catch (_) {}
+                                } else if (!data?.success) {
+                                    errorMessage = data?.error || 'Could not send your request';
+                                }
+                                if (errorMessage) throw new Error(errorMessage);
+
+                                document.getElementById('deletionRequestMessage').value = '';
+                                document.getElementById('deletionRequestForm').style.display = 'none';
+                                document.getElementById('deletionRequestSuccess').style.display = 'block';
+                            } catch (error) {
+                                console.error('Send deletion request error:', error);
+                                errorEl.textContent = error.message || 'Could not send your request. Please try again.';
+                                errorEl.style.display = 'block';
+                            } finally {
+                                btn.disabled = false;
+                                btnText.textContent = 'Submit Request';
+                            }
                         }
 
                         async function sendSupportMessage() {
