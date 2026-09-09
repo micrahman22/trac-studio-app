@@ -152,8 +152,8 @@ serve(async (req) => {
         subject: `CV from ${escapeHtml(artistName)} - TRAC`,
         html: `
           <div style="font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; max-width: 560px; margin: 0 auto; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden;">
-            <div style="padding: 1.75rem 2rem; border-bottom: 1px solid #e5e5e5;">
-              <span style="font-size: 1rem; font-weight: 600; letter-spacing: 0.1em; color: #000;">TRAC</span>
+            <div style="background: #000; padding: 1.25rem 2rem;">
+              <span style="font-size: 1rem; font-weight: 700; letter-spacing: 0.15em; color: #fff;">TRAC</span>
             </div>
             <div style="padding: 2rem; color: #333;">
               <h2 style="font-weight: 300; font-size: 1.6rem; margin: 0 0 1rem;">
