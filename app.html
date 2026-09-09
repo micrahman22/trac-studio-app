@@ -172,6 +172,13 @@
                         [data-theme="dark"] [style*="solid #f0f0f0"]:not(#portfolioPage *) { border-color: var(--tc-surface-soft) !important; }
                         [data-theme="dark"] [style*="solid #000"]:not(#portfolioPage *) { border-color: var(--tc-black) !important; }
                         [data-theme="dark"] [style*="solid #333"]:not(#portfolioPage *) { border-color: var(--tc-ink) !important; }
+                        /* #efeeea/#f0efec: the settings menu's own hairline section/link
+                           dividers - new to this structure, not covered by any color
+                           above (neither is close enough for [style*="..."] substring
+                           matching to catch it). Confirmed missing by testing this panel
+                           in dark mode directly, not assumed from the existing list. */
+                        [data-theme="dark"] [style*="#efeeea"]:not(#portfolioPage *) { border-color: var(--tc-border) !important; }
+                        [data-theme="dark"] [style*="#f0efec"]:not(#portfolioPage *) { border-color: var(--tc-border) !important; }
 
                         /* Stylesheet rules (not inline) that use hardcoded colors --
                            these are real CSS rules, not attribute-selector patches,
@@ -3886,48 +3893,51 @@
                          of them, so it isn't hidden by that section's own display:none
                          when the gear icon is clicked from a different tab. -->
                     <div id="settingsMenuModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10001; align-items: center; justify-content: center;">
-                        <div style="background: white; border-radius: 16px; max-width: 520px; width: 95%; max-height: 90vh; overflow-y: auto; padding: 2rem;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
-                                <h3 style="font-size: 1.25rem; font-weight: 500; letter-spacing: -0.02em; margin: 0;">Settings</h3>
+                        <div style="background: white; border-radius: 16px; max-width: 560px; width: 95%; max-height: 90vh; overflow-y: auto;">
+
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding: 1.75rem 2rem 1.25rem; border-bottom: 1px solid #e5e5e5;">
+                                <h3 style="margin: 0; font-size: 1.35rem; font-weight: 600; letter-spacing: -0.02em;">Settings</h3>
                                 <button onclick="closeSettingsMenu()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;">×</button>
                             </div>
 
-                            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="padding: 0 2rem 0.25rem;">
 
-                                <div class="form-section">
-                                    <div class="section-head">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                                <div class="form-section" style="background: none; border: none; border-radius: 0; padding: 1.75rem 0; margin-bottom: 0;">
+                                    <div class="section-head" style="margin-bottom: 1.25rem;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                                         <div>
                                             <h3>Notification Preferences</h3>
                                             <p>Choose which activity on your certificates sends you an email.</p>
                                         </div>
                                     </div>
-                                    <div class="form-group" style="margin-bottom: 0.75rem; display: flex; align-items: flex-start; gap: 0.6rem;">
-                                        <input type="checkbox" id="notifyOnMint" name="notifyOnMint" style="width: auto; margin: 0.2rem 0 0 0;" onchange="saveNotificationPreferences()">
-                                        <label for="notifyOnMint" style="margin: 0;">Email me when one of my artworks is minted as a certificate</label>
-                                    </div>
-                                    <div class="form-group" style="margin-bottom: 0; display: flex; align-items: flex-start; gap: 0.6rem;">
-                                        <input type="checkbox" id="notifyOnTransfer" name="notifyOnTransfer" style="width: auto; margin: 0.2rem 0 0 0;" onchange="saveNotificationPreferences()">
-                                        <label for="notifyOnTransfer" style="margin: 0;">Email me when a certificate I minted changes ownership</label>
+                                    <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                                        <label for="notifyOnMint" style="display: flex; align-items: flex-start; gap: 0.65rem; font-size: 0.88rem; color: #333; line-height: 1.4; cursor: pointer; margin: 0;">
+                                            <input type="checkbox" id="notifyOnMint" name="notifyOnMint" style="width: 17px; height: 17px; margin: 0.1rem 0 0; accent-color: #000; flex-shrink: 0;" onchange="saveNotificationPreferences()">
+                                            Email me when one of my artworks is minted as a certificate
+                                        </label>
+                                        <label for="notifyOnTransfer" style="display: flex; align-items: flex-start; gap: 0.65rem; font-size: 0.88rem; color: #333; line-height: 1.4; cursor: pointer; margin: 0;">
+                                            <input type="checkbox" id="notifyOnTransfer" name="notifyOnTransfer" style="width: 17px; height: 17px; margin: 0.1rem 0 0; accent-color: #000; flex-shrink: 0;" onchange="saveNotificationPreferences()">
+                                            Email me when a certificate I minted changes ownership
+                                        </label>
                                     </div>
                                 </div>
 
-                                <div class="form-section">
-                                    <div class="section-head">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                <div class="form-section" style="background: none; border: none; border-radius: 0; padding: 1.75rem 0; margin-bottom: 0; border-top: 1px solid #efeeea;">
+                                    <div class="section-head" style="margin-bottom: 1.25rem;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                                         <h3>Account &amp; Security</h3>
                                     </div>
-                                    <div class="form-grid" style="margin-bottom: 1.25rem;">
-                                        <div class="form-group" style="margin-bottom: 0;">
-                                            <label for="accountEmail">Account Email</label>
+
+                                    <div style="display: flex; gap: 0.75rem; align-items: flex-end;">
+                                        <div style="flex: 1;">
+                                            <label for="accountEmail" style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem; color: #333; font-weight: 500;">Account Email</label>
                                             <input type="email" id="accountEmail" name="accountEmail" placeholder="you@example.com">
-                                            <small style="color: #666; font-size: 0.8rem;">This is your sign-in email, separate from the public "Contact Email" in Profile Settings. Changing it sends a confirmation link.</small>
                                         </div>
-                                        <div class="form-group" style="margin-bottom: 0; align-self: end;">
-                                            <button type="button" class="btn-secondary" id="changeEmailBtn" onclick="changeAccountEmail()">Update Email</button>
-                                        </div>
+                                        <button type="button" class="btn-secondary" id="changeEmailBtn" onclick="changeAccountEmail()" style="padding: 0.875rem 1.25rem; white-space: nowrap; flex-shrink: 0;">Update Email</button>
                                     </div>
-                                    <div class="form-grid" style="margin-bottom: 0;">
+                                    <small style="display: block; margin-top: 0.6rem; color: #666; font-size: 0.8rem; line-height: 1.5;">This is your sign-in email, separate from the public "Contact Email" in Profile Settings. Changing it sends a confirmation link.</small>
+
+                                    <div class="form-grid" style="margin-top: 1.5rem; margin-bottom: 0;">
                                         <div class="form-group" style="margin-bottom: 0;">
                                             <label for="newPassword">New Password</label>
                                             <input type="password" id="newPassword" name="newPassword" placeholder="At least 6 characters" autocomplete="new-password">
@@ -3937,59 +3947,56 @@
                                             <input type="password" id="confirmNewPassword" name="confirmNewPassword" placeholder="Repeat new password" autocomplete="new-password">
                                         </div>
                                     </div>
-                                    <div class="form-actions" style="justify-content: flex-start; margin-top: 1rem; background: transparent; border-top: none; padding: 0;">
-                                        <button type="button" class="btn-primary" id="changePasswordBtn" onclick="changeAccountPassword()">
-                                            <span id="changePasswordText">Update Password</span>
-                                        </button>
-                                    </div>
-                                </div>
+                                    <button type="button" class="btn-primary" id="changePasswordBtn" onclick="changeAccountPassword()" style="margin-top: 1rem;">
+                                        <span id="changePasswordText">Update Password</span>
+                                    </button>
 
-                                <div class="form-section" style="padding: 0.85rem 1.5rem;">
-                                    <div class="section-head" style="margin-bottom: 0;">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                        <h3 style="flex: 1;">Appearance</h3>
-                                        <button class="theme-toggle" title="Toggle dark mode" style="border: 1px solid #d1d1d1; flex-shrink: 0;">
-                                            <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                                            <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="form-section" style="padding: 1rem 1.5rem;">
-                                    <div class="section-head" style="margin-bottom: 0.85rem;">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-                                        <h3>Legal</h3>
-                                    </div>
-                                    <div style="display: flex; flex-direction: column; gap: 0.6rem;">
-                                        <a href="index.html?legal=terms" target="_blank" rel="noopener" style="font-size: 0.88rem; color: #000; text-decoration: underline;">Terms of Service</a>
-                                        <a href="index.html?legal=privacy" target="_blank" rel="noopener" style="font-size: 0.88rem; color: #000; text-decoration: underline;">Privacy Policy</a>
-                                    </div>
-                                </div>
-
-                                <div class="form-section" style="padding: 1rem 1.5rem;">
-                                    <div class="section-head" style="margin-bottom: 0.85rem;">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                                        <h3>Support</h3>
-                                    </div>
-                                    <a href="mailto:support@tracstudio.app" style="font-size: 0.88rem; color: #000; text-decoration: underline;">Contact / Get Help</a>
-                                </div>
-
-                                <div class="form-section" style="padding: 1rem 1.5rem;">
-                                    <div class="section-head" style="margin-bottom: 0.85rem;">
-                                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H2m0 0l3-3M2 8l3 3M6 4V2h8v12H6v-2"/></svg>
-                                        <h3>Account</h3>
-                                    </div>
-                                    <!-- Sign Out lives on the header now, as a standalone button next to
-                                         the gear icon - not in this menu. -->
-                                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.85rem;">
+                                    <div style="margin-top: 1.75rem; padding-top: 1.5rem; border-top: 1px solid #efeeea; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.85rem;">
                                         <button type="button" class="btn-secondary" id="downloadDataBtn" onclick="downloadMyData()">
                                             <span id="downloadDataBtnText">Download My Data</span>
                                         </button>
-                                        <!-- Privacy Policy Section 6 says this is "a manual process handled
-                                             by request" - mailto is the actual mechanism that promise refers
-                                             to, not a placeholder. -->
                                         <a href="mailto:support@tracstudio.app?subject=Account%20Deletion%20Request" style="font-size: 0.82rem; color: #b23a2e; text-decoration: underline;">Request Account Deletion</a>
                                     </div>
+                                </div>
+
+                                <div class="form-section" style="background: none; border: none; border-radius: 0; padding: 1.75rem 0; margin-bottom: 0; border-top: 1px solid #efeeea; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;">
+                                    <div class="section-head" style="margin-bottom: 0;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        <div>
+                                            <h3>Appearance</h3>
+                                            <p>Switch between light and dark mode.</p>
+                                        </div>
+                                    </div>
+                                    <button class="theme-toggle" title="Toggle dark mode" style="border: 1px solid #d1d1d1; width: 44px; height: 44px; border-radius: 999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg class="theme-icon-dark" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                                        <svg class="theme-icon-light" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                    </button>
+                                </div>
+
+                                <div class="form-section" style="background: none; border: none; border-radius: 0; padding: 1.75rem 0; margin-bottom: 0; border-top: 1px solid #efeeea;">
+                                    <div class="section-head" style="margin-bottom: 1rem;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                                        <h3>Legal</h3>
+                                    </div>
+                                    <a href="index.html?legal=terms" target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #f0efec; font-size: 0.9rem; color: #000; text-decoration: none;">
+                                        Terms of Service
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #999;"><path d="M9 18l6-6-6-6"/></svg>
+                                    </a>
+                                    <a href="index.html?legal=privacy" target="_blank" rel="noopener" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; font-size: 0.9rem; color: #000; text-decoration: none;">
+                                        Privacy Policy
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #999;"><path d="M9 18l6-6-6-6"/></svg>
+                                    </a>
+                                </div>
+
+                                <div class="form-section" style="background: none; border: none; border-radius: 0; padding: 1.75rem 0 2rem; margin-bottom: 0; border-top: 1px solid #efeeea;">
+                                    <div class="section-head" style="margin-bottom: 1rem;">
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                        <h3>Support</h3>
+                                    </div>
+                                    <a href="mailto:support@tracstudio.app" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; font-size: 0.9rem; color: #000; text-decoration: none;">
+                                        Contact / Get Help
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #999;"><path d="M9 18l6-6-6-6"/></svg>
+                                    </a>
                                 </div>
 
                             </div>
