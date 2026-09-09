@@ -3993,10 +3993,41 @@
                                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                         <h3>Support</h3>
                                     </div>
-                                    <a href="mailto:support@tracstudio.app" style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 0; font-size: 0.9rem; color: #000; text-decoration: none;">
+
+                                    <button type="button" id="supportContactToggle" onclick="openSupportForm()" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 0.75rem 0; font-size: 0.9rem; color: #000; text-decoration: none; background: none; border: none; cursor: pointer; text-align: left; font-family: inherit;">
                                         Contact / Get Help
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #999;"><path d="M9 18l6-6-6-6"/></svg>
-                                    </a>
+                                    </button>
+
+                                    <!-- Replaces the old mailto link - jumping to an external mail app
+                                         was the whole complaint. Same pattern as the rest of this menu:
+                                         explicit inline styles on the textarea/input rather than relying
+                                         on .form-group, since that class's light-mode look is scoped to
+                                         #settings-section only and wouldn't apply inside this modal (the
+                                         same gap the Account Email input hit earlier). Dark mode is
+                                         covered by the existing bare [data-theme="dark"] input/textarea
+                                         selector, which isn't scoped to .form-group at all. -->
+                                    <div id="supportMessageForm" style="display: none; padding-top: 0.5rem;">
+                                        <div style="margin-bottom: 0.85rem;">
+                                            <label for="supportSubject" style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem; color: #333; font-weight: 500;">Subject (optional)</label>
+                                            <input type="text" id="supportSubject" placeholder="What's this about?" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem; font-family: inherit; background: white; box-sizing: border-box;">
+                                        </div>
+                                        <div style="margin-bottom: 0.85rem;">
+                                            <label for="supportMessage" style="display: block; font-size: 0.85rem; margin-bottom: 0.5rem; color: #333; font-weight: 500;">Message</label>
+                                            <textarea id="supportMessage" rows="4" placeholder="How can we help?" style="width: 100%; padding: 0.875rem; border: 1px solid #d1d1d1; border-radius: 8px; font-size: 0.9rem; font-family: inherit; background: white; resize: vertical; box-sizing: border-box;"></textarea>
+                                        </div>
+                                        <div id="supportFormError" style="display: none; color: #b23a2e; font-size: 0.82rem; margin-bottom: 0.85rem;"></div>
+                                        <div style="display: flex; gap: 0.75rem;">
+                                            <button type="button" class="btn-primary" id="supportSendBtn" onclick="sendSupportMessage()">
+                                                <span id="supportSendText">Send</span>
+                                            </button>
+                                            <button type="button" class="btn-secondary" onclick="closeSupportForm()">Cancel</button>
+                                        </div>
+                                    </div>
+
+                                    <div id="supportSuccessMessage" style="display: none; padding: 0.75rem 0; font-size: 0.9rem; color: #333;">
+                                        Message sent. We'll reply to your account email.
+                                    </div>
                                 </div>
 
                             </div>
@@ -7252,6 +7283,72 @@
                             } finally {
                                 btn.disabled = false;
                                 btnText.textContent = 'Download My Data';
+                            }
+                        }
+
+                        // Reveals the inline contact form in place of the "Contact / Get
+                        // Help" row - replaces the old mailto link, which always jumped to
+                        // an external mail app regardless of styling.
+                        function openSupportForm() {
+                            document.getElementById('supportContactToggle').style.display = 'none';
+                            document.getElementById('supportMessageForm').style.display = 'block';
+                            document.getElementById('supportSuccessMessage').style.display = 'none';
+                            document.getElementById('supportMessage').focus();
+                        }
+                        function closeSupportForm() {
+                            document.getElementById('supportMessageForm').style.display = 'none';
+                            document.getElementById('supportContactToggle').style.display = 'flex';
+                            document.getElementById('supportFormError').style.display = 'none';
+                        }
+
+                        async function sendSupportMessage() {
+                            const subject = document.getElementById('supportSubject').value.trim();
+                            const message = document.getElementById('supportMessage').value.trim();
+                            const errorEl = document.getElementById('supportFormError');
+                            errorEl.style.display = 'none';
+
+                            if (!message) {
+                                errorEl.textContent = 'Enter a message before sending.';
+                                errorEl.style.display = 'block';
+                                return;
+                            }
+
+                            const btn = document.getElementById('supportSendBtn');
+                            const btnText = document.getElementById('supportSendText');
+                            btn.disabled = true;
+                            btnText.innerHTML = '<span class="loading-spinner"></span> Sending...';
+
+                            try {
+                                const { data, error } = await supabaseClient.functions.invoke('send-support-message', {
+                                    body: { subject: subject || undefined, message }
+                                });
+
+                                let errorMessage = null;
+                                if (error) {
+                                    errorMessage = error.message || 'Could not send your message';
+                                    try {
+                                        const body = await error.context.json();
+                                        if (body?.error) errorMessage = body.error;
+                                    } catch (_) {}
+                                } else if (!data?.success) {
+                                    errorMessage = data?.error || 'Could not send your message';
+                                }
+                                if (errorMessage) throw new Error(errorMessage);
+
+                                // Message left in place is discarded on success only - a failed
+                                // attempt keeps exactly what was typed (nothing is cleared in the
+                                // catch block below), so nothing typed is ever lost to an error.
+                                document.getElementById('supportSubject').value = '';
+                                document.getElementById('supportMessage').value = '';
+                                document.getElementById('supportMessageForm').style.display = 'none';
+                                document.getElementById('supportSuccessMessage').style.display = 'block';
+                            } catch (error) {
+                                console.error('Send support message error:', error);
+                                errorEl.textContent = error.message || 'Could not send your message. Please try again.';
+                                errorEl.style.display = 'block';
+                            } finally {
+                                btn.disabled = false;
+                                btnText.textContent = 'Send';
                             }
                         }
 
