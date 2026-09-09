@@ -3892,7 +3892,7 @@
                                 <button onclick="closeSettingsMenu()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; flex-shrink: 0;">×</button>
                             </div>
 
-                            <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                            <div style="display: flex; flex-direction: column; gap: 1rem;">
 
                                 <div class="form-section">
                                     <div class="section-head">
@@ -3902,12 +3902,12 @@
                                             <p>Choose which activity on your certificates sends you an email.</p>
                                         </div>
                                     </div>
-                                    <div class="form-group" style="margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.6rem;">
-                                        <input type="checkbox" id="notifyOnMint" name="notifyOnMint" style="width: auto; margin: 0;" onchange="saveNotificationPreferences()">
+                                    <div class="form-group" style="margin-bottom: 0.75rem; display: flex; align-items: flex-start; gap: 0.6rem;">
+                                        <input type="checkbox" id="notifyOnMint" name="notifyOnMint" style="width: auto; margin: 0.2rem 0 0 0;" onchange="saveNotificationPreferences()">
                                         <label for="notifyOnMint" style="margin: 0;">Email me when one of my artworks is minted as a certificate</label>
                                     </div>
-                                    <div class="form-group" style="margin-bottom: 0;">
-                                        <input type="checkbox" id="notifyOnTransfer" name="notifyOnTransfer" style="width: auto; margin: 0;" onchange="saveNotificationPreferences()">
+                                    <div class="form-group" style="margin-bottom: 0; display: flex; align-items: flex-start; gap: 0.6rem;">
+                                        <input type="checkbox" id="notifyOnTransfer" name="notifyOnTransfer" style="width: auto; margin: 0.2rem 0 0 0;" onchange="saveNotificationPreferences()">
                                         <label for="notifyOnTransfer" style="margin: 0;">Email me when a certificate I minted changes ownership</label>
                                     </div>
                                 </div>
@@ -3944,7 +3944,7 @@
                                     </div>
                                 </div>
 
-                                <div class="form-section">
+                                <div class="form-section" style="padding: 0.85rem 1.5rem;">
                                     <div class="section-head" style="margin-bottom: 0;">
                                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
                                         <h3 style="flex: 1;">Appearance</h3>
@@ -3955,8 +3955,8 @@
                                     </div>
                                 </div>
 
-                                <div class="form-section">
-                                    <div class="section-head">
+                                <div class="form-section" style="padding: 1rem 1.5rem;">
+                                    <div class="section-head" style="margin-bottom: 0.85rem;">
                                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
                                         <h3>Legal</h3>
                                     </div>
@@ -3966,7 +3966,7 @@
                                     </div>
                                 </div>
 
-                                <div class="form-section">
+                                <div class="form-section" style="padding: 1rem 1.5rem;">
                                     <div class="section-head" style="margin-bottom: 0.85rem;">
                                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                                         <h3>Support</h3>
@@ -3974,17 +3974,17 @@
                                     <a href="mailto:support@tracstudio.app" style="font-size: 0.88rem; color: #000; text-decoration: underline;">Contact / Get Help</a>
                                 </div>
 
-                                <div class="form-section">
-                                    <div class="section-head">
+                                <div class="form-section" style="padding: 1rem 1.5rem;">
+                                    <div class="section-head" style="margin-bottom: 0.85rem;">
                                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 8H2m0 0l3-3M2 8l3 3M6 4V2h8v12H6v-2"/></svg>
                                         <h3>Account</h3>
                                     </div>
-                                    <!-- Download My Data (downloadMyData(), #downloadDataBtn) is built and
-                                         deployed but held back from this list until it's fully shipped -
-                                         drop a button back in here calling downloadMyData() when it is.
-                                         Sign Out lives on the header now, as a standalone button next to
+                                    <!-- Sign Out lives on the header now, as a standalone button next to
                                          the gear icon - not in this menu. -->
                                     <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.85rem;">
+                                        <button type="button" class="btn-secondary" id="downloadDataBtn" onclick="downloadMyData()">
+                                            <span id="downloadDataBtnText">Download My Data</span>
+                                        </button>
                                         <!-- Privacy Policy Section 6 says this is "a manual process handled
                                              by request" - mailto is the actual mechanism that promise refers
                                              to, not a placeholder. -->
