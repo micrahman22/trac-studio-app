@@ -196,8 +196,8 @@ serve(async (req) => {
 
     const emailHtml = [
       '<div style="font-family: -apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif; max-width: 560px; margin: 0 auto; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; overflow: hidden;">',
-      '  <div style="background: #000; padding: 1.25rem 2rem;">',
-      '    <span style="font-size: 1rem; font-weight: 700; letter-spacing: 0.15em; color: #fff;">TRAC</span>',
+      '  <div style="padding: 1.75rem 2rem 1.25rem; border-bottom: 1px solid #e5e5e5;">',
+      '    <span style="display: inline-block; background: #0d0d0c; color: #ffffff; font-weight: 600; letter-spacing: 0.02em; border-radius: 6px; padding: 0.5rem 0.9rem; font-size: 1rem;">TRAC</span>',
       '  </div>',
       '  <div style="padding: 2rem; color: #333;">',
       '    <h2 style="font-weight: 300; font-size: 1.6rem; margin: 0 0 1rem;">',
@@ -218,7 +218,7 @@ serve(async (req) => {
       '  </div>',
       '  <div style="padding: 1.25rem 2rem; border-top: 1px solid #e5e5e5; text-align: center;">',
       '    <p style="color: #999; font-size: 0.75rem; margin: 0; line-height: 1.5;">',
-      '      Sent via <a href="https://tracstudio.app" style="color: #999; text-decoration: underline;">TRAC</a> - certificates of authenticity, permanently linked to the work.',
+      '      Sent via <a href="https://tracstudio.app" style="color: #999; text-decoration: underline;">TRACStudio</a>',
       '    </p>',
       '  </div>',
       '</div>',
