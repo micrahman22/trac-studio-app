@@ -45,6 +45,16 @@ serve(async (req) => {
       return json({ error: "Royalty must be confirmed before finalizing." }, 400);
     }
 
+    // Same defense-in-depth as mint-coa: this function makes an identical
+    // on-chain call with the same three secrets, so it fails the same way if
+    // they're not configured - a clear error here instead of an opaque one
+    // from ethers three steps down, and before the pending-transfer claim
+    // below does anything.
+    if (!POLYGON_RPC_URL || !POLYGON_PRIVATE_KEY || !POLYGON_CONTRACT_ADDRESS) {
+      console.error("finalize-transfer: Polygon secrets are not fully configured");
+      return json({ error: "Transfers aren't available yet." }, 403);
+    }
+
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "Unauthorized" }, 401);
 

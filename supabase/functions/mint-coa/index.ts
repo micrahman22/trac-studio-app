@@ -90,6 +90,16 @@ serve(async (req) => {
       return json({ error: "Minting isn't available yet." }, 403);
     }
 
+    // Defense-in-depth alongside minting_enabled above, not a replacement for
+    // it: if this environment's Polygon secrets were never set (e.g. a fresh
+    // environment where minting_enabled got flipped true before the secrets
+    // were actually configured), fail with a clear error here instead of
+    // letting ethers throw an opaque one three steps down in the chain call.
+    if (!POLYGON_RPC_URL || !POLYGON_PRIVATE_KEY || !POLYGON_CONTRACT_ADDRESS) {
+      console.error("mint-coa: minting_enabled is true but Polygon secrets are not fully configured");
+      return json({ error: "Minting isn't available yet." }, 403);
+    }
+
     // Per-artist mint throttle, checked against blockchain_coas directly -
     // no new table needed, artist_id/created_at already exist there. 20/24h
     // is well above any real usage seen so far (busiest artist: 4 mints over
