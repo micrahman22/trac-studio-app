@@ -21,6 +21,12 @@
                     <link rel="preload" href="/fonts/space-grotesk-400.woff2" as="font" type="font/woff2" crossorigin>
                     <link rel="preload" href="/fonts/space-grotesk-500.woff2" as="font" type="font/woff2" crossorigin>
                     <link rel="preload" href="/fonts/space-grotesk-600.woff2" as="font" type="font/woff2" crossorigin>
+                    <!-- Accent fonts for portfolio layout styles only (Ledger, Gallery Wall,
+                         Field Notes, Vitrine, Broadsheet, etc.) - layered on top of Space
+                         Grotesk, never replacing it as the app's own base font. No webfont
+                         infra existed before this; this is the first Google Fonts load in
+                         the file. -->
+                    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,400;1,400;1,500&family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Newsreader:ital,wght@0,400;1,400&display=swap">
                     <style>
                         @font-face {
                             font-family: 'Space Grotesk';
@@ -684,6 +690,7 @@
                         }
 
                         /* PORTFOLIO LAYOUT CLASSES */
+                        /* TRAC CLASSIC - untouched by the 2026-09-11 style overhaul. */
                         .portfolio-layout.grid-classic {
                             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
                             gap: 2rem;
@@ -699,11 +706,14 @@
                             justify-content: center;
                             margin: 0 auto;
                             justify-items: center;
+                            counter-reset: rec;
                         }
 
                         .portfolio-layout.grid-masonry .artwork-card {
                             grid-row-end: span 45;
                             text-align: center;
+                            position: relative;
+                            counter-increment: rec;
                         }
 
                         .portfolio-layout.grid-masonry .artwork-card:nth-child(odd) {
@@ -714,17 +724,45 @@
                             grid-row-end: span 50;
                         }
 
+                        /* Refined: a small catalog-position number on each tile,
+                           revealed on hover - ties back into the provenance/record
+                           system instead of reading as generic Pinterest-style
+                           masonry. Real sequential index, not a fabricated mint ID. */
+                        .portfolio-layout.grid-masonry .artwork-card::after {
+                            content: "\2116 " counter(rec, decimal-leading-zero);
+                            position: absolute;
+                            bottom: 0.6rem;
+                            right: 0.6rem;
+                            background: rgba(13,13,12,.72);
+                            color: #fff;
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.65rem;
+                            letter-spacing: 0.03em;
+                            padding: 2px 7px;
+                            border-radius: 2px;
+                            opacity: 0;
+                            transition: opacity 0.2s ease;
+                            pointer-events: none;
+                        }
+
+                        .portfolio-layout.grid-masonry .artwork-card:hover::after {
+                            opacity: 1;
+                        }
+
                         .portfolio-layout.stacked-minimal {
                             grid-template-columns: 1fr;
                             max-width: 900px;
                             margin: 0 auto;
                             gap: 4rem;
+                            counter-reset: rec;
                         }
 
                         .portfolio-layout.stacked-minimal .artwork-card {
                             text-align: center;
                             padding: 3rem 0;
                             border-bottom: 1px solid var(--border-color, #e5e5e5);
+                            position: relative;
+                            counter-increment: rec;
                         }
 
                         .portfolio-layout.stacked-minimal .artwork-card:last-child {
@@ -740,6 +778,26 @@
                             margin-bottom: 1rem;
                         }
 
+                        /* Refined: a thin tabular record-number rail along the left
+                           edge - a quiet nod to archival numbering, same single-column
+                           reading order otherwise. */
+                        .portfolio-layout.stacked-minimal .artwork-card::before {
+                            content: counter(rec, decimal-leading-zero);
+                            position: absolute;
+                            left: -2.75rem;
+                            top: 3rem;
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.7rem;
+                            color: var(--text-color, #999);
+                            opacity: 0.5;
+                        }
+
+                        @media (max-width: 900px) {
+                            .portfolio-layout.stacked-minimal .artwork-card::before {
+                                display: none;
+                            }
+                        }
+
                         /* GUERRILLA MINIMAL */
                         .portfolio-layout.guerrilla-grid {
                             grid-template-columns: 1fr;
@@ -752,6 +810,7 @@
                             margin: 0;
                             border: none;
                             border-radius: 0;
+                            position: relative;
                         }
 
                         .portfolio-layout.guerrilla-grid .artwork-image img {
@@ -760,7 +819,41 @@
                             display: block;
                         }
 
-                        /* ELEGANT GALLERY */
+                        /* Refined: full-bleed edge-to-edge stays exactly as raw as
+                           before. Added: a caption fades in on hover instead of being
+                           permanently absent - a real usability gap, not a look change. */
+                        .portfolio-layout.guerrilla-grid .artwork-info {
+                            position: absolute;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            padding: 1.25rem 1.5rem;
+                            background: linear-gradient(transparent, rgba(13,13,12,0.75));
+                            opacity: 0;
+                            transition: opacity 0.2s ease;
+                            pointer-events: none;
+                        }
+
+                        .portfolio-layout.guerrilla-grid .artwork-card:hover .artwork-info {
+                            opacity: 1;
+                        }
+
+                        .portfolio-layout.guerrilla-grid .artwork-title {
+                            color: #fff;
+                            font-size: 1rem;
+                            font-weight: 600;
+                        }
+
+                        .portfolio-layout.guerrilla-grid .artwork-details {
+                            color: rgba(255,255,255,0.85);
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.72rem;
+                        }
+
+                        /* ELEGANT GALLERY - refined: drops the boxy border+shadow
+                           combo for a single hairline rule and a museum-label-style
+                           caption underneath, closer to an actual gallery wall than
+                           a UI card. */
                         .portfolio-layout.gallery-spaced {
                             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
                             gap: 4rem;
@@ -770,10 +863,29 @@
                         }
 
                         .portfolio-layout.gallery-spaced .artwork-card {
-                            padding: 2rem;
-                            border: 1px solid var(--border-color);
-                            border-radius: 12px;
-                            background: var(--bg-color);
+                            padding: 0 0 1.25rem;
+                            border: none;
+                            border-bottom: 1px solid var(--border-color, #e5e5e5);
+                            border-radius: 0;
+                            background: transparent;
+                        }
+
+                        .portfolio-layout.gallery-spaced .artwork-info {
+                            text-align: center;
+                            padding-top: 1rem;
+                        }
+
+                        .portfolio-layout.gallery-spaced .artwork-title {
+                            font-size: 0.95rem;
+                            font-weight: 500;
+                        }
+
+                        .portfolio-layout.gallery-spaced .artwork-details {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.68rem;
+                            color: var(--text-color, #999);
+                            opacity: 0.7;
+                            margin-top: 0.25rem;
                         }
 
                         /* EXPERIMENTAL IMMERSIVE */
@@ -783,6 +895,7 @@
                             gap: 0 !important;
                             margin: 0;
                             padding: 0;
+                            position: relative;
                         }
 
                         .portfolio-layout.immersive-stacked .artwork-card {
@@ -797,6 +910,38 @@
                             max-height: 90vh;
                             width: auto;
                             max-width: 90vw;
+                        }
+
+                        /* Refined: a small fixed dot-rail showing position in the
+                           sequence, orienting a visitor without adding chrome to the
+                           images. Injected/updated by setupImmersiveDotRail() in JS,
+                           since "which row is active" needs scroll position, not just
+                           CSS. Still one artwork per full-viewport row otherwise. */
+                        .immersive-dot-rail {
+                            position: fixed;
+                            right: 1.25rem;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            display: flex;
+                            flex-direction: column;
+                            gap: 0.6rem;
+                            z-index: 20;
+                        }
+
+                        .immersive-dot-rail .dot {
+                            width: 5px;
+                            height: 5px;
+                            border-radius: 50%;
+                            background: var(--text-color, #999);
+                            opacity: 0.4;
+                            transition: all 0.2s ease;
+                        }
+
+                        .immersive-dot-rail .dot.on {
+                            background: #b23a2e;
+                            opacity: 1;
+                            width: 7px;
+                            height: 7px;
                         }
 
                         /* MONUMENTAL SCULPTURAL - dense auto-flow so the hero/side
@@ -841,6 +986,37 @@
                             display: block;
                         }
 
+                        /* Refined: a background tint and a real caption on the hero
+                           piece, so the asymmetry reads as an intentional focal point
+                           instead of an accident of the grid math. */
+                        .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+1) {
+                            background: rgba(13,13,12,0.06);
+                        }
+
+                        .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+1) .artwork-info {
+                            position: absolute;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            padding: 1.5rem;
+                            background: linear-gradient(transparent, rgba(13,13,12,0.78));
+                        }
+
+                        .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+1) .artwork-title {
+                            color: #fff;
+                            font-weight: 600;
+                            font-size: 1.15rem;
+                            margin: 0;
+                        }
+
+                        .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+1) .artwork-details {
+                            display: none;
+                        }
+
+                        .portfolio-layout.monumental-asymmetric .artwork-card:not(:nth-child(3n+1)) .artwork-info {
+                            display: none;
+                        }
+
                         /* HISTORICAL LAYERED - a clean repeating 4-item rhythm
                            (wide+tall, two mid columns, wide) instead of the
                            previous odd/even/3n/4n rules, which could all match
@@ -870,6 +1046,7 @@
 
                         .portfolio-layout.historical-overlap .artwork-card {
                             padding: 0 !important;
+                            position: relative;
                         }
 
                         .portfolio-layout.historical-overlap .artwork-card,
@@ -883,6 +1060,20 @@
                             height: 100% !important;
                             object-fit: cover;
                             display: block;
+                        }
+
+                        /* Refined: a thin critical-red index tab on alternating
+                           blocks - a direct visual echo of "Ownership, On Record"
+                           instead of an unexplained pattern. */
+                        .portfolio-layout.historical-overlap .artwork-card:nth-child(odd)::before {
+                            content: '';
+                            position: absolute;
+                            left: 0;
+                            top: 0;
+                            bottom: 0;
+                            width: 3px;
+                            background: #b23a2e;
+                            z-index: 1;
                         }
 
                         /* COLORFUL VIBRANT - larger cells and more breathing room
@@ -899,6 +1090,7 @@
                             overflow: hidden;
                             height: 100%;
                             padding: 0 !important;
+                            position: relative;
                         }
 
                         #portfolioPage .portfolio-layout.vibrant-mosaic .artwork-image {
@@ -910,6 +1102,54 @@
                             width: 100% !important;
                             height: 100% !important;
                             object-fit: cover;
+                        }
+
+                        /* Refined: real medium/year tags in place of arbitrary bright
+                           colors - "vibrant" through variety of real content, using
+                           TRAC's own tokens/critical-red plus a small rotation of
+                           muted accents, not clashing color blocks. Reuses the year/
+                           medium text that already exists in .artwork-details. */
+                        .portfolio-layout.vibrant-mosaic .artwork-title {
+                            display: none;
+                        }
+
+                        .portfolio-layout.vibrant-mosaic .artwork-info {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            right: 0;
+                            padding: 0;
+                        }
+
+                        .portfolio-layout.vibrant-mosaic .artwork-details {
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 0.3rem;
+                            position: absolute;
+                            top: 0.6rem;
+                            left: 0.6rem;
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.6rem;
+                            letter-spacing: 0.03em;
+                            color: #fff;
+                        }
+
+                        .portfolio-layout.vibrant-mosaic .artwork-details > div {
+                            padding: 3px 8px;
+                            border-radius: 8px;
+                            background: #b23a2e;
+                        }
+
+                        .portfolio-layout.vibrant-mosaic .artwork-card:nth-of-type(4n+2) .artwork-details > div {
+                            background: #5c6e50;
+                        }
+
+                        .portfolio-layout.vibrant-mosaic .artwork-card:nth-of-type(4n+3) .artwork-details > div {
+                            background: #6a5a3e;
+                        }
+
+                        .portfolio-layout.vibrant-mosaic .artwork-card:nth-of-type(4n) .artwork-details > div {
+                            background: #3e4c5c;
                         }
 
                         /* ABSTRACT EXPRESSIONIST */
@@ -925,6 +1165,8 @@
                             flex: 0 1 auto;
                             margin: 0;
                             transform: rotate(var(--rotation, 0deg));
+                            transition: transform 0.25s ease, box-shadow 0.25s ease;
+                            position: relative;
                         }
 
                         .portfolio-layout.abstract-random .artwork-card:nth-child(odd) {
@@ -948,6 +1190,17 @@
                             width: 100%;
                             height: 100%;
                             object-fit: cover;
+                        }
+
+                        /* Refined: tiles keep their organic scatter/rotation at
+                           rest; each straightens and lifts on hover/focus - the
+                           scattered feeling stays, the piece you're looking at gets
+                           a moment of clarity. */
+                        .portfolio-layout.abstract-random .artwork-card:hover,
+                        .portfolio-layout.abstract-random .artwork-card:focus-within {
+                            transform: rotate(0deg) scale(1.04);
+                            box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+                            z-index: 2;
                         }
 
                         /* STORYTELLING QUILT - the old pattern only had rules for
@@ -994,6 +1247,35 @@
                             object-fit: cover;
                         }
 
+                        /* Refined: real type scale on the 2x2 hero block for a
+                           title/deck - reads as the "chapter opener" it's meant to
+                           be, not just a bigger tile. */
+                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+1) .artwork-info {
+                            position: absolute;
+                            left: 0;
+                            right: 0;
+                            bottom: 0;
+                            padding: 1.25rem 1.5rem;
+                            background: linear-gradient(transparent, rgba(13,13,12,0.72));
+                        }
+
+                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+1) .artwork-title {
+                            color: #fff;
+                            font-size: 1.3rem;
+                            font-weight: 600;
+                            margin: 0;
+                        }
+
+                        .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+1) .artwork-details {
+                            color: rgba(255,255,255,0.85);
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.7rem;
+                        }
+
+                        .portfolio-layout.quilt-narrative .artwork-card:not(:nth-child(4n+1)) .artwork-info {
+                            display: none;
+                        }
+
                         /* CONTEMPORARY DIGITAL */
                         .portfolio-layout.digital-floating {
                             display: grid;
@@ -1021,7 +1303,23 @@
                             z-index: 2;
                         }
 
-                        /* POLITICAL ARCHIVAL */
+                        /* Refined: keeps the whole-grid tilt and counter-rotated
+                           cards. Drops any gradient/glow cliche for a single thin
+                           accent line on the hovered tile - "digital" through
+                           motion, not decoration. */
+                        .portfolio-layout.digital-floating .artwork-image {
+                            transition: box-shadow 0.2s ease;
+                        }
+
+                        .portfolio-layout.digital-floating .artwork-card:hover .artwork-image {
+                            box-shadow: 0 0 0 1px #b23a2e;
+                        }
+
+                        /* POLITICAL ARCHIVAL - refined: now stamped with a real
+                           "Record No." mono label (real sequential catalog index)
+                           and a hairline rule under the title, leaning into the
+                           archive conceit instead of just looking like a bordered
+                           card. */
                         .portfolio-layout.archival-dossier {
                             grid-template-columns: 1fr;
                             border: 1px solid var(--border-color);
@@ -1029,12 +1327,55 @@
                             background: var(--bg-color);
                             margin: 2rem;
                             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                            counter-reset: rec;
+                            position: relative;
+                        }
+
+                        .portfolio-layout.archival-dossier::before {
+                            content: "RECORD";
+                            position: absolute;
+                            top: 1.25rem;
+                            right: 1.5rem;
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.65rem;
+                            letter-spacing: 0.08em;
+                            color: #b23a2e;
+                            border: 1px solid #b23a2e;
+                            padding: 3px 9px;
+                            border-radius: 2px;
                         }
 
                         .portfolio-layout.archival-dossier .artwork-card {
                             border-bottom: 1px solid var(--border-color);
                             padding: 2rem 0;
                             margin: 0;
+                            counter-increment: rec;
+                        }
+
+                        .portfolio-layout.archival-dossier .artwork-card::before {
+                            content: "Record No. " counter(rec, decimal-leading-zero);
+                            display: block;
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.65rem;
+                            letter-spacing: 0.05em;
+                            color: #b23a2e;
+                            margin-bottom: 0.6rem;
+                        }
+
+                        .portfolio-layout.archival-dossier .artwork-title {
+                            position: relative;
+                            padding-bottom: 0.6rem;
+                            display: inline-block;
+                        }
+
+                        .portfolio-layout.archival-dossier .artwork-title::after {
+                            content: '';
+                            position: absolute;
+                            left: 0;
+                            bottom: 0;
+                            width: 60%;
+                            height: 1px;
+                            background: var(--border-color, #e5e5e5);
                         }
 
                         .portfolio-layout.archival-dossier .artwork-image {
@@ -1042,19 +1383,22 @@
                             margin: 0 auto 1rem;
                         }
 
+                        /* CARD MODERN - orphaned, now wired into the picker.
+                           Refined: radius matched to TRAC's own 6px button
+                           standard (was 16px), shadow tightened to match. */
                         .portfolio-layout.card-modern .artwork-card {
                             background: var(--bg-color, white);
                             border: 2px solid var(--border-color, #e5e5e5);
-                            border-radius: 16px;
+                            border-radius: 6px;
                             padding: 2rem;
-                            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
                             transition: transform 0.3s ease, box-shadow 0.3s ease;
                             text-align: center;
                         }
 
                         .portfolio-layout.card-modern .artwork-card:hover {
                             transform: translateY(-5px);
-                            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+                            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
                         }
 
                         .portfolio-layout.card-modern .artwork-info {
@@ -1062,9 +1406,13 @@
                             border-top: 1px solid var(--border-color, #e5e5e5);
                         }
 
+                        /* MAGAZINE - orphaned, now wired into the picker. Kept
+                           image-led as-is (distinct from the text-led Broadsheet
+                           concept) - no structural change needed, just adding a
+                           mobile fallback since it was never reachable before. */
                         .portfolio-layout.magazine {
                             grid-template-columns: 1fr 1fr;
-                            grid-template-areas: 
+                            grid-template-areas:
                                 "featured featured"
                                 "secondary secondary";
                             gap: 3rem;
@@ -1084,27 +1432,756 @@
                             margin: 2rem 0;
                         }
 
+                        /* PORTFOLIO FOCUSED - orphaned, now wired into the picker.
+                           Refined: one large signature-piece spotlight above a thin
+                           filmstrip of the rest, built with flex-wrap (no new
+                           markup) - the first card takes the full row, the rest
+                           wrap into a row of small equal-width thumbnails below it. */
                         .portfolio-layout.portfolio-focused {
-                            grid-template-columns: 1fr;
-                            gap: 4rem;
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 0.75rem;
+                            padding: 2rem 3rem;
                         }
 
                         .portfolio-layout.portfolio-focused .artwork-card:first-child {
-                            min-height: 80vh;
+                            flex: 1 1 100%;
+                            min-height: 70vh;
                             display: flex;
                             flex-direction: column;
                             justify-content: center;
                             text-align: center;
+                            margin-bottom: 1rem;
                         }
 
                         .portfolio-layout.portfolio-focused .artwork-card:first-child .artwork-title {
-                            font-size: 3rem;
-                            margin: 3rem 0;
+                            font-size: 2.25rem;
+                            margin: 2rem 0;
                         }
 
                         .portfolio-layout.portfolio-focused .artwork-card:not(:first-child) {
-                            max-width: 600px;
+                            flex: 1 1 140px;
+                            max-width: 200px;
+                            margin: 0;
+                        }
+
+                        #portfolioPage .portfolio-layout.portfolio-focused .artwork-card:not(:first-child) .artwork-image {
+                            width: 100%;
+                            min-height: 0;
+                            background: transparent;
+                        }
+
+                        .portfolio-layout.portfolio-focused .artwork-card:not(:first-child) .artwork-image img {
+                            aspect-ratio: 1;
+                            object-fit: cover;
+                            width: 100%;
+                            height: 100%;
+                        }
+
+                        .portfolio-layout.portfolio-focused .artwork-card:not(:first-child) .artwork-info {
+                            display: none;
+                        }
+
+                        @media (max-width: 768px) {
+                            .portfolio-layout.magazine {
+                                grid-template-columns: 1fr;
+                                grid-template-areas:
+                                    "featured"
+                                    "secondary";
+                            }
+                            .portfolio-layout.portfolio-focused {
+                                padding: 1.5rem 1rem;
+                            }
+                            .portfolio-layout.portfolio-focused .artwork-card:not(:first-child) {
+                                flex: 1 1 100px;
+                                max-width: 120px;
+                            }
+                        }
+
+                        /* ==================== NEW STYLE CONCEPTS (2026-09-11) ====================
+                           8 new grid layouts (Commission Board was scoped out - no
+                           commission-tracking data model exists anywhere in the
+                           schema, and the user chose not to add one this pass).
+                           All 8 use only real fields already fetched per artwork
+                           (title/year/medium/dimensions/description/image_url) and
+                           real profile fields (full_name/username/bio) - no price,
+                           no mint-status badges, no location/est-year: none of that
+                           data exists today and none of it was fabricated. See
+                           renderLayoutIntroHTML/renderLayoutOutroHTML in the JS for
+                           the header/caption snippets some of these use. */
+
+                        /* LEDGER - table-based, no per-artwork image column (the
+                           spec's own description has none) - Image Size control is
+                           disabled for this layout in the Style Editor, see
+                           LAYOUT_CONTROL_OVERRIDES. */
+                        .portfolio-layout.ledger {
+                            display: block !important;
+                            padding: 1rem 2rem 3rem;
+                            max-width: 1100px;
                             margin: 0 auto;
+                        }
+
+                        .ledger-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+
+                        .ledger-table thead th {
+                            text-align: left;
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.68rem;
+                            letter-spacing: 0.08em;
+                            text-transform: uppercase;
+                            color: var(--text-color, #666);
+                            opacity: 0.6;
+                            padding: 0.75rem;
+                            border-bottom: 2px solid var(--border-color, #222);
+                        }
+
+                        .ledger-table td {
+                            padding: 1rem 0.75rem;
+                            border-bottom: 1px solid var(--border-color, #e5e5e5);
+                            vertical-align: top;
+                        }
+
+                        .ledger-table tr:last-child td {
+                            border-bottom: none;
+                        }
+
+                        .ledger-table .ledger-no {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.8rem;
+                            color: var(--text-color, #999);
+                            opacity: 0.6;
+                            width: 3rem;
+                        }
+
+                        .ledger-table .ledger-work-title {
+                            font-weight: 600;
+                        }
+
+                        .ledger-table .ledger-work-medium {
+                            font-style: italic;
+                            color: var(--text-color, #888);
+                            font-size: 0.82rem;
+                            opacity: 0.75;
+                            margin-top: 0.15rem;
+                        }
+
+                        .ledger-table .ledger-year {
+                            font-family: 'IBM Plex Mono', monospace;
+                            text-align: right;
+                            color: var(--text-color, #666);
+                            white-space: nowrap;
+                        }
+
+                        @media (max-width: 640px) {
+                            .ledger-table .ledger-year { display: none; }
+                        }
+
+                        /* GALLERY WALL - image-first, 3-col hairline grid, italic
+                           serif captions. Centered bio intro rendered separately
+                           (renderLayoutIntroHTML). */
+                        .portfolio-layout.gallery-wall {
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 1px;
+                            background: var(--border-color, #dedbd3);
+                            padding: 1px;
+                        }
+
+                        @media (max-width: 768px) {
+                            .portfolio-layout.gallery-wall {
+                                grid-template-columns: repeat(2, 1fr);
+                            }
+                        }
+
+                        .portfolio-layout.gallery-wall .artwork-card {
+                            background: var(--bg-color, #fff);
+                            padding: 0 0 1.25rem;
+                            margin: 0;
+                        }
+
+                        #portfolioPage .portfolio-layout.gallery-wall .artwork-image {
+                            width: 100%;
+                            min-height: 0;
+                            background: transparent;
+                        }
+
+                        .portfolio-layout.gallery-wall .artwork-image img {
+                            aspect-ratio: 4/5;
+                            object-fit: cover;
+                            width: 100%;
+                            height: 100%;
+                        }
+
+                        .portfolio-layout.gallery-wall .artwork-info {
+                            text-align: center;
+                            padding: 1rem 1rem 0;
+                        }
+
+                        .portfolio-layout.gallery-wall .artwork-title {
+                            font-family: 'Fraunces', serif;
+                            font-style: italic;
+                            font-weight: 400;
+                            font-size: 1.05rem;
+                        }
+
+                        .portfolio-layout.gallery-wall .artwork-details {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.66rem;
+                            letter-spacing: 0.04em;
+                            color: var(--text-color, #888);
+                            opacity: 0.7;
+                            margin-top: 0.35rem;
+                        }
+
+                        .gallery-wall-intro {
+                            max-width: 480px;
+                            margin: 0 auto 2rem;
+                            padding: 2.5rem 1rem 0;
+                            text-align: center;
+                        }
+
+                        .gallery-wall-intro .gw-name {
+                            font-family: 'Fraunces', serif;
+                            font-style: italic;
+                            font-size: 1.9rem;
+                        }
+
+                        .gallery-wall-intro .gw-bio {
+                            margin-top: 0.85rem;
+                            font-size: 0.85rem;
+                            line-height: 1.6;
+                            color: var(--text-color, #666);
+                            opacity: 0.85;
+                        }
+
+                        /* STUDIO CATALOG - dense 4-col shop-forward grid. Header
+                           pills + CTA are static chrome (no per-artwork price/mint
+                           data exists to drive them). */
+                        .portfolio-layout.studio-catalog {
+                            grid-template-columns: repeat(4, 1fr);
+                            gap: 1.25rem;
+                            padding: 0 1rem 2rem;
+                        }
+
+                        @media (max-width: 1024px) {
+                            .portfolio-layout.studio-catalog { grid-template-columns: repeat(2, 1fr); }
+                        }
+
+                        @media (max-width: 640px) {
+                            .portfolio-layout.studio-catalog { grid-template-columns: 1fr; }
+                        }
+
+                        .portfolio-layout.studio-catalog .artwork-card {
+                            margin: 0;
+                        }
+
+                        #portfolioPage .portfolio-layout.studio-catalog .artwork-image {
+                            width: 100%;
+                            min-height: 0;
+                            background: transparent;
+                        }
+
+                        .portfolio-layout.studio-catalog .artwork-image img {
+                            aspect-ratio: 1;
+                            object-fit: cover;
+                            width: 100%;
+                            height: 100%;
+                        }
+
+                        .portfolio-layout.studio-catalog .artwork-title {
+                            font-weight: 600;
+                            font-size: 0.9rem;
+                            margin-top: 0.6rem;
+                        }
+
+                        .portfolio-layout.studio-catalog .artwork-details {
+                            font-size: 0.72rem;
+                            color: var(--text-color, #888);
+                            opacity: 0.7;
+                        }
+
+                        .studio-catalog-intro {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            flex-wrap: wrap;
+                            gap: 1rem;
+                            max-width: 1400px;
+                            margin: 0 auto 2rem;
+                            padding: 2rem 1rem 0;
+                        }
+
+                        .studio-catalog-intro .sc-name {
+                            font-weight: 700;
+                            font-size: 1.3rem;
+                        }
+
+                        .sc-pills {
+                            display: flex;
+                            gap: 0.5rem;
+                            flex-wrap: wrap;
+                            margin-top: 0.5rem;
+                        }
+
+                        .sc-pill {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.65rem;
+                            letter-spacing: 0.04em;
+                            padding: 4px 12px;
+                            border-radius: 999px;
+                            border: 1px solid var(--border-color, #dedbd3);
+                            color: var(--text-color, #666);
+                        }
+
+                        .sc-cta {
+                            background: var(--accent-color, #0d0d0c);
+                            color: var(--bg-color, #fff);
+                            font-size: 0.8rem;
+                            font-weight: 600;
+                            padding: 0.65rem 1.1rem;
+                            border-radius: 6px;
+                            text-decoration: none;
+                            white-space: nowrap;
+                        }
+
+                        /* FIELD NOTES - polaroid corkboard grid. */
+                        .portfolio-layout.field-notes {
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 2.5rem;
+                            padding: 1rem 2rem 3rem;
+                        }
+
+                        @media (max-width: 768px) {
+                            .portfolio-layout.field-notes { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+                        }
+
+                        .portfolio-layout.field-notes .artwork-card {
+                            background: var(--bg-color, #fff);
+                            padding: 0.75rem 0.75rem 1.5rem;
+                            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+                            position: relative;
+                            margin: 0;
+                        }
+
+                        .portfolio-layout.field-notes .artwork-card::before {
+                            content: '';
+                            position: absolute;
+                            top: -6px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            width: 10px;
+                            height: 10px;
+                            border-radius: 50%;
+                            background: #b23a2e;
+                            z-index: 1;
+                        }
+
+                        .portfolio-layout.field-notes .artwork-card:nth-child(odd) { transform: rotate(-1.5deg); }
+                        .portfolio-layout.field-notes .artwork-card:nth-child(even) { transform: rotate(1.5deg); }
+
+                        #portfolioPage .portfolio-layout.field-notes .artwork-image {
+                            width: 100%;
+                            min-height: 0;
+                            background: transparent;
+                        }
+
+                        .portfolio-layout.field-notes .artwork-image img {
+                            aspect-ratio: 1;
+                            object-fit: cover;
+                            width: 100%;
+                            height: 100%;
+                        }
+
+                        .portfolio-layout.field-notes .artwork-title {
+                            font-family: 'Caveat', cursive;
+                            font-size: 1.4rem;
+                            font-weight: 600;
+                            margin-top: 0.75rem;
+                            text-align: center;
+                        }
+
+                        .portfolio-layout.field-notes .artwork-details {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.62rem;
+                            letter-spacing: 0.03em;
+                            text-align: center;
+                            color: var(--text-color, #888);
+                            opacity: 0.7;
+                            text-transform: uppercase;
+                        }
+
+                        .field-notes-intro {
+                            text-align: center;
+                            margin: 0 auto 1.5rem;
+                            padding: 2rem 1rem 0;
+                        }
+
+                        .field-notes-intro .fn-name {
+                            font-family: 'Caveat', cursive;
+                            font-size: 2.4rem;
+                            font-weight: 600;
+                            color: #b23a2e;
+                            display: inline-block;
+                            transform: rotate(-2deg);
+                        }
+
+                        .field-notes-intro .fn-meta {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.68rem;
+                            letter-spacing: 0.08em;
+                            text-transform: uppercase;
+                            color: var(--text-color, #888);
+                            opacity: 0.65;
+                            margin-top: 0.35rem;
+                        }
+
+                        /* VITRINE - deliberately always dark, ignores the artist's
+                           --bg-color/--text-color by design (see LAYOUT_CONTROL_OVERRIDES,
+                           color pickers are disabled for this layout). */
+                        .portfolio-layout.vitrine {
+                            background: #131211 !important;
+                            grid-template-columns: repeat(3, 1fr);
+                            gap: 1px;
+                            padding: 2rem;
+                            counter-reset: vitrine-no;
+                        }
+
+                        @media (max-width: 768px) {
+                            .portfolio-layout.vitrine { grid-template-columns: 1fr; }
+                        }
+
+                        .portfolio-layout.vitrine .artwork-card {
+                            background: #131211;
+                            border: 1px solid #332f29;
+                            padding: 1.5rem;
+                            margin: 0;
+                            counter-increment: vitrine-no;
+                        }
+
+                        #portfolioPage .portfolio-layout.vitrine .artwork-image {
+                            width: 100%;
+                            min-height: 0;
+                            background: transparent;
+                        }
+
+                        .portfolio-layout.vitrine .artwork-image img {
+                            aspect-ratio: 1;
+                            object-fit: cover;
+                            width: 100%;
+                            height: 100%;
+                        }
+
+                        .portfolio-layout.vitrine .artwork-info {
+                            text-align: center;
+                            padding-top: 1rem;
+                        }
+
+                        .portfolio-layout.vitrine .artwork-card::before {
+                            content: "No. " counter(vitrine-no, decimal-leading-zero);
+                            display: block;
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.68rem;
+                            color: #b23a2e;
+                            letter-spacing: 0.06em;
+                        }
+
+                        .portfolio-layout.vitrine .artwork-title {
+                            font-family: 'Cormorant Garamond', serif;
+                            font-style: italic;
+                            font-size: 1.3rem;
+                            color: #efece5;
+                            margin-top: 0.4rem;
+                        }
+
+                        .portfolio-layout.vitrine .artwork-details {
+                            font-size: 0.72rem;
+                            color: #8f887b;
+                            margin-top: 0.25rem;
+                        }
+
+                        .vitrine-intro {
+                            background: #131211;
+                            text-align: center;
+                            padding: 3rem 1rem 1rem;
+                        }
+
+                        .vitrine-intro .vt-name {
+                            font-family: 'Cormorant Garamond', serif;
+                            font-size: 1.8rem;
+                            color: #efece5;
+                        }
+
+                        .vitrine-intro .vt-meta {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.68rem;
+                            letter-spacing: 0.08em;
+                            text-transform: uppercase;
+                            color: #8f887b;
+                            margin-top: 0.4rem;
+                        }
+
+                        /* BROADSHEET - lead item + sidebar briefs, needs its own
+                           markup (renderBroadsheetGrid in JS), not the shared
+                           .artwork-card shape. */
+                        .portfolio-layout.broadsheet {
+                            display: grid !important;
+                            grid-template-columns: 1.6fr 1fr;
+                            gap: 3rem;
+                            padding: 1rem 2rem 3rem;
+                            max-width: 1400px;
+                            margin: 0 auto;
+                        }
+
+                        @media (max-width: 768px) {
+                            .portfolio-layout.broadsheet { grid-template-columns: 1fr; }
+                            .portfolio-layout.broadsheet .broadsheet-lead {
+                                border-right: none !important;
+                                padding-right: 0 !important;
+                                border-bottom: 1px solid var(--border-color, #dedbd3);
+                                padding-bottom: 2rem;
+                            }
+                        }
+
+                        .portfolio-layout.broadsheet .broadsheet-lead {
+                            border-right: 1px solid var(--border-color, #dedbd3);
+                            padding-right: 3rem;
+                        }
+
+                        .portfolio-layout.broadsheet .broadsheet-headline {
+                            font-family: 'Newsreader', serif;
+                            font-style: italic;
+                            font-weight: 500;
+                            font-size: 2rem;
+                            margin-top: 1.25rem;
+                        }
+
+                        .portfolio-layout.broadsheet .broadsheet-dek {
+                            font-family: 'Space Grotesk', sans-serif;
+                            font-size: 0.95rem;
+                            line-height: 1.6;
+                            color: var(--text-color, #524f48);
+                            margin-top: 0.75rem;
+                        }
+
+                        .portfolio-layout.broadsheet .broadsheet-sidebar {
+                            display: flex;
+                            flex-direction: column;
+                        }
+
+                        .portfolio-layout.broadsheet .broadsheet-brief {
+                            padding: 1.1rem 0;
+                            border-bottom: 1px solid var(--border-color, #dedbd3);
+                        }
+
+                        .portfolio-layout.broadsheet .broadsheet-brief:last-child { border-bottom: none; }
+
+                        .portfolio-layout.broadsheet .brief-title {
+                            font-weight: 600;
+                            font-size: 0.95rem;
+                        }
+
+                        .portfolio-layout.broadsheet .brief-meta {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.7rem;
+                            color: var(--text-color, #888);
+                            opacity: 0.7;
+                            margin-top: 0.25rem;
+                        }
+
+                        .broadsheet-masthead {
+                            text-align: center;
+                            max-width: 1400px;
+                            margin: 0 auto;
+                            padding: 2rem 1rem 1rem;
+                            border-bottom: 3px double var(--border-color, #222);
+                        }
+
+                        .broadsheet-masthead .bm-name {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.85rem;
+                            letter-spacing: 0.25em;
+                            text-transform: uppercase;
+                            font-weight: 600;
+                        }
+
+                        .broadsheet-masthead .bm-dateline {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.65rem;
+                            letter-spacing: 0.05em;
+                            color: var(--text-color, #888);
+                            opacity: 0.6;
+                            margin-top: 0.5rem;
+                        }
+
+                        /* CONTACT SHEET - deliberately always dark, same exception
+                           as Vitrine. "Selected" frame = the artist's most recent
+                           artwork (real created_at ordering, index 0) - not a
+                           fabricated editorial pick. */
+                        .portfolio-layout.contact-sheet {
+                            background: #0d0d0c !important;
+                            grid-template-columns: repeat(6, 1fr);
+                            gap: 0.4rem;
+                            padding: 1rem 2rem 2rem;
+                            counter-reset: cs-no;
+                        }
+
+                        @media (max-width: 768px) {
+                            .portfolio-layout.contact-sheet { grid-template-columns: repeat(4, 1fr); }
+                        }
+
+                        .portfolio-layout.contact-sheet .artwork-card {
+                            background: #0d0d0c;
+                            margin: 0;
+                            position: relative;
+                            counter-increment: cs-no;
+                        }
+
+                        #portfolioPage .portfolio-layout.contact-sheet .artwork-image {
+                            width: 100%;
+                            min-height: 0;
+                            background: transparent;
+                        }
+
+                        .portfolio-layout.contact-sheet .artwork-image img {
+                            aspect-ratio: 1;
+                            object-fit: cover;
+                            width: 100%;
+                            height: 100%;
+                            filter: grayscale(0.3) contrast(1.05);
+                        }
+
+                        .portfolio-layout.contact-sheet .artwork-card::before {
+                            content: counter(cs-no, decimal-leading-zero);
+                            position: absolute;
+                            top: 2px;
+                            left: 4px;
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.55rem;
+                            color: #efece5;
+                            opacity: 0.6;
+                            z-index: 1;
+                        }
+
+                        .portfolio-layout.contact-sheet .artwork-card:first-child {
+                            outline: 2px solid #b23a2e;
+                            outline-offset: -2px;
+                            box-shadow: 0 0 0 4px rgba(178,58,46,0.25);
+                        }
+
+                        .portfolio-layout.contact-sheet .artwork-info {
+                            display: none;
+                        }
+
+                        .contact-sheet-header, .contact-sheet-caption {
+                            background: #0d0d0c;
+                            color: #efece5;
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.7rem;
+                            letter-spacing: 0.05em;
+                        }
+
+                        .contact-sheet-header {
+                            display: flex;
+                            justify-content: space-between;
+                            flex-wrap: wrap;
+                            gap: 0.5rem;
+                            padding: 2rem 2rem 0.75rem;
+                            text-transform: uppercase;
+                        }
+
+                        .contact-sheet-header .cs-context {
+                            opacity: 0.6;
+                        }
+
+                        .contact-sheet-caption {
+                            padding: 0.75rem 2rem 2rem;
+                            opacity: 0.75;
+                        }
+
+                        /* SCROLL - single centered column, no grid. Roman-numeral
+                           chapter markers via CSS counter(), no JS needed. Relies
+                           on the existing collection-title wrapper for the
+                           series/collection title above it (generateCollectionLayout
+                           already renders that for every layout). */
+                        .portfolio-layout.scroll {
+                            display: flex !important;
+                            flex-direction: column;
+                            align-items: center;
+                            max-width: 460px;
+                            margin: 0 auto;
+                            padding: 2rem 1rem 3rem;
+                            gap: 0;
+                            counter-reset: chapter;
+                        }
+
+                        .portfolio-layout.scroll .artwork-card {
+                            width: 100%;
+                            margin: 0 0 3rem;
+                            text-align: center;
+                            counter-increment: chapter;
+                            position: relative;
+                        }
+
+                        .portfolio-layout.scroll .artwork-card:not(:last-child)::after {
+                            content: '';
+                            position: absolute;
+                            left: 50%;
+                            bottom: -1.75rem;
+                            transform: translateX(-50%);
+                            width: 1px;
+                            height: 1.5rem;
+                            background: var(--border-color, #dedbd3);
+                        }
+
+                        .portfolio-layout.scroll .artwork-card::before {
+                            content: counter(chapter, upper-roman);
+                            display: block;
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.75rem;
+                            color: #b23a2e;
+                            letter-spacing: 0.1em;
+                            margin-bottom: 0.75rem;
+                        }
+
+                        .portfolio-layout.scroll .artwork-title {
+                            font-family: 'Newsreader', serif;
+                            font-style: italic;
+                            font-size: 1.2rem;
+                            margin-top: 1rem;
+                        }
+
+                        .portfolio-layout.scroll .artwork-details {
+                            font-size: 0.75rem;
+                            color: var(--text-color, #888);
+                            opacity: 0.7;
+                            margin-top: 0.25rem;
+                        }
+
+                        .ledger-intro {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: baseline;
+                            flex-wrap: wrap;
+                            gap: 1rem;
+                            max-width: 1100px;
+                            margin: 0 auto;
+                            padding: 2rem 2rem 0;
+                        }
+
+                        .ledger-intro .lg-name {
+                            font-weight: 700;
+                            font-size: 1.3rem;
+                        }
+
+                        .ledger-intro .lg-count {
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.72rem;
+                            letter-spacing: 0.05em;
+                            color: var(--text-color, #888);
+                            opacity: 0.7;
+                            text-transform: uppercase;
                         }
 
                         /* PORTFOLIO SIZE CLASSES */
@@ -1512,6 +2589,42 @@
                             color: #666;
                             margin-top: 0.5rem;
                             line-height: 1.3;
+                        }
+
+                        /* Gallery Wall / Studio Catalog / Field Notes / Vitrine / Scroll
+                           all depend on visible inline captions (their whole approved
+                           design is caption-forward, unlike the click-to-view-popup
+                           pattern every other layout uses) - re-enable title/details
+                           display for just these 5, with enough specificity to beat the
+                           #portfolioPage .artwork-card:not(.event-card) .artwork-title
+                           suppression above. Contact Sheet deliberately keeps captions
+                           hidden (its own .artwork-info{display:none} rule, by design). */
+                        #portfolioPage .portfolio-layout.gallery-wall .artwork-card .artwork-title,
+                        #portfolioPage .portfolio-layout.gallery-wall .artwork-card .artwork-details,
+                        #portfolioPage .portfolio-layout.studio-catalog .artwork-card .artwork-title,
+                        #portfolioPage .portfolio-layout.studio-catalog .artwork-card .artwork-details,
+                        #portfolioPage .portfolio-layout.field-notes .artwork-card .artwork-title,
+                        #portfolioPage .portfolio-layout.field-notes .artwork-card .artwork-details,
+                        #portfolioPage .portfolio-layout.vitrine .artwork-card .artwork-title,
+                        #portfolioPage .portfolio-layout.vitrine .artwork-card .artwork-details,
+                        #portfolioPage .portfolio-layout.scroll .artwork-card .artwork-title,
+                        #portfolioPage .portfolio-layout.scroll .artwork-card .artwork-details {
+                            display: block;
+                        }
+
+                        /* Same suppression, same fix, for the 4 Part-B-improved existing
+                           layouts whose refinement specifically added a visible caption:
+                           guerrilla-grid's hover caption, vibrant-mosaic's medium/year
+                           tags, and the hero-only caption on monumental-asymmetric /
+                           quilt-narrative (scoped to just the hero card so non-hero
+                           cards stay caption-free, matching the existing suppression). */
+                        #portfolioPage .portfolio-layout.guerrilla-grid .artwork-card .artwork-title,
+                        #portfolioPage .portfolio-layout.guerrilla-grid .artwork-card .artwork-details,
+                        #portfolioPage .portfolio-layout.vibrant-mosaic .artwork-card .artwork-details,
+                        #portfolioPage .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+1) .artwork-title,
+                        #portfolioPage .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+1) .artwork-title,
+                        #portfolioPage .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+1) .artwork-details {
+                            display: block;
                         }
 
                         /* Mobile touch targets */
@@ -5166,10 +6279,31 @@
                                     accent: '#cc0000',
                                     border: '#8b0000'
                                 },
-                                fonts: { 
-                                    primary: 'Times New Roman', 
-                                    secondary: 'Courier New' 
+                                fonts: {
+                                    primary: 'Times New Roman',
+                                    secondary: 'Courier New'
                                 }
+                            }
+                        };
+
+                        // ==================== STYLE EDITOR CONTROL COMPATIBILITY (2026-09-11) ====================
+                        // Which of the Style Editor's controls are actually meaningful for a
+                        // given grid layout. Missing keys default to "applies normally" - only
+                        // list the exceptions here. Consulted by applyLayoutControlOverrides(),
+                        // which disables (not silently ignores) the listed controls with a
+                        // tooltip explaining why, whenever the layout is Vitrine/Contact Sheet
+                        // (deliberately always-dark, so the 4 color pickers don't apply) or
+                        // Ledger (a text table with no image column, so Image Size doesn't
+                        // apply). Every other layout uses every control normally.
+                        const LAYOUT_CONTROL_OVERRIDES = {
+                            'vitrine': {
+                                colors: 'This style has a fixed dark palette by design and ignores custom colors.'
+                            },
+                            'contact-sheet': {
+                                colors: 'This style has a fixed dark palette by design and ignores custom colors.'
+                            },
+                            'ledger': {
+                                imageSize: 'Ledger is a text table with no image column.'
                             }
                         };
 
@@ -8397,6 +9531,13 @@
                             setTimeout(() => {
                                 portfolioPage.classList.remove('loading');
                             }, 100);
+
+                            if (layoutClass === 'immersive-stacked') {
+                                setTimeout(setupImmersiveDotRail, 100);
+                            } else {
+                                const oldRail = document.querySelector('.immersive-dot-rail');
+                                if (oldRail) oldRail.remove();
+                            }
                         }
 
                         function generateHeaderHTML(headerLayout, profileData, isOwner = true) {
@@ -8844,6 +9985,185 @@
                         }
 
                         // ==================== COLLECTIONS DISPLAY ====================
+                        // ==================== NEW STYLE CONCEPTS - RENDER HELPERS (2026-09-11) ====================
+                        // Small header/caption snippets some of the 8 new layouts use, built only
+                        // from real data already available at render time (profile name/bio, real
+                        // artwork count, today's date, the most-recent real artwork by existing
+                        // created_at ordering) - never fabricated price/mint/commission data.
+                        function renderLayoutIntroHTML(layoutClass, profileData, artworks, isOwner) {
+                            const artistName = escapeHtml(profileData.full_name || profileData.username || '');
+                            switch (layoutClass) {
+                                case 'gallery-wall':
+                                    return `
+                                        <div class="gallery-wall-intro">
+                                            <div class="gw-name">${artistName}</div>
+                                            ${profileData.bio ? `<p class="gw-bio">${escapeHtml(profileData.bio)}</p>` : ''}
+                                        </div>
+                                    `;
+                                case 'studio-catalog':
+                                    return `
+                                        <div class="studio-catalog-intro">
+                                            <div>
+                                                <div class="sc-name">${artistName}</div>
+                                                <div class="sc-pills">
+                                                    <span class="sc-pill">Studio Practice</span>
+                                                    <span class="sc-pill">${artworks.length} Work${artworks.length === 1 ? '' : 's'}</span>
+                                                </div>
+                                            </div>
+                                            <a href="#works-section" class="sc-cta">View Archive &rarr;</a>
+                                        </div>
+                                    `;
+                                case 'field-notes':
+                                    return `
+                                        <div class="field-notes-intro">
+                                            <div class="fn-name">${artistName}</div>
+                                            <div class="fn-meta">Work in Progress &middot; Updated Regularly</div>
+                                        </div>
+                                    `;
+                                case 'vitrine':
+                                    return `
+                                        <div class="vitrine-intro">
+                                            <div class="vt-name">${artistName}</div>
+                                            <div class="vt-meta">Permanent Collection &middot; ${artworks.length} on view</div>
+                                        </div>
+                                    `;
+                                case 'broadsheet':
+                                    return `
+                                        <div class="broadsheet-masthead">
+                                            <div class="bm-name">${artistName}</div>
+                                            <div class="bm-dateline">${escapeHtml(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }))}</div>
+                                        </div>
+                                    `;
+                                case 'contact-sheet':
+                                    return `
+                                        <div class="contact-sheet-header">
+                                            <div>${artistName} &mdash; Roll 001</div>
+                                            <div class="cs-context">${artworks.length} Frame${artworks.length === 1 ? '' : 's'}</div>
+                                        </div>
+                                    `;
+                                case 'ledger':
+                                    return `
+                                        <div class="ledger-intro">
+                                            <div class="lg-name">${artistName}</div>
+                                            <div class="lg-count">${artworks.length} Work${artworks.length === 1 ? '' : 's'}</div>
+                                        </div>
+                                    `;
+                                default:
+                                    return '';
+                            }
+                        }
+
+                        function renderLayoutOutroHTML(layoutClass, artworks) {
+                            if (layoutClass === 'contact-sheet' && artworks.length > 0) {
+                                const selected = artworks[0];
+                                const bits = [escapeHtml(selected.title) || 'Untitled', escapeHtml(selected.year) || ''].filter(Boolean);
+                                return `<div class="contact-sheet-caption">Selected &mdash; ${bits.join(' &middot; ')}</div>`;
+                            }
+                            return '';
+                        }
+
+                        // LEDGER - real table markup: No. (catalog position) / Work
+                        // (title + medium subline, both real fields) / Year. No
+                        // Provenance/mint column - that data isn't available to the
+                        // public portfolio renderer today (see LAYOUT_CONTROL_OVERRIDES
+                        // note and the final report).
+                        function renderLedgerGrid(artworks, sizeClass) {
+                            return `
+                                <div class="artworks-grid portfolio-layout ledger ${sizeClass}">
+                                    <table class="ledger-table">
+                                        <thead>
+                                            <tr>
+                                                <th>No.</th>
+                                                <th>Work</th>
+                                                <th style="text-align:right;">Year</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${artworks.map((artwork, i) => `
+                                                <tr>
+                                                    <td class="ledger-no">${String(i + 1).padStart(2, '0')}</td>
+                                                    <td>
+                                                        <div class="ledger-work-title">${escapeHtml(artwork.title) || 'Untitled'}</div>
+                                                        ${artwork.medium ? `<div class="ledger-work-medium">${escapeHtml(artwork.medium)}</div>` : ''}
+                                                    </td>
+                                                    <td class="ledger-year">${artwork.year ? escapeHtml(artwork.year) : ''}</td>
+                                                </tr>
+                                            `).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `;
+                        }
+
+                        // BROADSHEET - lead item (first artwork) + a sidebar list of
+                        // briefs for the rest. The "dek" uses the artwork's real
+                        // description field when the artist wrote one, falling back to
+                        // a plain medium/dimensions line rather than inventing critical
+                        // text that doesn't exist.
+                        function renderBroadsheetGrid(artworks, sizeClass) {
+                            if (artworks.length === 0) return '';
+                            const lead = artworks[0];
+                            const rest = artworks.slice(1);
+                            const dek = lead.description
+                                ? escapeHtml(lead.description)
+                                : [lead.medium, lead.dimensions].filter(Boolean).map(escapeHtml).join(', ');
+                            return `
+                                <div class="artworks-grid portfolio-layout broadsheet ${sizeClass}">
+                                    <div class="broadsheet-lead">
+                                        <div class="artwork-image">
+                                            <img src="${escapeHtml(lead.image_url)}" alt="${escapeHtml(lead.title) || 'Untitled'}" style="width:100%;height:auto;display:block;">
+                                        </div>
+                                        <h2 class="broadsheet-headline">${escapeHtml(lead.title) || 'Untitled'}</h2>
+                                        ${dek ? `<p class="broadsheet-dek">${dek}</p>` : ''}
+                                    </div>
+                                    <div class="broadsheet-sidebar">
+                                        ${rest.map(artwork => `
+                                            <div class="broadsheet-brief">
+                                                <div class="brief-title">${escapeHtml(artwork.title) || 'Untitled'}</div>
+                                                <div class="brief-meta">${[artwork.medium, artwork.year].filter(Boolean).map(escapeHtml).join(' · ')}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        // Immersive Stacked's refined dot-rail: needs actual scroll
+                        // position, not just CSS, to know which row is "active" - a
+                        // small, self-contained IntersectionObserver, only active when
+                        // this layout is selected. Safe to call unconditionally; it
+                        // no-ops when the layout/rows aren't present.
+                        function setupImmersiveDotRail() {
+                            const existing = document.querySelector('.immersive-dot-rail');
+                            if (existing) existing.remove();
+
+                            const grid = document.querySelector('.artworks-grid.portfolio-layout.immersive-stacked');
+                            if (!grid) return;
+                            const cards = grid.querySelectorAll(':scope > .artwork-card');
+                            if (!cards.length) return;
+
+                            const rail = document.createElement('div');
+                            rail.className = 'immersive-dot-rail';
+                            cards.forEach((_, i) => {
+                                const dot = document.createElement('span');
+                                dot.className = 'dot' + (i === 0 ? ' on' : '');
+                                rail.appendChild(dot);
+                            });
+                            document.body.appendChild(rail);
+
+                            const dots = rail.querySelectorAll('.dot');
+                            const observer = new IntersectionObserver((entries) => {
+                                entries.forEach(entry => {
+                                    if (entry.isIntersecting) {
+                                        const idx = Array.from(cards).indexOf(entry.target);
+                                        if (idx === -1) return;
+                                        dots.forEach((d, i) => d.classList.toggle('on', i === idx));
+                                    }
+                                });
+                            }, { threshold: 0.6 });
+                            cards.forEach(card => observer.observe(card));
+                        }
+
                         function displayCollectionsInPortfolio(collections, profileData, collectionLayout = 'grid', stylePreset, isOwner = false) {
                             if (!collections || collections.length === 0) {
                                 return ''; 
@@ -8966,7 +10286,23 @@
 
                                         case 'grid':
                                         default:
-                                            collectionGridHTML = `
+                                            // Ledger and Broadsheet need genuinely different markup (a table,
+                                            // and a lead+sidebar split) - not just CSS on the shared
+                                            // .artwork-card shape everything else here uses. See
+                                            // renderLedgerGrid/renderBroadsheetGrid below.
+                                            if (layoutClass === 'ledger') {
+                                                collectionGridHTML = renderLayoutIntroHTML(layoutClass, profileData, collectionArtworks, isOwner)
+                                                    + renderLedgerGrid(collectionArtworks, sizeClass)
+                                                    + renderLayoutOutroHTML(layoutClass, collectionArtworks);
+                                                break;
+                                            }
+                                            if (layoutClass === 'broadsheet') {
+                                                collectionGridHTML = renderLayoutIntroHTML(layoutClass, profileData, collectionArtworks, isOwner)
+                                                    + renderBroadsheetGrid(collectionArtworks, sizeClass)
+                                                    + renderLayoutOutroHTML(layoutClass, collectionArtworks);
+                                                break;
+                                            }
+                                            collectionGridHTML = renderLayoutIntroHTML(layoutClass, profileData, collectionArtworks, isOwner) + `
                                                 <div class="artworks-grid portfolio-layout ${layoutClass} ${sizeClass}" id="mainArtworksGrid">
                                                     ${collectionArtworks.map(artwork => `
                                                         <div class="artwork-card" style="${artworkCardSpanStyle(artwork)}">
@@ -8985,7 +10321,7 @@
                                                         </div>
                                                     `).join('')}
                                                 </div>
-                                            `;
+                                            ` + renderLayoutOutroHTML(layoutClass, collectionArtworks);
                                     }
 
                                     collectionsHTML += `
@@ -12352,6 +13688,17 @@
                                                     <option value="quilt-narrative">Storytelling Quilt</option>
                                                     <option value="digital-floating">Digital Floating</option>
                                                     <option value="archival-dossier">Archival Dossier</option>
+                                                    <option value="card-modern">Card Modern</option>
+                                                    <option value="magazine">Magazine</option>
+                                                    <option value="portfolio-focused">Portfolio Focused</option>
+                                                    <option value="ledger">Ledger</option>
+                                                    <option value="gallery-wall">Gallery Wall</option>
+                                                    <option value="studio-catalog">Studio Catalog</option>
+                                                    <option value="field-notes">Field Notes</option>
+                                                    <option value="vitrine">Vitrine</option>
+                                                    <option value="broadsheet">Broadsheet</option>
+                                                    <option value="contact-sheet">Contact Sheet</option>
+                                                    <option value="scroll">Scroll</option>
                                                 </select>
                                             </div>
                                             <div class="layout-control-group">
@@ -12401,6 +13748,11 @@
                                                     <option value="Garamond">Garamond</option>
                                                     <option value="Arial Rounded MT Bold">Arial Rounded</option>
                                                     <option value="Brush Script MT">Brush Script</option>
+                                                    <option value="IBM Plex Mono">IBM Plex Mono</option>
+                                                    <option value="Fraunces">Fraunces</option>
+                                                    <option value="Caveat">Caveat</option>
+                                                    <option value="Cormorant Garamond">Cormorant Garamond</option>
+                                                    <option value="Newsreader">Newsreader</option>
                                                 </select>
                                             </div>
                                             <div class="font-control-group">
@@ -12417,6 +13769,11 @@
                                                     <option value="Comic Sans MS">Comic Sans</option>
                                                     <option value="Papyrus">Papyrus</option>
                                                     <option value="OCR A Std">OCR A</option>
+                                                    <option value="IBM Plex Mono">IBM Plex Mono</option>
+                                                    <option value="Fraunces">Fraunces</option>
+                                                    <option value="Caveat">Caveat</option>
+                                                    <option value="Cormorant Garamond">Cormorant Garamond</option>
+                                                    <option value="Newsreader">Newsreader</option>
                                                 </select>
                                             </div>
                                             <div class="font-control-group">
@@ -12486,8 +13843,15 @@
                             document.querySelectorAll('.layout-select').forEach(select => {
                                 select.addEventListener('change', function() {
                                     updateLayoutPreview(this.id, this.value);
+                                    if (this.id === 'gridLayout') applyLayoutControlOverrides();
                                 });
                             });
+
+                            // Reflects LAYOUT_CONTROL_OVERRIDES for whichever grid layout is
+                            // currently selected, right when the editor opens (not just on
+                            // change) - so an artist already on Vitrine/Contact Sheet/Ledger
+                            // sees the correct disabled state immediately.
+                            applyLayoutControlOverrides();
 
                             // Font controls
                             document.querySelectorAll('.font-select').forEach(select => {
@@ -12512,6 +13876,42 @@
                                     const statusSpan = this.closest('.toggle-control').querySelector('.toggle-label');
                                     statusSpan.textContent = this.checked ? 'Enabled' : 'Disabled';
                                     updateAdvancedPreview(this.id, this.checked);
+                                });
+                            });
+                        }
+
+                        // Applies LAYOUT_CONTROL_OVERRIDES for whichever grid layout is
+                        // currently selected in the Style Editor: disables (input.disabled,
+                        // dimmed, tooltip explaining why) any control that doesn't apply to
+                        // that layout, and re-enables everything else. Never lets a control
+                        // silently do nothing - either it works, or it's visibly disabled
+                        // with a reason.
+                        function applyLayoutControlOverrides() {
+                            const gridLayoutEl = document.getElementById('gridLayout');
+                            if (!gridLayoutEl) return;
+                            const overrides = LAYOUT_CONTROL_OVERRIDES[gridLayoutEl.value] || {};
+
+                            const controlGroups = {
+                                colors: ['bgColor', 'textColor', 'accentColor', 'borderColor'],
+                                imageSize: ['imageSize'],
+                                headerLayout: ['headerLayout'],
+                                footerStyle: ['footerStyle'],
+                                collectionTitleLayout: ['collectionTitleLayout'],
+                                fonts: ['headerFont', 'bodyFont', 'headerSize', 'bodySize'],
+                                spacing: ['gridSpacing'],
+                                cardPadding: ['cardPadding'],
+                                showFooterContact: ['showFooterContact']
+                            };
+
+                            Object.entries(controlGroups).forEach(([key, ids]) => {
+                                const reason = overrides[key];
+                                ids.forEach(id => {
+                                    const el = document.getElementById(id);
+                                    if (!el) return;
+                                    const wrapper = el.closest('.color-control-group, .layout-control-group, .font-control-group, .advanced-control-group') || el;
+                                    el.disabled = !!reason;
+                                    wrapper.style.opacity = reason ? '0.45' : '';
+                                    wrapper.title = reason || '';
                                 });
                             });
                         }
@@ -12891,6 +14291,11 @@
                                 setSelect('footerStyle', profile.footer_style, 'minimal');
                                 setSelect('imageSize', profile.image_size, 'medium');
                                 setSelect('collectionTitleLayout', profile.collection_title_layout, 'centered');
+
+                                // Now that gridLayout actually reflects the artist's saved
+                                // layout (not the panel's static default), re-evaluate which
+                                // controls LAYOUT_CONTROL_OVERRIDES disables for it.
+                                applyLayoutControlOverrides();
 
                                 // ADVANCED TOGGLES
                                 check('showFooterContact', profile.show_footer_contact || false);
