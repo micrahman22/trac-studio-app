@@ -699,15 +699,23 @@
                             justify-items: center;
                         }
 
-                        /* Fix for the large/tall dense-packing height bug (2026-09-11) - see
-                           artworkCardSizeClass(). grid-classic doesn't set its own
-                           grid-auto-rows, so it inherits the base .artworks-grid value
-                           (minmax(240px, auto), app.html:407); its own gap here is 2rem
-                           (32px), overriding the base rule's 1rem. min-height = 240px row
-                           minimum * 2 + 32px gap = 512px. */
+                        /* Fix for the large/tall dense-packing height bug (2026-09-11).
+                           First pass used 2*row-min+gap=512px - that only stopped the
+                           collapse-to-equal-with-wide bug, it didn't guarantee a visually
+                           clear ~2x margin, because 240px (the bare CSS row-track minimum)
+                           is a defensive floor, not a realistic single-row content height:
+                           a real test image rendered "wide" at 459px, ~1.9x the 240px
+                           minimum. Raised (2026-09-11, pass 2): treat "realistic single-row
+                           height" as ~2x the CSS minimum (480px here, grounded in that real
+                           measurement, not just this one data point), then double THAT for
+                           large/tall's floor, same as the original 2-row logic: min-height =
+                           240px * 4 + 32px gap = 992px (~2.16x that 459px real wide card).
+                           grid-classic doesn't set its own grid-auto-rows (inherits the base
+                           .artworks-grid value, minmax(240px, auto), app.html:407); its own
+                           gap here is 2rem (32px), overriding the base rule's 1rem. */
                         #portfolioPage .portfolio-layout.grid-classic .artwork-card.size-large,
                         #portfolioPage .portfolio-layout.grid-classic .artwork-card.size-tall {
-                            min-height: 512px;
+                            min-height: 992px;
                         }
 
                         .portfolio-layout.grid-masonry {
@@ -965,16 +973,18 @@
                             grid-auto-flow: dense;
                         }
 
-                        /* Fix for the large/tall dense-packing height bug (2026-09-11) - see
-                           artworkCardSizeClass(). This layout's own grid-auto-rows is
-                           minmax(280px, auto), gap 2rem (32px). min-height = 280px * 2 +
-                           32px = 592px. Note: most cards in this layout use the nth-child(3n+1)
-                           hero pattern above rather than per-artwork grid_size, but an
-                           artist can still set grid_size manually via the size overlay, so
-                           this needs the same fix as grid-classic. */
+                        /* Fix for the large/tall dense-packing height bug (2026-09-11), raised
+                           (pass 2) to the same 4*row-min+gap formula as grid-classic - see
+                           the longer comment there for why 2*row-min+gap wasn't enough.
+                           This layout's own grid-auto-rows is minmax(280px, auto), gap 2rem
+                           (32px): min-height = 280px * 4 + 32px = 1152px. Note: most cards in
+                           this layout use the nth-child(3n+1) hero pattern above rather than
+                           per-artwork grid_size, but an artist can still set grid_size
+                           manually via the size overlay, so this needs the same fix as
+                           grid-classic. */
                         #portfolioPage .portfolio-layout.monumental-asymmetric .artwork-card.size-large,
                         #portfolioPage .portfolio-layout.monumental-asymmetric .artwork-card.size-tall {
-                            min-height: 592px;
+                            min-height: 1152px;
                         }
 
                         .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+1) {
@@ -1051,13 +1061,14 @@
                             grid-auto-flow: dense;
                         }
 
-                        /* Fix for the large/tall dense-packing height bug (2026-09-11) - see
-                           artworkCardSizeClass(). This layout's own grid-auto-rows is
-                           minmax(220px, auto), gap 1.5rem (24px). min-height = 220px * 2 +
-                           24px = 464px. */
+                        /* Fix for the large/tall dense-packing height bug (2026-09-11), raised
+                           (pass 2) to the same 4*row-min+gap formula as grid-classic - see
+                           the longer comment there for why 2*row-min+gap wasn't enough.
+                           This layout's own grid-auto-rows is minmax(220px, auto), gap
+                           1.5rem (24px): min-height = 220px * 4 + 24px = 904px. */
                         #portfolioPage .portfolio-layout.historical-overlap .artwork-card.size-large,
                         #portfolioPage .portfolio-layout.historical-overlap .artwork-card.size-tall {
-                            min-height: 464px;
+                            min-height: 904px;
                         }
 
                         .portfolio-layout.historical-overlap .artwork-card:nth-child(4n+1) {
