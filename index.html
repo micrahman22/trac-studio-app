@@ -676,16 +676,16 @@
     <div id="authSignUpPane" style="display:none;">
       <div class="auth-head">
         <h2>Create your account</h2>
-        <p>Join TRAC as an artist to manage your work</p>
+        <p id="authSignupSubtitle">Join TRAC as an artist to manage your work</p>
       </div>
       <div class="auth-field">
         <label>I am signing up as</label>
         <div style="display:flex;gap:1.5rem;">
           <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;">
-            <input type="radio" name="authSignupRole" value="artist" checked> Artist
+            <input type="radio" name="authSignupRole" value="artist" checked onchange="updateSignupSubtitle()"> Artist
           </label>
           <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;">
-            <input type="radio" name="authSignupRole" value="collector"> Collector
+            <input type="radio" name="authSignupRole" value="collector" onchange="updateSignupSubtitle()"> Collector
           </label>
         </div>
       </div>
@@ -778,10 +778,25 @@
   function closeAuthModal() {
     document.getElementById('authOverlay').classList.remove('open');
   }
+  // Keeps the "Create your account" subtitle matching whichever role radio
+  // is actually selected - it used to be a static "as an artist" string
+  // that stayed wrong for a collector landing here via ?auth=collector's
+  // pre-checked Collector radio (confirmed live on production).
+  function updateSignupSubtitle() {
+    const el = document.getElementById('authSignupSubtitle');
+    if (!el) return;
+    const roleInput = document.querySelector('input[name="authSignupRole"]:checked');
+    const isCollector = roleInput && roleInput.value === 'collector';
+    el.textContent = isCollector
+      ? 'Join TRAC as a collector to manage your certificates'
+      : 'Join TRAC as an artist to manage your work';
+  }
+
   function showAuthTab(which) {
     document.getElementById('authSignInPane').style.display = which === 'signin' ? 'block' : 'none';
     document.getElementById('authSignUpPane').style.display = which === 'signup' ? 'block' : 'none';
     document.getElementById('authCheckEmailPane').style.display = which === 'checkemail' ? 'block' : 'none';
+    if (which === 'signup') updateSignupSubtitle();
     // Fresh token every time a pane becomes visible - Turnstile tokens are
     // single-use and expire after a few minutes, so a stale one left over
     // from a previous open (or from switching tabs and back) would fail
@@ -1105,7 +1120,10 @@
       const intent = urlParams.get('intent');
       openAuthModal(intent === 'signup' ? 'signup' : 'signin');
       const collectorRadio = document.querySelector('input[name="authSignupRole"][value="collector"]');
-      if (collectorRadio) collectorRadio.checked = true;
+      if (collectorRadio) {
+        collectorRadio.checked = true;
+        updateSignupSubtitle();
+      }
     }
 
     // app.html's settings menu links here with ?legal=terms/privacy instead
