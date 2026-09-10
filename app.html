@@ -699,6 +699,17 @@
                             justify-items: center;
                         }
 
+                        /* Fix for the large/tall dense-packing height bug (2026-09-11) - see
+                           artworkCardSizeClass(). grid-classic doesn't set its own
+                           grid-auto-rows, so it inherits the base .artworks-grid value
+                           (minmax(240px, auto), app.html:407); its own gap here is 2rem
+                           (32px), overriding the base rule's 1rem. min-height = 240px row
+                           minimum * 2 + 32px gap = 512px. */
+                        #portfolioPage .portfolio-layout.grid-classic .artwork-card.size-large,
+                        #portfolioPage .portfolio-layout.grid-classic .artwork-card.size-tall {
+                            min-height: 512px;
+                        }
+
                         .portfolio-layout.grid-masonry {
                             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
                             grid-auto-rows: 10px;
@@ -954,6 +965,18 @@
                             grid-auto-flow: dense;
                         }
 
+                        /* Fix for the large/tall dense-packing height bug (2026-09-11) - see
+                           artworkCardSizeClass(). This layout's own grid-auto-rows is
+                           minmax(280px, auto), gap 2rem (32px). min-height = 280px * 2 +
+                           32px = 592px. Note: most cards in this layout use the nth-child(3n+1)
+                           hero pattern above rather than per-artwork grid_size, but an
+                           artist can still set grid_size manually via the size overlay, so
+                           this needs the same fix as grid-classic. */
+                        #portfolioPage .portfolio-layout.monumental-asymmetric .artwork-card.size-large,
+                        #portfolioPage .portfolio-layout.monumental-asymmetric .artwork-card.size-tall {
+                            min-height: 592px;
+                        }
+
                         .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+1) {
                             grid-column: span 2;
                             grid-row: span 2;
@@ -1026,6 +1049,15 @@
                             grid-auto-rows: minmax(220px, auto);
                             gap: 1.5rem !important;
                             grid-auto-flow: dense;
+                        }
+
+                        /* Fix for the large/tall dense-packing height bug (2026-09-11) - see
+                           artworkCardSizeClass(). This layout's own grid-auto-rows is
+                           minmax(220px, auto), gap 1.5rem (24px). min-height = 220px * 2 +
+                           24px = 464px. */
+                        #portfolioPage .portfolio-layout.historical-overlap .artwork-card.size-large,
+                        #portfolioPage .portfolio-layout.historical-overlap .artwork-card.size-tall {
+                            min-height: 464px;
                         }
 
                         .portfolio-layout.historical-overlap .artwork-card:nth-child(4n+1) {
@@ -4372,6 +4404,10 @@
                             max-width: 100% !important;
                             margin: 0 !important;
                             transform: none !important;
+                            /* Un-span, so also un-force the large/tall min-height fix above -
+                               a single-column mobile card should size to its own image,
+                               not carry a ~500px desktop-row minimum. */
+                            min-height: auto !important;
                           }
 
                           /* Kill all hover effects */
@@ -5918,6 +5954,26 @@
                                 case 'wide': return 'grid-column: span 2;';
                                 case 'tall': return 'grid-row: span 2;';
                                 case 'large': return 'grid-column: span 2; grid-row: span 2;';
+                                default: return '';
+                            }
+                        }
+
+                        // 'tall'/'large' span 2 grid rows, but grid-row:span alone doesn't
+                        // give the ROW TRACKS themselves any height - in the minmax(<min>,auto)
+                        // row-track layouts (grid-classic, monumental-asymmetric,
+                        // historical-overlap), grid-auto-flow:dense packs a shorter 'wide'/
+                        // 'small' neighbor into the same row tracks, and auto-sizing resolves
+                        // those tracks toward the SHORTER neighbor's natural height - so a
+                        // 'large' card could end up barely taller than a 'wide' one next to it
+                        // instead of the intended ~2x (confirmed live: 504px vs 459px instead of
+                        // 941px vs 459px). This class lets CSS assert an explicit min-height
+                        // per layout so the card's own size isn't hostage to whatever else
+                        // shares its rows. Fixed-row layouts (e.g. vibrant-mosaic's flat
+                        // grid-auto-rows:260px) don't have this problem and are untouched.
+                        function artworkCardSizeClass(artwork) {
+                            switch (artwork?.grid_size) {
+                                case 'tall': return ' size-tall';
+                                case 'large': return ' size-large';
                                 default: return '';
                             }
                         }
@@ -10559,7 +10615,7 @@
                                             collectionGridHTML = renderLayoutIntroHTML(layoutClass, profileData, collectionArtworks, isOwner) + `
                                                 <div class="artworks-grid portfolio-layout ${layoutClass} ${sizeClass}" id="mainArtworksGrid">
                                                     ${collectionArtworks.map(artwork => `
-                                                        <div class="artwork-card" style="${artworkCardSpanStyle(artwork)}">
+                                                        <div class="artwork-card${artworkCardSizeClass(artwork)}" style="${artworkCardSpanStyle(artwork)}">
                                                             <div class="artwork-image" style="${artworkImageWrapStyle(artwork)}">
                                                                 <img src="${escapeHtml(artwork.image_url)}" alt="${escapeHtml(artwork.title)}" style="${artworkImageFillStyle(artwork)}">
                                                                 ${artworkSizeOverlayHTML(artwork, isOwner)}
