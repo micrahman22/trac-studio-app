@@ -1,0 +1,31 @@
+-- Closes the actual, complete fix for artworks_hide_archived_from_public_
+-- 2026-09-10.sql - that migration alone turned out to be insufficient on
+-- production, found by re-running its own verification test (a disposable
+-- is_public=true/is_archived=true row was still visible to an anonymous
+-- query after that migration ran).
+--
+-- Root cause: artworks had TWO permissive SELECT policies, not one.
+-- "Anyone can view public artworks" (using (is_public = true), no archive
+-- check at all) still existed alongside "Public can view public artworks,
+-- owners see all" (the one the other migration fixed). Postgres OR-combines
+-- multiple permissive policies on the same table/command - a row is visible
+-- if *either* passes, so this older policy independently granted the exact
+-- access the other migration was trying to close, regardless of it.
+--
+-- Staging never had this policy at all (confirmed via a full policy diff
+-- against staging's live pg_policy) - it was dropped there at some point
+-- with no migration file ever capturing that cleanup either, same
+-- undocumented-ad-hoc pattern as the other gaps found during this rollout
+-- (profiles_notify_columns, royalty_notifications_insert_ownership_check).
+--
+-- Safe to drop outright: everything it permitted (is_public = true,
+-- unconditionally) is already covered by the remaining policy for every
+-- legitimate case, minus the one dimension that was the actual bug.
+--
+-- Re-verified after applying: a disposable is_public=true/is_archived=true
+-- test row was correctly hidden from an anonymous query, then deleted.
+--
+-- Run against production (vhgsayaugbepugssyary). Already absent on staging
+-- (utlgnwxulsasydqwcjgc) - this file exists to make that reproducible.
+
+drop policy if exists "Anyone can view public artworks" on artworks;
