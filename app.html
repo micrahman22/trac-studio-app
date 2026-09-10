@@ -2659,6 +2659,20 @@
                             font-size: 1.75rem;
                           }
 
+                          /* 13b. HERO/STATS VERTICAL SPACING - desktop's 3rem/2rem
+                             padding (used unmodified at mobile until now) left an
+                             oversized gap above "Blockchain"/dashboard's title and
+                             below the stat line, confirmed live at 390px. Reuses the
+                             1rem/0.75rem unit already used for mobile header spacing
+                             just below, not a new scale. Shared classes - fixes
+                             Dashboard's identical gap too, not just Blockchain's. */
+                          .hero-section {
+                            padding: 1rem 0 0.75rem;
+                          }
+                          .stats-section {
+                            padding: 1rem 0;
+                          }
+
                           /* 14. SECTION HEADER STACKING */
                           .section-header {
                             flex-direction: column;
@@ -2700,15 +2714,23 @@
                             font-size: 1.8rem !important;
                           }
 
-                          /* Navigation row - DASHBOARD ONLY */
+                          /* Navigation row - DASHBOARD ONLY. flex-wrap was
+                             nowrap with no fallback, so all 4 items (Dashboard/
+                             Profile Settings/Portfolio/Blockchain) overflowed
+                             past both edges of the viewport instead of fitting -
+                             confirmed live at 390px width, "Dashboard" clipped to
+                             "SHBOARD", "Blockchain" clipped to "BLOCKCH". Wrapping
+                             onto two centered rows keeps every link fully visible
+                             and clickable without introducing a hamburger/new UI
+                             pattern not already used elsewhere in this header. */
                           .gallery-header .gallery-nav {
                             display: flex !important;
                             align-items: center !important;
-                            gap: 1.5rem !important;
+                            gap: 0.5rem 1.25rem !important;
                             justify-content: center !important;
                             width: 100% !important;
                             padding: 0 0.5rem !important;
-                            flex-wrap: nowrap !important;
+                            flex-wrap: wrap !important;
                           }
 
                           .gallery-header .nav-item {
@@ -4745,6 +4767,18 @@
 
                         function countLabel(n, singular, plural) {
                             return `${n} ${n === 1 ? singular : plural}`;
+                        }
+
+                        // Keeps a multi-word stat phrase ("Ownership Transfers",
+                        // "Upcoming Events") from splitting across lines at narrow
+                        // widths - confirmed live at 390px that plain-space wrapping
+                        // let "3 Ownership" stay up while "Transfers" dropped alone
+                        // to the next line. Regular spaces inside the phrase become
+                        // non-breaking spaces; the " · " separators joining
+                        // phrases stay breakable, so the line can still wrap between
+                        // phrases, just never inside one.
+                        function noBreakPhrase(s) {
+                            return s.replace(/ /g, " ");
                         }
 
                         // Per-artwork portfolio card sizing ("small" is the default -
@@ -11438,9 +11472,9 @@
                             const line = document.getElementById('dashboardStatLine');
                             if (!line) return;
                             line.textContent = [
-                                countLabel(artworksCount, 'Artwork', 'Artworks'),
-                                countLabel(collectionsCount, 'Collection', 'Collections'),
-                                countLabel(eventsCount, 'Upcoming Event', 'Upcoming Events')
+                                noBreakPhrase(countLabel(artworksCount, 'Artwork', 'Artworks')),
+                                noBreakPhrase(countLabel(collectionsCount, 'Collection', 'Collections')),
+                                noBreakPhrase(countLabel(eventsCount, 'Upcoming Event', 'Upcoming Events'))
                             ].join(' · ');
                         }
 
@@ -13915,9 +13949,9 @@
         const statLine = document.getElementById('blockchainStatLine');
         if (statLine) {
             statLine.textContent = [
-                countLabel(total ?? 0, 'CoA Issued', 'CoAs Issued'),
-                `${(pending || []).length} Pending Royalties`,
-                countLabel(transfers ?? 0, 'Ownership Transfer', 'Ownership Transfers')
+                noBreakPhrase(countLabel(total ?? 0, 'CoA Issued', 'CoAs Issued')),
+                noBreakPhrase(`${(pending || []).length} Pending Royalties`),
+                noBreakPhrase(countLabel(transfers ?? 0, 'Ownership Transfer', 'Ownership Transfers'))
             ].join(' · ');
         }
     }

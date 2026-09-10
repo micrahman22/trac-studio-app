@@ -296,6 +296,15 @@
            .c-main keeps its own horizontal padding unlike Dashboard's
            .gallery-main, so the belt's 100vw sizing here overshoots it. */
         @media (max-width: 768px) {
+            /* Same desktop-only 3rem/2rem padding app.html's Dashboard/
+               Blockchain had at this breakpoint until now - same oversized
+               gap above the title bug, fixed the same way there. */
+            .hero-section {
+                padding: 1rem 0 0.75rem;
+            }
+            .hero-title {
+                font-size: 1.75rem;
+            }
             .conveyor-belt-container {
                 position: relative !important;
                 left: 0 !important;
