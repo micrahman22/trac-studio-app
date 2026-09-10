@@ -5145,6 +5145,20 @@
                                         Request sent. We'll follow up at your account email.
                                     </div>
                                 </div>
+                                </div>
+                                <!-- ^ Pre-existing bug fix (2026-09-11, unrelated to the portfolio
+                                     style overhaul): this "Account & Security" form-section div
+                                     (opened above, class="form-section", the one containing the
+                                     email/password/deletion controls) was missing its closing tag.
+                                     With it missing, every settings section after this one, plus the
+                                     Terms/Privacy legal modals and the Style Browser modal further
+                                     down, silently became DOM descendants of #settingsMenuModal
+                                     instead of siblings - and since settingsMenuModal sets its own
+                                     backdrop-filter (making it a containing block for position:fixed
+                                     children, see the comment on the legal-overlay shell below) and
+                                     is display:none until Settings is opened, all three collapsed to
+                                     a zero-size, invisible box. Confirmed via DOMParser against the
+                                     commit before today's build too - this predates the overhaul. -->
 
                                 <div class="form-section" style="background: none; border: none; border-radius: 0; padding: 1.75rem 0; margin-bottom: 0; border-top: 1px solid #efeeea; display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;">
                                     <div class="section-head" style="margin-bottom: 0;">
