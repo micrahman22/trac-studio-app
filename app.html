@@ -6297,6 +6297,246 @@
                                     primary: 'Times New Roman',
                                     secondary: 'Courier New'
                                 }
+                            },
+
+                            // ==================== 2026-09-11 STYLE OVERHAUL PRESETS ====================
+                            // One-click bundles for the 11 layouts added in today's overhaul, so
+                            // they're reachable from Browse Portfolio Styles too, not just the Style
+                            // Editor's Grid Layout dropdown. Vitrine and Contact Sheet's colors match
+                            // their own hardcoded-dark CSS (they ignore --bg-color/--text-color by
+                            // design - see LAYOUT_CONTROL_OVERRIDES) rather than a real pickable
+                            // palette, so switching color pickers away from them still shows something
+                            // coherent if an artist later moves to a different layout.
+
+                            'ledger-archivist': {
+                                id: 'ledger-archivist',
+                                name: 'The Ledger',
+                                description: 'Minimal header, contact-prominent footer, tabular ledger grid',
+                                layout: 'ledger',
+                                headerLayout: 'minimal',
+                                footerStyle: 'contact-prominent',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'left-aligned',
+                                colors: {
+                                    bg: '#ffffff',
+                                    text: '#000000',
+                                    accent: '#b23a2e',
+                                    border: '#e5e5e5'
+                                },
+                                fonts: {
+                                    primary: 'IBM Plex Mono',
+                                    secondary: 'Space Grotesk'
+                                }
+                            },
+
+                            'gallery-wall-quiet': {
+                                id: 'gallery-wall-quiet',
+                                name: 'Gallery Wall',
+                                description: 'Centered header, minimal footer, hairline gallery grid',
+                                layout: 'gallery-wall',
+                                headerLayout: 'centered',
+                                footerStyle: 'minimal',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'centered',
+                                colors: {
+                                    bg: '#faf9f5',
+                                    text: '#141413',
+                                    accent: '#8b7355',
+                                    border: '#e8e0d0'
+                                },
+                                fonts: {
+                                    primary: 'Fraunces',
+                                    secondary: 'Space Grotesk'
+                                }
+                            },
+
+                            'studio-catalog-shop': {
+                                id: 'studio-catalog-shop',
+                                name: 'Studio Catalog',
+                                description: 'Split header, social-focused footer, dense catalog grid',
+                                layout: 'studio-catalog',
+                                headerLayout: 'split',
+                                footerStyle: 'social-focused',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'left-aligned',
+                                colors: {
+                                    bg: '#ffffff',
+                                    text: '#000000',
+                                    accent: '#000000',
+                                    border: '#e5e5e5'
+                                },
+                                fonts: {
+                                    primary: 'Space Grotesk',
+                                    secondary: 'IBM Plex Mono'
+                                }
+                            },
+
+                            'field-notes-process': {
+                                id: 'field-notes-process',
+                                name: 'Field Notes',
+                                description: 'Minimal header, hidden footer, corkboard polaroid grid',
+                                layout: 'field-notes',
+                                headerLayout: 'minimal',
+                                footerStyle: 'hidden',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'minimal',
+                                colors: {
+                                    bg: '#fdfaf3',
+                                    text: '#2b2b2b',
+                                    accent: '#b23a2e',
+                                    border: '#e0d8c0'
+                                },
+                                fonts: {
+                                    primary: 'Caveat',
+                                    secondary: 'Space Grotesk'
+                                }
+                            },
+
+                            'vitrine-museum': {
+                                id: 'vitrine-museum',
+                                name: 'Vitrine',
+                                description: 'Centered header, minimal footer, always-dark museum grid',
+                                layout: 'vitrine',
+                                headerLayout: 'centered',
+                                footerStyle: 'minimal',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'centered',
+                                colors: {
+                                    bg: '#131211',
+                                    text: '#efece5',
+                                    accent: '#b23a2e',
+                                    border: '#332f29'
+                                },
+                                fonts: {
+                                    primary: 'Cormorant Garamond',
+                                    secondary: 'IBM Plex Mono'
+                                }
+                            },
+
+                            'broadsheet-editorial': {
+                                id: 'broadsheet-editorial',
+                                name: 'Broadsheet',
+                                description: 'Left-aligned header, contact-prominent footer, editorial broadsheet grid',
+                                layout: 'broadsheet',
+                                headerLayout: 'left-aligned',
+                                footerStyle: 'contact-prominent',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'left-aligned',
+                                colors: {
+                                    bg: '#faf9f5',
+                                    text: '#141413',
+                                    accent: '#b23a2e',
+                                    border: '#dedbd3'
+                                },
+                                fonts: {
+                                    primary: 'Newsreader',
+                                    secondary: 'IBM Plex Mono'
+                                }
+                            },
+
+                            'contact-sheet-darkroom': {
+                                id: 'contact-sheet-darkroom',
+                                name: 'Contact Sheet',
+                                description: 'Minimal header, hidden footer, always-dark contact-sheet grid',
+                                layout: 'contact-sheet',
+                                headerLayout: 'minimal',
+                                footerStyle: 'hidden',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'minimal',
+                                colors: {
+                                    bg: '#0d0d0c',
+                                    text: '#efece5',
+                                    accent: '#b23a2e',
+                                    border: '#333333'
+                                },
+                                fonts: {
+                                    primary: 'IBM Plex Mono',
+                                    secondary: 'IBM Plex Mono'
+                                }
+                            },
+
+                            'scroll-narrative': {
+                                id: 'scroll-narrative',
+                                name: 'Scroll',
+                                description: 'Centered header, minimal footer, single-column narrative scroll',
+                                layout: 'scroll',
+                                headerLayout: 'centered',
+                                footerStyle: 'minimal',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'centered',
+                                colors: {
+                                    bg: '#ffffff',
+                                    text: '#1a1a1a',
+                                    accent: '#b23a2e',
+                                    border: '#e5e5e5'
+                                },
+                                fonts: {
+                                    primary: 'Newsreader',
+                                    secondary: 'Space Grotesk'
+                                }
+                            },
+
+                            'card-modern-clean': {
+                                id: 'card-modern-clean',
+                                name: 'Card Modern',
+                                description: 'Centered header, minimal footer, bordered card grid',
+                                layout: 'card-modern',
+                                headerLayout: 'centered',
+                                footerStyle: 'minimal',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'centered',
+                                colors: {
+                                    bg: '#ffffff',
+                                    text: '#000000',
+                                    accent: '#666666',
+                                    border: '#e5e5e5'
+                                },
+                                fonts: {
+                                    primary: 'Space Grotesk',
+                                    secondary: 'Space Grotesk'
+                                }
+                            },
+
+                            'magazine-editorial': {
+                                id: 'magazine-editorial',
+                                name: 'Magazine',
+                                description: 'Split header, minimal footer, hero-led magazine grid',
+                                layout: 'magazine',
+                                headerLayout: 'split',
+                                footerStyle: 'minimal',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'left-aligned',
+                                colors: {
+                                    bg: '#ffffff',
+                                    text: '#141413',
+                                    accent: '#b23a2e',
+                                    border: '#e5e5e5'
+                                },
+                                fonts: {
+                                    primary: 'Fraunces',
+                                    secondary: 'Space Grotesk'
+                                }
+                            },
+
+                            'portfolio-focused-signature': {
+                                id: 'portfolio-focused-signature',
+                                name: 'Portfolio Focused',
+                                description: 'Minimal header, hidden footer, signature-piece spotlight grid',
+                                layout: 'portfolio-focused',
+                                headerLayout: 'minimal',
+                                footerStyle: 'hidden',
+                                collectionLayout: 'grid',
+                                collectionTitleLayout: 'centered',
+                                colors: {
+                                    bg: '#ffffff',
+                                    text: '#000000',
+                                    accent: '#000000',
+                                    border: '#e5e5e5'
+                                },
+                                fonts: {
+                                    primary: 'Space Grotesk',
+                                    secondary: 'Space Grotesk'
+                                }
                             }
                         };
 
