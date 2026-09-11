@@ -1,0 +1,27 @@
+# Netlify was deploying the whole repo as static files - with no
+# netlify.toml/publish-directory setting, "no build step" (see
+# CLAUDE.md) meant "the repo root itself is the publish directory."
+# Confirmed live during the 2026-09-11 staging pentest: every .sql
+# migration, the full schema snapshot, Edge Function source (incl.
+# mint-coa's exact validation/rate-limit logic), CLAUDE.md, replit.md,
+# the product proposal, the smart contract source, and the C2PA
+# service's source were all directly fetchable with real content.
+#
+# This is a real allowlist, not a blocklist: `command` copies only the
+# files the live app actually references (confirmed via a grep of
+# every src=/href= in index.html/app.html/collector.html) into a
+# fresh netlify_publish/ directory, and `publish` points there instead
+# of repo root. Anything not explicitly copied here is never part of
+# the deploy, full stop - a file added later that isn't listed below
+# is excluded by default, not exposed by default.
+#
+# This is a deploy-time file-selection step, not a real build (no
+# bundler/transpiler/webpack - see CLAUDE.md's "no build step, no
+# bundler" architecture note, still true for the app itself).
+#
+# Local dev (server.py) is unaffected - it serves the repo root
+# directly and has nothing to do with Netlify's own build/deploy.
+
+[build]
+  command = "mkdir -p netlify_publish && cp index.html app.html collector.html supabase-config.js legal-content.js robots.txt _headers _redirects netlify_publish/ && cp -r fonts assets netlify_publish/"
+  publish = "netlify_publish"
