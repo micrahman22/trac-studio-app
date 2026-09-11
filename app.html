@@ -4780,6 +4780,16 @@
                                                 <div id="imagePreview" class="image-preview" style="display: none;"></div>
                                             </div>
 
+                                            <div id="uploadProtectTip" style="display: none; align-items: flex-start; justify-content: space-between; gap: 0.75rem; background: #fafafa; border: 1px solid #e5e5e5; border-radius: 8px; padding: 0.65rem 0.85rem; margin: -1.25rem 0 1.5rem;">
+                                                <small style="color: #666; font-size: 0.8rem; line-height: 1.5;">
+                                                    Want extra protection against AI scraping? Consider running your image through
+                                                    <a href="https://glaze.cs.uchicago.edu/" target="_blank" rel="noopener noreferrer" style="color: #000;">Glaze</a> or
+                                                    <a href="https://nightshade.cs.uchicago.edu/" target="_blank" rel="noopener noreferrer" style="color: #000;">Nightshade</a>
+                                                    (free, University of Chicago) before uploading.
+                                                </small>
+                                                <button type="button" class="close-form" onclick="dismissUploadProtectTip()" aria-label="Dismiss" style="width: 22px; height: 22px; font-size: 1.1rem; flex-shrink: 0;">&times;</button>
+                                            </div>
+
                                             <div class="form-grid">
                                                 <div class="form-group">
                                                     <label for="title">Title *</label>
@@ -7144,6 +7154,11 @@
                                     publicLabel.style.display = 'none';
                                 }
 
+                                // Not a new image selection, so the Glaze/Nightshade tip
+                                // (create mode only, see below) doesn't apply here.
+                                const editTip = document.getElementById('uploadProtectTip');
+                                if (editTip) editTip.style.display = 'none';
+
                                 // Show current image
                                 document.getElementById('uploadPlaceholder').style.display = 'none';
                                 document.getElementById('imagePreview').style.display = 'block';
@@ -7175,6 +7190,16 @@
                                     publicLabel.style.display = 'block';
                                 }
 
+                                // Optional Glaze/Nightshade tip - only relevant when
+                                // actually picking a new image to upload, and only until
+                                // the artist dismisses it once.
+                                const protectTip = document.getElementById('uploadProtectTip');
+                                if (protectTip) {
+                                    let dismissed = false;
+                                    try { dismissed = localStorage.getItem('uploadProtectTipDismissed') === '1'; } catch (e) {}
+                                    protectTip.style.display = dismissed ? 'none' : 'flex';
+                                }
+
                                 document.getElementById('artworkUploadForm').dataset.mode = 'create';
                                 document.querySelector('#uploadForm .form-header h4').textContent = 'Add New Artwork';
                                 document.querySelector('#uploadSubmitText').textContent = 'Add Artwork';
@@ -7194,6 +7219,15 @@
                                 return;
                             }
                             showUploadForm(artwork);
+                        }
+
+                        // Recommendation only, not a requirement - dismissing it just
+                        // means "don't ask again", same one-time-dismiss pattern as any
+                        // other optional tip; it never blocks or delays the actual upload.
+                        function dismissUploadProtectTip() {
+                            const tip = document.getElementById('uploadProtectTip');
+                            if (tip) tip.style.display = 'none';
+                            try { localStorage.setItem('uploadProtectTipDismissed', '1'); } catch (e) {}
                         }
 
                         function hideUploadForm() {
