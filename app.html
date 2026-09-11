@@ -1477,18 +1477,35 @@
 
                         /* PORTFOLIO FOCUSED - orphaned, now wired into the picker.
                            Refined: one large signature-piece spotlight above a thin
-                           filmstrip of the rest, built with flex-wrap (no new
-                           markup) - the first card takes the full row, the rest
-                           wrap into a row of small equal-width thumbnails below it. */
+                           filmstrip of the rest.
+                           2026-09-11, revised: originally built with flexbox (flex-wrap),
+                           which meant the S/W/T/L per-artwork size overlay - which works by
+                           setting grid-column/grid-row (artworkCardSpanStyle) - was a
+                           complete no-op here; those properties don't exist in flex layout.
+                           Rebuilt as a real CSS grid, same mechanism as grid-classic/
+                           monumental-asymmetric/historical-overlap, so S/W/T/L genuinely
+                           resizes any card, hero or filmstrip. The "first card is a big
+                           signature piece" identity is now a DEFAULT for :first-child
+                           (like monumental-asymmetric's nth-child hero pattern) rather than
+                           a hardcoded flex rule - an explicit size-* class (added by
+                           artworkCardSizeClass() for every grid_size, including 'small' and
+                           'wide' now, not just 'tall'/'large') overrides it via higher
+                           specificity, letting the inline grid-column/grid-row apply. */
                         .portfolio-layout.portfolio-focused {
-                            display: flex;
-                            flex-wrap: wrap;
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                            grid-auto-rows: minmax(160px, auto);
+                            grid-auto-flow: dense;
                             gap: 0.75rem;
                             padding: 2rem 3rem;
                         }
 
+                        /* Default hero look for the first card - full width, tall,
+                           centered text. Only applies while no explicit size was chosen
+                           for it (no size-wide/tall/large/small class beats this - see
+                           below). */
                         .portfolio-layout.portfolio-focused .artwork-card:first-child {
-                            flex: 1 1 100%;
+                            grid-column: 1 / -1;
                             min-height: 70vh;
                             display: flex;
                             flex-direction: column;
@@ -1502,10 +1519,50 @@
                             margin: 2rem 0;
                         }
 
-                        .portfolio-layout.portfolio-focused .artwork-card:not(:first-child) {
-                            flex: 1 1 140px;
-                            max-width: 200px;
+                        /* Explicit size chosen for the hero card: drop the hardcoded
+                           full-width/tall/centered treatment so the inline grid-column/
+                           grid-row from artworkCardSpanStyle (Wide/Tall/Large) or a plain
+                           1x1 cell (Small) actually takes effect. */
+                        .portfolio-layout.portfolio-focused .artwork-card:first-child.size-small,
+                        .portfolio-layout.portfolio-focused .artwork-card:first-child.size-wide,
+                        .portfolio-layout.portfolio-focused .artwork-card:first-child.size-tall,
+                        .portfolio-layout.portfolio-focused .artwork-card:first-child.size-large {
+                            grid-column: unset;
+                            min-height: 0;
+                            display: block;
+                            text-align: left;
+                            margin-bottom: 0;
+                        }
+
+                        .portfolio-layout.portfolio-focused .artwork-card:first-child.size-small .artwork-title,
+                        .portfolio-layout.portfolio-focused .artwork-card:first-child.size-wide .artwork-title,
+                        .portfolio-layout.portfolio-focused .artwork-card:first-child.size-tall .artwork-title,
+                        .portfolio-layout.portfolio-focused .artwork-card:first-child.size-large .artwork-title {
+                            font-size: inherit;
                             margin: 0;
+                        }
+
+                        /* Same #portfolioPage .artwork-image{min-height:300px;background:
+                           #f5f5f5} ID-specificity gap found and fixed for gallery-wall/
+                           vitrine/etc earlier - applies here too once the hero card gets
+                           an explicit Tall/Large (row-spanning, object-fit:cover) size. */
+                        #portfolioPage .portfolio-layout.portfolio-focused .artwork-card:first-child.size-tall .artwork-image,
+                        #portfolioPage .portfolio-layout.portfolio-focused .artwork-card:first-child.size-large .artwork-image {
+                            width: 100%;
+                            min-height: 0;
+                            background: transparent;
+                        }
+
+                        /* Filmstrip default (no explicit size = 'small'): a plain square
+                           thumbnail, same as before. Wide/Tall/Large filmstrip cards use
+                           the shared artworkImageFillStyle()/artworkImageWrapStyle() inline
+                           styles that every other layout already relies on - no extra CSS
+                           needed here for those, same as grid-classic. */
+                        .portfolio-layout.portfolio-focused .artwork-card:not(:first-child).size-small .artwork-image img {
+                            aspect-ratio: 1;
+                            object-fit: cover;
+                            width: 100%;
+                            height: 100%;
                         }
 
                         #portfolioPage .portfolio-layout.portfolio-focused .artwork-card:not(:first-child) .artwork-image {
@@ -1514,15 +1571,17 @@
                             background: transparent;
                         }
 
-                        .portfolio-layout.portfolio-focused .artwork-card:not(:first-child) .artwork-image img {
-                            aspect-ratio: 1;
-                            object-fit: cover;
-                            width: 100%;
-                            height: 100%;
-                        }
-
                         .portfolio-layout.portfolio-focused .artwork-card:not(:first-child) .artwork-info {
                             display: none;
+                        }
+
+                        /* Same dense-packing height-floor fix as grid-classic/
+                           monumental-asymmetric/historical-overlap (2026-09-11): this
+                           layout's grid-auto-rows is minmax(160px, auto), gap 0.75rem
+                           (12px). min-height = 160px * 4 + 12px = 652px. */
+                        #portfolioPage .portfolio-layout.portfolio-focused .artwork-card.size-large,
+                        #portfolioPage .portfolio-layout.portfolio-focused .artwork-card.size-tall {
+                            min-height: 652px;
                         }
 
                         @media (max-width: 768px) {
@@ -1535,10 +1594,12 @@
                             .portfolio-layout.portfolio-focused {
                                 padding: 1.5rem 1rem;
                             }
-                            .portfolio-layout.portfolio-focused .artwork-card:not(:first-child) {
-                                flex: 1 1 100px;
-                                max-width: 120px;
-                            }
+                            /* No per-card sizing override needed here anymore now that
+                               this layout is a real grid - the global "FORCE PORTFOLIO
+                               MOBILE OVERRIDE" block (#portfolioPage .artwork-card, further
+                               down) already forces every card to a single full-width
+                               column with min-height:auto on mobile, same as every other
+                               layout. */
                         }
 
                         /* ==================== NEW STYLE CONCEPTS (2026-09-11) ====================
@@ -2666,7 +2727,8 @@
                         #portfolioPage .portfolio-layout.vibrant-mosaic .artwork-card .artwork-details,
                         #portfolioPage .portfolio-layout.monumental-asymmetric .artwork-card:nth-child(3n+1) .artwork-title,
                         #portfolioPage .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+1) .artwork-title,
-                        #portfolioPage .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+1) .artwork-details {
+                        #portfolioPage .portfolio-layout.quilt-narrative .artwork-card:nth-child(4n+1) .artwork-details,
+                        #portfolioPage .portfolio-layout.portfolio-focused .artwork-card:first-child .artwork-title {
                             display: block;
                         }
 
@@ -5981,11 +6043,20 @@
                         // per layout so the card's own size isn't hostage to whatever else
                         // shares its rows. Fixed-row layouts (e.g. vibrant-mosaic's flat
                         // grid-auto-rows:260px) don't have this problem and are untouched.
+                        // Every grid_size gets its own class now (not just tall/large) so
+                        // layouts that need to react to an EXPLICIT 'small'/'wide' choice -
+                        // not just "no override was set" - can do so (Portfolio Focused's
+                        // first card needs to tell "artist explicitly picked Small" apart
+                        // from "no size ever set", since both look different there - see
+                        // its CSS block). Harmless everywhere else: grid-classic/
+                        // monumental-asymmetric/historical-overlap have no .size-small or
+                        // .size-wide selectors, so the extra class is simply unused there.
                         function artworkCardSizeClass(artwork) {
                             switch (artwork?.grid_size) {
+                                case 'wide': return ' size-wide';
                                 case 'tall': return ' size-tall';
                                 case 'large': return ' size-large';
-                                default: return '';
+                                default: return ' size-small';
                             }
                         }
 
