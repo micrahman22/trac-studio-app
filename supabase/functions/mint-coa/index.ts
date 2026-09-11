@@ -20,6 +20,29 @@ const CONTRACT_ABI = [
   "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
 ];
 
+// Built once per warm isolate, not per-request, and wrapped in ethers'
+// NonceManager so nonce assignment is tracked in memory across requests
+// instead of each request re-querying the chain's "pending" nonce fresh.
+// Re-querying per request is exactly what caused concurrent mint-coa calls
+// to collide on the same nonce and fail with a spurious "could not mint
+// on-chain" 502 (confirmed live in the 2026-09-11 staging pentest) - built
+// this way, concurrent calls landing on the same isolate get sequential
+// nonces instead of racing. Guarded the same way the request-time check
+// below always was: if secrets aren't configured, this stays null and every
+// request gets the same clear 403 instead of a module-load crash.
+let contract: InstanceType<typeof ethers.Contract> | null = null;
+if (POLYGON_RPC_URL && POLYGON_PRIVATE_KEY && POLYGON_CONTRACT_ADDRESS) {
+  const provider = new ethers.JsonRpcProvider(POLYGON_RPC_URL, POLYGON_CHAIN_ID);
+  const wallet = new ethers.NonceManager(new ethers.Wallet(POLYGON_PRIVATE_KEY, provider));
+  contract = new ethers.Contract(POLYGON_CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
+}
+
+// Also built once per warm isolate - this client carries no per-request
+// state (auth is passed explicitly on the one call that needs the caller's
+// own JWT, via userClient below), so there's no reason to recreate it on
+// every invocation.
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -36,6 +59,25 @@ function json(body: unknown, status = 200) {
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
+  }
+
+  // Declared here, above the try, so the outer catch can also resolve a
+  // reservation if something unexpected throws after one was created but
+  // before its normal resolution point ran. resolveReservation is
+  // idempotent (the reservationResolved guard), so it's always safe to call
+  // from the outer catch too, without risk of flipping an already-
+  // 'completed' reservation back to 'failed' if something throws after the
+  // real mint succeeded.
+  let reservationId: string | null = null;
+  let reservationResolved = false;
+  async function resolveReservation(status: "completed" | "failed") {
+    if (!reservationId || reservationResolved) return;
+    reservationResolved = true;
+    const { error } = await supabase.rpc("resolve_mint_reservation", {
+      p_reservation_id: reservationId,
+      p_status: status,
+    });
+    if (error) console.error("resolve_mint_reservation error:", error);
   }
 
   try {
@@ -75,11 +117,10 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await userClient.auth.getUser();
     if (authError || !user) return json({ error: "Unauthorized" }, 401);
 
-    // All data operations from here use service role — this is the entire
-    // write boundary for blockchain_coas / coa_ownership_history now that RLS
-    // grants authenticated no insert access to either table.
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
+    // All data operations from here use the module-scope service-role client
+    // above — this is the entire write boundary for blockchain_coas /
+    // coa_ownership_history now that RLS grants authenticated no insert
+    // access to either table.
     const { data: flags } = await supabase
       .from("feature_flags")
       .select("minting_enabled")
@@ -95,33 +136,46 @@ serve(async (req) => {
     // environment where minting_enabled got flipped true before the secrets
     // were actually configured), fail with a clear error here instead of
     // letting ethers throw an opaque one three steps down in the chain call.
-    if (!POLYGON_RPC_URL || !POLYGON_PRIVATE_KEY || !POLYGON_CONTRACT_ADDRESS) {
+    if (!contract) {
       console.error("mint-coa: minting_enabled is true but Polygon secrets are not fully configured");
       return json({ error: "Minting isn't available yet." }, 403);
     }
 
-    // Per-artist mint throttle, checked against blockchain_coas directly -
-    // no new table needed, artist_id/created_at already exist there. 20/24h
-    // is well above any real usage seen so far (busiest artist: 4 mints over
-    // ~33h; busiest artwork-upload burst: 3 uploads in ~66s, so a real batch-
-    // minting session after a show is still comfortably covered) while
-    // bounding how much gas a compromised account can burn from the platform
-    // wallet before this kicks in - checked before the ownership lookup or
-    // any chain call, so a blocked attempt costs nothing.
+    // Per-artist mint throttle: 20/24h is well above any real usage seen so
+    // far (busiest artist: 4 mints over ~33h; busiest artwork-upload burst:
+    // 3 uploads in ~66s, so a real batch-minting session after a show is
+    // still comfortably covered) while bounding how much gas a compromised
+    // account can burn from the platform wallet before this kicks in.
+    //
+    // reserve_mint_slot() does the count-and-reserve atomically in one
+    // Postgres function (advisory lock + count + insert, all one
+    // transaction) - see supabase/mint_rate_limit_atomic_2026-09-12.sql. The
+    // old version here was a plain COUNT query followed, several seconds
+    // later (after a full on-chain confirmation), by the INSERT that
+    // actually counted toward it - no lock spanned that gap, so concurrent/
+    // staggered calls could all read the same stale count and all pass,
+    // confirmed live in the 2026-09-11 staging pentest. Checked before the
+    // ownership lookup or any chain call, so a blocked attempt costs
+    // nothing, same as before.
     const RATE_LIMIT_WINDOW_HOURS = 24;
     const RATE_LIMIT_MAX_MINTS = 20;
-    const windowStart = new Date(Date.now() - RATE_LIMIT_WINDOW_HOURS * 60 * 60 * 1000).toISOString();
-    const { count: recentMintCount } = await supabase
-      .from("blockchain_coas")
-      .select("id", { count: "exact", head: true })
-      .eq("artist_id", user.id)
-      .gte("created_at", windowStart);
+    const { data: reservedId, error: reserveError } = await supabase.rpc("reserve_mint_slot", {
+      p_artist_id: user.id,
+      p_window_hours: RATE_LIMIT_WINDOW_HOURS,
+      p_max_mints: RATE_LIMIT_MAX_MINTS,
+    });
 
-    if ((recentMintCount ?? 0) >= RATE_LIMIT_MAX_MINTS) {
+    if (reserveError) {
+      console.error("reserve_mint_slot error:", reserveError);
+      return json({ error: "Could not process mint request. Please try again." }, 500);
+    }
+
+    if (!reservedId) {
       return json({
         error: `You've reached the limit of ${RATE_LIMIT_MAX_MINTS} certificates minted per ${RATE_LIMIT_WINDOW_HOURS} hours. Please try again later.`,
       }, 429);
     }
+    reservationId = reservedId;
 
     // Ownership check is baked into the query itself, not a separate branch:
     // this can only ever return a row if the artwork belongs to the caller.
@@ -133,6 +187,7 @@ serve(async (req) => {
       .single();
 
     if (artworkError || !artwork) {
+      await resolveReservation("failed");
       // Deliberately generic — doesn't reveal whether the artwork exists
       // under a different artist.
       return json({ error: "Artwork not found" }, 404);
@@ -158,17 +213,21 @@ serve(async (req) => {
     let tokenId: string;
     let txHash: string;
     try {
-      const provider = new ethers.JsonRpcProvider(POLYGON_RPC_URL, POLYGON_CHAIN_ID);
-      const wallet = new ethers.Wallet(POLYGON_PRIVATE_KEY, provider);
-      const contract = new ethers.Contract(POLYGON_CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
-
-      const tx = await contract.mintCoa(metadataURI);
+      // contract is the module-scope, NonceManager-wrapped instance built at
+      // isolate boot (see top of file) - not a fresh wallet/provider/contract
+      // per request. That's what actually fixes the nonce-collision 502s:
+      // a fresh NonceManager per request would still re-query the chain's
+      // "pending" nonce independently on every concurrent call and could
+      // read the same starting nonce as a sibling request. A single shared
+      // instance keeps a running counter instead, so concurrent calls
+      // landing on the same isolate get sequential nonces.
+      const tx = await contract!.mintCoa(metadataURI);
       const receipt = await tx.wait(1);
 
       const transferLog = receipt.logs
         .map((log: unknown) => {
           try {
-            return contract.interface.parseLog(log as { topics: string[]; data: string });
+            return contract!.interface.parseLog(log as { topics: string[]; data: string });
           } catch {
             return null;
           }
@@ -183,6 +242,7 @@ serve(async (req) => {
       txHash = tx.hash;
     } catch (chainErr) {
       console.error("On-chain mint failed:", chainErr.message);
+      await resolveReservation("failed");
       return json({ error: "Could not mint certificate on-chain. Please try again." }, 502);
     }
 
@@ -207,12 +267,18 @@ serve(async (req) => {
       .single();
 
     if (coaError) {
+      await resolveReservation("failed");
       if (coaError.code === "23505") {
         return json({ error: "A certificate has already been minted for this artwork." }, 409);
       }
       console.error("blockchain_coas insert error:", coaError);
       return json({ error: "Could not mint certificate" }, 500);
     }
+
+    // A real CoA now exists - this reservation is a genuine, permanent
+    // consumption of this artist's rate-limit slot regardless of what
+    // happens in the ownership-history/C2PA/notify steps below.
+    await resolveReservation("completed");
 
     const { data: historyRow, error: historyError } = await supabase
       .from("coa_ownership_history")
@@ -323,6 +389,7 @@ serve(async (req) => {
     });
   } catch (err) {
     console.error("Unhandled error:", err.message);
+    await resolveReservation("failed");
     return json({ error: "Something went wrong. Please try again." }, 500);
   }
 });

@@ -966,13 +966,14 @@
       // registered) - it returns a fake success with an empty identities
       // array instead, and sends no actual email. That's the only
       // client-visible signal to tell a real new signup apart from "this
-      // account already exists." This check used to live in collector.html's
-      // own signup form (commit 8870eda) and got lost when auth unified onto
-      // this one - restoring it here instead of just for collectors.
-      if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-        authMsg('authSignUpMsg', 'An account with this email already exists. Please sign in instead.', true);
-        return;
-      }
+      // account already exists." A prior version of this code surfaced that
+      // distinction directly ("An account with this email already exists"),
+      // which defeated Supabase's own anti-enumeration design - confirmed
+      // exploitable in the 2026-09-11 staging pentest. Fixed 2026-09-12: no
+      // branch here reads the identities array anymore, so both cases fall
+      // through to the exact same message below - mirrors
+      // requestPasswordReset() below, which already shows one identical
+      // message for a real and a nonexistent email alike.
 
       // Collector role deliberately does NOT write to collector_accounts
       // here - no confirmed session exists yet to check the row against,
@@ -989,7 +990,7 @@
       // pre-filled as a fallback for "Sign In Instead" below, in case they
       // want to sign in on a different device than the one they're on now.
       document.getElementById('authCheckEmailText').textContent =
-        "We've sent a confirmation link to " + email + ". Click it and you'll be signed in automatically.";
+        "If " + email + " isn't already registered, we've sent a confirmation link to it - click it and you'll be signed in automatically. Already have an account? Just sign in instead.";
       document.getElementById('authEmail').value = email;
       showAuthTab('checkemail');
     } catch (err) {

@@ -17,6 +17,23 @@ const CONTRACT_ABI = [
   "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
 ];
 
+// Built once per warm isolate, not per-request, and wrapped in ethers'
+// NonceManager so nonce assignment is tracked in memory across requests
+// instead of each request re-querying the chain's "pending" nonce fresh -
+// same fix, same reasoning, as mint-coa's identical change (see that file):
+// this wallet is shared between mint-coa and finalize-transfer, and a fresh
+// per-request NonceManager would still let concurrent calls on this isolate
+// read the same starting nonce and collide. Guarded the same way the
+// request-time check below always was: if secrets aren't configured, this
+// stays null and every request gets the same clear 403 instead of a
+// module-load crash.
+let contract: InstanceType<typeof ethers.Contract> | null = null;
+if (POLYGON_RPC_URL && POLYGON_PRIVATE_KEY && POLYGON_CONTRACT_ADDRESS) {
+  const provider = new ethers.JsonRpcProvider(POLYGON_RPC_URL, POLYGON_CHAIN_ID);
+  const wallet = new ethers.NonceManager(new ethers.Wallet(POLYGON_PRIVATE_KEY, provider));
+  contract = new ethers.Contract(POLYGON_CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -50,7 +67,7 @@ serve(async (req) => {
     // they're not configured - a clear error here instead of an opaque one
     // from ethers three steps down, and before the pending-transfer claim
     // below does anything.
-    if (!POLYGON_RPC_URL || !POLYGON_PRIVATE_KEY || !POLYGON_CONTRACT_ADDRESS) {
+    if (!contract) {
       console.error("finalize-transfer: Polygon secrets are not fully configured");
       return json({ error: "Transfers aren't available yet." }, 403);
     }
@@ -139,14 +156,15 @@ serve(async (req) => {
       // custody the whole time (see contracts/TracCoa.sol).
       let txHash: string;
       try {
-        const provider = new ethers.JsonRpcProvider(POLYGON_RPC_URL, POLYGON_CHAIN_ID);
-        const wallet = new ethers.Wallet(POLYGON_PRIVATE_KEY, provider);
-        const contract = new ethers.Contract(POLYGON_CONTRACT_ADDRESS, CONTRACT_ABI, wallet);
-
+        // contract is the module-scope, NonceManager-wrapped instance built
+        // at isolate boot (see top of file), shared with mint-coa's identical
+        // fix - not a fresh wallet/provider/contract per request, which
+        // would still let concurrent calls read the same starting nonce.
+        //
         // Same name-with-fallback as owner_name below - this note is
         // permanent and append-only once written on-chain, so it should
         // never embed the raw email in the first place.
-        const tx = await contract.recordTransfer(coa.token_id, `Transferred to ${collectorAccount.display_name || "Pending Collector"}`);
+        const tx = await contract!.recordTransfer(coa.token_id, `Transferred to ${collectorAccount.display_name || "Pending Collector"}`);
         await tx.wait(1);
         txHash = tx.hash;
       } catch (chainErr) {
