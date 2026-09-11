@@ -674,6 +674,11 @@
                         .portfolio-header .header-right { display: flex; gap: 2rem; align-items: center; }
                         .artist-name { font-size: 1.5rem; font-weight: 500; color: var(--text-color, #000000); }
                         .portfolio-nav { display: flex; gap: 2rem; }
+                        /* Mobile-only sticky name bar (generateHeaderHTML) - hidden
+                           here on desktop, shown + made sticky under the mobile
+                           media query below. Desktop keeps the existing full
+                           .portfolio-header sticky behavior untouched. */
+                        .portfolio-mobile-name-bar { display: none; }
 
                         /* Mobile navigation. Single source of truth for
                            .portfolio-nav .nav-item mobile sizing - two other
@@ -3820,6 +3825,47 @@
                             justify-content: center;
                             align-items: center;
                             gap: 0.75rem;
+                          }
+
+                          /* Mobile sticky-header fix, part 2 - user feedback on
+                             the first pass: a full sticky header (name + tabs +
+                             icon row) covers too much of a small screen. Only
+                             the name should stay pinned; tabs/icons scroll away
+                             with the page. :not([style*="position: fixed"])
+                             excludes the 'floating' layout, which is already an
+                             intentionally always-fixed compact pill on both
+                             desktop and mobile - this change is not about it. */
+                          #portfolioPage .portfolio-header:not([style*="position: fixed"]) {
+                            position: static !important;
+                          }
+
+                          /* The real sticky element now: a small persistent bar
+                             (generateHeaderHTML prepends it before the header,
+                             every layout except floating) showing just the name.
+                             Compact and its own solid background so the header's
+                             now-non-sticky content can scroll underneath it
+                             cleanly instead of showing through. */
+                          #portfolioPage .portfolio-mobile-name-bar {
+                            display: block;
+                            position: sticky;
+                            top: 0;
+                            z-index: 100;
+                            background: var(--bg-color, white);
+                            border-bottom: 1px solid var(--border-color, #e5e5e5);
+                            padding: 0.65rem 1rem;
+                            text-align: center;
+                            font-size: 1.05rem;
+                            font-weight: 500;
+                            color: var(--text-color, #000000);
+                          }
+
+                          /* The name still renders inside .portfolio-header itself
+                             (every layout's own template includes it) - hidden here
+                             so it doesn't appear twice now that the bar above shows
+                             it persistently. Floating excluded for the same reason
+                             as above: its own header (name included) is untouched. */
+                          #portfolioPage .portfolio-header:not([style*="position: fixed"]) .artist-name {
+                            display: none !important;
                           }
 
                           .artist-name {
@@ -10097,9 +10143,29 @@
                                 </button>
                             ` : '';
 
+                            // Mobile sticky-header fix, part 2: the first pass made the
+                            // *entire* .portfolio-header sticky on mobile (matching
+                            // desktop), but that covers too much of the screen on a
+                            // small viewport - user feedback was that the tabs/icon
+                            // row need to scroll away normally, only the name should
+                            // stay pinned. Rather than trying to carve a "sticky top
+                            // slice" out of one shared header block per layout (five
+                            // different DOM shapes, see below), this small bar is a
+                            // separate element every layout gets for free: sticky and
+                            // visible only on mobile (CSS below), hidden entirely on
+                            // desktop where the existing full-header sticky behavior
+                            // is untouched. The 'floating' layout is deliberately
+                            // excluded - it's already a compact, always-fixed pill
+                            // (inline position:fixed) on both desktop and mobile, not
+                            // something this mobile-only behavior change should touch.
+                            const mobileNameBarHTML = headerLayout !== 'floating'
+                                ? `<div class="portfolio-mobile-name-bar">${artistName}</div>`
+                                : '';
+
+                            let headerHTML;
                             switch(headerLayout) {
                                 case 'floating':
-                                    return `
+                                    headerHTML = `
                                         <header class="portfolio-header" style="position: fixed; top: 2rem; left: 50%; transform: translateX(-50%); background: var(--bg-color, rgba(255,255,255,0.9)); backdrop-filter: blur(10px); border: 1px solid var(--border-color, #e5e5e5); border-radius: 12px; padding: 1rem 2rem; z-index: 1000; width: auto;">
                                             <div class="header-container" style="max-width: none; gap: 3rem;">
                                                 <div class="header-left">
@@ -10115,9 +10181,10 @@
                                         </header>
                                         <div style="height: 120px;"></div>
                                     `;
+                                    break;
 
                                 case 'split':
-                                    return `
+                                    headerHTML = `
                                         <header class="portfolio-header">
                                             <div class="header-container" style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;">
                                                 <div class="header-left" style="justify-self: start;">
@@ -10134,9 +10201,10 @@
                                             </div>
                                         </header>
                                     `;
+                                    break;
 
                                 case 'minimal':
-                                    return `
+                                    headerHTML = `
                                         <header class="portfolio-header" style="border: none; padding: 2rem 0 1rem;">
                                             <div class="header-container" style="text-align: center;">
                                                 <div class="artist-name" style="font-size: 2.5rem; font-weight: 300; letter-spacing: -0.02em; margin-bottom: 1rem;">${artistName}</div>
@@ -10157,9 +10225,10 @@
                                             </div>
                                         </header>
                                     `;
+                                    break;
 
                                 case 'expressive':
-                                    return `
+                                    headerHTML = `
                                         <header class="portfolio-header" style="background: var(--accent-color, #000); color: white; padding: 4rem 0;">
                                             <div class="header-container" style="text-align: center;">
                                                 <div class="artist-name" style="font-size: 4rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1rem;">${artistName}</div>
@@ -10171,10 +10240,11 @@
                                             </div>
                                         </header>
                                     `;
+                                    break;
 
                                 case 'left-aligned':
                                 default:
-                                    return `
+                                    headerHTML = `
                                         <header class="portfolio-header">
                                             <div class="header-container">
                                                 <div class="header-left">
@@ -10189,7 +10259,9 @@
                                             </div>
                                         </header>
                                     `;
+                                    break;
                             }
+                            return mobileNameBarHTML + headerHTML;
                         }
 
                         function updateHeaderOnly(headerLayout, profileData, isOwner = true) {
@@ -10203,8 +10275,12 @@
                                 return;
                             }
 
-                            // Remove ALL existing headers and spacers
-                            const oldHeaders = portfolioPage.querySelectorAll('.portfolio-header, header');
+                            // Remove ALL existing headers, the mobile name bar
+                            // (generateHeaderHTML prepends a fresh one to
+                            // newHeaderHTML below - not removing the old one here
+                            // would leave a duplicate behind on every style switch),
+                            // and spacers
+                            const oldHeaders = portfolioPage.querySelectorAll('.portfolio-header, header, .portfolio-mobile-name-bar');
                             oldHeaders.forEach(header => header.remove());
 
                             const spacers = portfolioPage.querySelectorAll('[style*="height: 120px"], [style*="height: 80px"]');
