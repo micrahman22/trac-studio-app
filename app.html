@@ -3094,6 +3094,7 @@
 
                         .style-name-input {
                             flex: 1;
+                            min-width: 0;
                             padding: 0.5rem;
                             border: 1px solid #e5e5e5;
                             border-radius: 6px;
@@ -3767,7 +3768,19 @@
                           }
 
                           /* 2. PORTFOLIO HEADER STACKING */
-                          .portfolio-header .header-container {
+                          /* The "split" header layout sets `display: grid` inline
+                             (grid-template-columns: 1fr auto 1fr), which this rule's
+                             flex-direction never touched - grid ignores it. That inline
+                             `display: grid` also happens to match the unrelated, far
+                             more specific #portfolioPage [style*="display: grid"] mobile
+                             rule below (real target: collection grids), which flattened
+                             it to `display: block` instead - not a column stack, just an
+                             unstyled block, which is what actually produced the "sign
+                             out spacing is weird" / squeezed 3-column header on mobile.
+                             `#portfolioPage` prefix here matches that rule's specificity
+                             (1 ID) so this one wins instead. */
+                          #portfolioPage .portfolio-header .header-container {
+                            display: flex !important;
                             flex-direction: column;
                             gap: 1.5rem;
                             padding: 1rem;
@@ -3817,11 +3830,34 @@
                           }
 
                           /* 6. HIDE COMPLEX EDITING TOOLS ON MOBILE */
-                          .style-editor-panel,
-                          button[onclick*="toggleStyleEditor"],
-                          .icon-button[title*="Customize Portfolio"],
+                          /* The Style Editor (.style-editor-panel + its "Customize
+                             Portfolio" trigger button) used to be force-hidden here too -
+                             not broken, a deliberate past call to keep it off mobile.
+                             Un-hidden now: the panel's own CSS (a 320px fixed-width
+                             right-docked box) already fits inside a 375px viewport with
+                             room to spare, confirmed by testing every tab live at mobile
+                             width - this was a reachability bug (nothing to open it with),
+                             not a rendering one. #wipStudioModal stays hidden; it wasn't
+                             part of this fix. */
                           #wipStudioModal {
                             display: none !important;
+                          }
+
+                          /* 6b. STYLE BROWSER MODAL SPACING */
+                          /* #styleBrowserGrid's minmax(280px, 1fr) floor needed more
+                             width than a 90%-of-375px modal (minus its 2rem padding)
+                             could ever give it, so the grid overflowed its own
+                             container and the modal scrolled horizontally. Single
+                             column removes the floor; the wider/shallower padding
+                             gives the cards room to breathe instead of edge-to-edge. */
+                          #styleBrowserModalInner {
+                            width: 94% !important;
+                            padding: 1.25rem !important;
+                          }
+
+                          #styleBrowserGrid {
+                            grid-template-columns: 1fr !important;
+                            gap: 1rem !important;
                           }
 
                           /* 7. SIMPLIFY BUT KEEP BASIC EDITING */
@@ -4278,8 +4314,17 @@
                         }
 
                         @media (max-width: 768px) {
+                          /* display intentionally left unset here -- #advancedToolsGrid
+                             (the only element this and the rules below actually target,
+                             see body > main > section:last-child) is force-hidden via JS
+                             (advancedToolsGrid.style.display = 'none', see the "Advanced
+                             Tools / Opportunity Alerts" comment near TRAC_ENV setup).
+                             A `display: grid !important` here used to beat that inline
+                             hide on mobile only, leaking the "Advanced Tools - Launching
+                             Soon" card through on small screens while it stayed correctly
+                             hidden on desktop. grid-template-columns/gap kept as-is for
+                             if this section is ever unhidden again. */
                           .dashboard-grid-2x2 {
-                            display: grid !important;
                             grid-template-columns: 1fr !important;
                             gap: 1rem !important;
                           }
@@ -5384,7 +5429,7 @@
 
                     <!-- STYLE BROWSER MODAL -->
                     <div id="styleBrowserModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10000; align-items: center; justify-content: center;">
-                        <div style="background: white; padding: 2rem; border-radius: 12px; max-width: 1000px; width: 90%; max-height: 80vh; overflow-y: auto;">
+                        <div id="styleBrowserModalInner" style="background: white; padding: 2rem; border-radius: 12px; max-width: 1000px; width: 90%; max-height: 80vh; overflow-y: auto;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                                 <h3 style="margin: 0;">Browse Portfolio Styles</h3>
                                 <button onclick="hideStyleBrowser()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666;">×</button>
