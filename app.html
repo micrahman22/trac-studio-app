@@ -4305,12 +4305,26 @@
 
                           /* FORCE NO HORIZONTAL OVERFLOW ON BODY */
                           body, html {
-                            overflow-x: hidden !important;
+                            /* clip, not hidden: both prevent the horizontal
+                               scrollbar/drift this rule exists for, but hidden
+                               (any value but visible, actually) makes body a
+                               scroll container - and per spec, setting only
+                               overflow-x forces the other axis to compute as
+                               auto instead of visible, not just stay visible.
+                               That combination broke position:sticky for every
+                               .portfolio-header on mobile (confirmed live: it
+                               scrolled away instead of sticking) since sticky
+                               elements stick relative to their nearest
+                               scrolling ancestor, and body/html becoming one
+                               changes that ancestor out from under it. clip
+                               achieves the same visual clipping without ever
+                               establishing a scroll container. */
+                            overflow-x: clip !important;
                             max-width: 100vw !important;
-                            /* overflow-x:hidden makes body its own scroll
-                               container - without this, the browser's scroll
-                               anchoring heuristic drifts body.scrollLeft to
-                               compensate as the belt's images load in and
+                            /* overflow-x:hidden (now clip) makes body its own
+                               scroll container - without this, the browser's
+                               scroll anchoring heuristic drifts body.scrollLeft
+                               to compensate as the belt's images load in and
                                shift layout, even though nothing here ever
                                calls scrollTo/scrollIntoView. */
                             overflow-anchor: none !important;
