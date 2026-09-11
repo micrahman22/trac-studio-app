@@ -1,0 +1,36 @@
+# Excludes these paths from the Netlify deploy bundle entirely (same
+# .gitignore-style syntax, applied before the publish directory is
+# selected - works regardless of whether one is set, and this repo
+# doesn't set one: everything at the repo root gets published as-is,
+# since there's no build step (see CLAUDE.md)). Without this file,
+# Netlify deploys the *whole* repo, which meant every one of these was
+# directly fetchable with real content at
+# https://trac-studio-staging.netlify.app/<path> - confirmed live
+# during a 2026-09-11 pentest: the complete DB schema + every RLS
+# policy (schema.sql, supabase/*.sql), Edge Function source including
+# mint-coa's exact validation/rate-limit logic (supabase/functions/),
+# this project's own internal docs and security-incident history
+# (CLAUDE.md, replit.md), the product proposal, the smart contract
+# source, and the separate C2PA service's source.
+#
+# The app itself only ever references (verified via a grep of every
+# src=/href= in index.html/app.html/collector.html): the three HTML
+# files, supabase-config.js, legal-content.js, fonts/*.woff2, and
+# assets/hero-gallery.jpg - everything below is unreferenced by the
+# live app, on top of being sensitive/internal.
+*.sql
+*.md
+server.py
+.replit
+/supabase/
+/docs/
+/contracts/
+/c2pa-signing-service/
+/attached_assets/
+
+# Already 404s today (this directory is gitignored, so it was never
+# actually in a deploy in the first place - real secret *values* were
+# never exposed). Listed anyway so that stays true explicitly, not by
+# accident of it happening to be gitignored - if that ever changes,
+# this still holds.
+/.local-secrets/
