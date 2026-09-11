@@ -1,3 +1,15 @@
+# Explicit pass-through for crawler-facing static files. Netlify is
+# documented to serve a real file over a matching redirect rule
+# automatically, but the /:username wildcard below is a literal path
+# pattern that could otherwise match "robots.txt"/"sitemap.xml" as a
+# username -- these explicit, more-specific rules are placed first so
+# there is no ambiguity: the real static file always wins the redirect
+# evaluation itself, not just the file-vs-redirect fallback. (No
+# sitemap.xml exists in this repo yet; the rule is a no-op reservation
+# for if/when one is added, not a claim one exists today.)
+/robots.txt   /robots.txt   200
+/sitemap.xml  /sitemap.xml  200
+
 # Preserve pretty-URL access to the real app and collector app.
 # Placed before the username wildcard below so it always wins.
 /app        /app.html         200

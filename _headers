@@ -1,0 +1,8 @@
+# X-Robots-Tag: noai/noimageai are unofficial directives some AI crawlers
+# honor to opt out of using page text/images for model training. They do
+# NOT affect search indexing (unlike noindex/nofollow, which are
+# deliberately not set here) -- Googlebot, Bingbot, and social-preview
+# bots (facebookexternalhit, Twitterbot, LinkedInBot, etc.) parse and
+# safely ignore directives they don't recognize.
+/*
+  X-Robots-Tag: noai, noimageai

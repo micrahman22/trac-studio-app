@@ -1,0 +1,82 @@
+# TRAC Studio robots.txt
+#
+# Search-engine and social-preview crawlers (Googlebot, Bingbot, DuckDuckBot,
+# facebookexternalhit, Twitterbot, LinkedInBot, Slackbot, Discordbot,
+# WhatsApp, TelegramBot, etc.) are intentionally left untouched by the
+# catch-all `User-agent: * / Allow: /` at the bottom -- they are never named
+# below, so none of the Disallow rules apply to them. Only crawlers whose
+# stated purpose is scraping content for generative-AI training or
+# AI-assisted browsing/retrieval are disallowed by name.
+#
+# Note: robots.txt is an advisory convention -- disallowed bots are not
+# technically blocked, only asked not to crawl. Well-behaved AI crawlers
+# honor it; it is not a security control.
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+User-agent: Meta-ExternalAgent
+Disallow: /
+
+User-agent: Meta-ExternalFetcher
+Disallow: /
+
+User-agent: Diffbot
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Perplexity-User
+Disallow: /
+
+User-agent: cohere-ai
+Disallow: /
+
+User-agent: cohere-training-data-crawler
+Disallow: /
+
+User-agent: Timpibot
+Disallow: /
+
+User-agent: Omgilibot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: ImagesiftBot
+Disallow: /
+
+User-agent: *
+Allow: /
