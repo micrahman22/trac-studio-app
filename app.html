@@ -675,16 +675,26 @@
                         .artist-name { font-size: 1.5rem; font-weight: 500; color: var(--text-color, #000000); }
                         .portfolio-nav { display: flex; gap: 2rem; }
 
-                        /* Mobile navigation */
+                        /* Mobile navigation. Single source of truth for
+                           .portfolio-nav .nav-item mobile sizing - two other
+                           declarations used to exist (a "touch targets" block
+                           at 44px/0.75rem padding, and an "extra small phones"
+                           block below 480px that added flex:1 + min-width:120px,
+                           forcing each tab to stretch/wrap into a bulky stack).
+                           Both removed; this is the only one now. */
                         @media (max-width: 768px) {
                             .portfolio-nav {
-                                gap: 1rem;
+                                gap: 0.75rem;
                                 flex-wrap: wrap;
                                 justify-content: center;
                             }
                             .portfolio-nav .nav-item {
                                 font-size: 0.8rem;
-                                padding: 0.5rem 1rem;
+                                padding: 0.5rem 0.9rem;
+                                min-height: 40px;
+                                min-width: 0;
+                                display: flex;
+                                align-items: center;
                                 background: #f5f5f5;
                                 border-radius: 6px;
                             }
@@ -3786,8 +3796,7 @@
                             padding: 1rem;
                           }
 
-                          .portfolio-header .header-left,
-                          .portfolio-header .header-right {
+                          .portfolio-header .header-left {
                             width: 100%;
                             flex-direction: column;
                             align-items: center;
@@ -3795,27 +3804,34 @@
                             gap: 1rem;
                           }
 
+                          /* header-right holds the owner-only icon toolbar
+                             (Browse Portfolio Styles / Customize Portfolio /
+                             Sign Out) on every header layout variant - matching
+                             its desktop treatment (a horizontal row, see
+                             .portfolio-header .header-right's base rule above)
+                             instead of inheriting header-left's column stack,
+                             which put all 3 icons in their own row each with a
+                             full 1rem gap between - it read as three unrelated
+                             floating buttons, not one toolbar. */
+                          #portfolioPage .portfolio-header .header-right {
+                            width: 100%;
+                            flex-direction: row;
+                            flex-wrap: wrap;
+                            justify-content: center;
+                            align-items: center;
+                            gap: 0.75rem;
+                          }
+
                           .artist-name {
                             font-size: 1.5rem;
                             text-align: center;
                           }
 
-                          /* 3. PORTFOLIO NAV - TOUCH TARGETS */
-                          .portfolio-nav {
-                            flex-wrap: wrap;
-                            gap: 0.75rem;
-                            justify-content: center;
-                          }
-
-                          .portfolio-nav .nav-item {
-                            padding: 0.75rem 1.25rem;
-                            font-size: 0.9rem;
-                            min-height: 44px;
-                            display: flex;
-                            align-items: center;
-                            background: #f5f5f5;
-                            border-radius: 8px;
-                          }
+                          /* 3. (moved) .portfolio-nav / .nav-item mobile sizing
+                             consolidated into the single "Mobile navigation"
+                             rule near the desktop .portfolio-nav declaration -
+                             this duplicate copy (larger 44px/0.75rem padding,
+                             conflicting with that rule) removed. */
 
                           /* 4. FORM GRID STACKING */
                           .form-grid {
@@ -4009,13 +4025,11 @@
 
                         /* Extra small phones */
                         @media (max-width: 480px) {
-                          .portfolio-nav .nav-item {
-                            padding: 0.875rem 1rem;
-                            font-size: 0.85rem;
-                            flex: 1;
-                            min-width: 120px;
-                            justify-content: center;
-                          }
+                          /* .portfolio-nav .nav-item override removed - it forced
+                             flex:1 + min-width:120px, stretching/wrapping the tabs
+                             into a bulky stack at exactly this width. The single
+                             rule near the desktop .portfolio-nav declaration now
+                             covers all mobile widths, this one included. */
 
                           /* Single column artworks */
                           .artworks-grid {
@@ -4465,11 +4479,16 @@
                             box-sizing: border-box !important;
                           }
 
-                          /* Style Browser Button */
-                          button[onclick*="showStyleBrowser"] {
-                            width: 100% !important;
-                            margin: 1rem 0 !important;
-                          }
+                          /* "Style Browser Button" rule removed - unscoped
+                             (button[onclick*="showStyleBrowser"], no
+                             #settings-section prefix like every sibling rule
+                             in this block has), and the only button with that
+                             onclick anywhere in the app is the portfolio
+                             header's icon-only toolbar button, not a
+                             settings-page one. Forced that icon button to
+                             100% width, which is what made it stretch full-
+                             width while its two sibling icons stayed 44px -
+                             not a shared-container issue, this one rule. */
                         }
 
                         /* DESKTOP RESTORATION */
