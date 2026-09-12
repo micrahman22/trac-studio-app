@@ -25,8 +25,109 @@
                          Field Notes, Vitrine, Broadsheet, etc.) - layered on top of Space
                          Grotesk, never replacing it as the app's own base font. No webfont
                          infra existed before this; this is the first Google Fonts load in
-                         the file. -->
-                    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Fraunces:ital,wght@0,400;1,400;1,500&family=Caveat:wght@500;600&family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Newsreader:ital,wght@0,400;1,400&display=swap">
+                         the file.
+
+                         This used to be a single unconditional <link rel="stylesheet">
+                         right here, loading all 5 families/11 variants on every app.html
+                         load - dashboard and every portfolio alike, regardless of which
+                         layout (if any) actually used one. Confirmed live (2026-09-12
+                         load-time investigation) that most existing portfolios don't need
+                         most of these: e.g. TRAC Classic needs none of them, and only
+                         gallery-wall/field-notes/vitrine/broadsheet/scroll need anything
+                         beyond IBM Plex Mono. No preconnect existed either, so the cost
+                         was a full serial DNS+TLS handshake to fonts.googleapis.com, then
+                         a second one to fonts.gstatic.com, before any font file started.
+
+                         Fixed by moving this to a conditional, dynamic load -
+                         ensurePortfolioAccentFonts() below, called as soon as profileData
+                         is available in both branches of loadPortfolio() (public-view and
+                         owner-view), and again on every live layout switch inside the
+                         Style Editor - that only injects preconnect + the stylesheet
+                         link, and only for the specific families actually needed by this
+                         profile's layout and/or custom font choices, the first time a
+                         page load actually needs one. A load that needs none of the 5
+                         families now makes zero requests to either Google Fonts origin. -->
+                    <script>
+                        // Family -> its exact Google Fonts variant string, matching what
+                        // the old single combined request asked for - kept per-family so
+                        // requesting a subset never under-asks a weight/style a layout
+                        // actually renders in.
+                        const ACCENT_FONT_VARIANTS = {
+                            'IBM Plex Mono': 'IBM+Plex+Mono:wght@400;500',
+                            'Fraunces': 'Fraunces:ital,wght@0,400;1,400;1,500',
+                            'Caveat': 'Caveat:wght@500;600',
+                            'Cormorant Garamond': 'Cormorant+Garamond:ital,wght@0,400;1,400',
+                            'Newsreader': 'Newsreader:ital,wght@0,400;1,400',
+                        };
+                        // Which families each portfolio_layout's own CSS hardcodes,
+                        // independent of the artist's header/body/footer font choice -
+                        // extracted directly from every font-family rule inside each
+                        // .portfolio-layout.<name> block (grep-verified, not guessed).
+                        // Layouts not listed here (grid-classic, card-modern, magazine,
+                        // portfolio-focused, and every other layout not in this list)
+                        // never hardcode any of these 5 fonts in their own CSS.
+                        const LAYOUT_ACCENT_FONTS = {
+                            'grid-masonry': ['IBM Plex Mono'],
+                            'stacked-minimal': ['IBM Plex Mono'],
+                            'guerrilla-grid': ['IBM Plex Mono'],
+                            'gallery-spaced': ['IBM Plex Mono'],
+                            'vibrant-mosaic': ['IBM Plex Mono'],
+                            'quilt-narrative': ['IBM Plex Mono'],
+                            'archival-dossier': ['IBM Plex Mono'],
+                            'ledger': ['IBM Plex Mono'],
+                            'gallery-wall': ['IBM Plex Mono', 'Fraunces'],
+                            'studio-catalog': ['IBM Plex Mono'],
+                            'field-notes': ['IBM Plex Mono', 'Caveat'],
+                            'vitrine': ['IBM Plex Mono', 'Cormorant Garamond'],
+                            'broadsheet': ['IBM Plex Mono', 'Newsreader'],
+                            'contact-sheet': ['IBM Plex Mono'],
+                            'scroll': ['IBM Plex Mono', 'Newsreader'],
+                        };
+                        let accentFontsInjectedFor = null;
+                        // Called as soon as a profile row is available for the portfolio
+                        // about to render (both the public-view and owner-view branches
+                        // of loadPortfolio()) - before artworks/collections/events even
+                        // finish fetching, so this starts as early as possible and only
+                        // when something on the page will actually use one of these fonts.
+                        function ensurePortfolioAccentFonts(profileData) {
+                            if (!profileData) return;
+                            const needed = new Set(LAYOUT_ACCENT_FONTS[profileData.portfolio_layout] || []);
+                            // An artist can independently pick any of these 5 as their own
+                            // header/body/footer font via the Style Editor, on ANY layout -
+                            // that choice is stored on the profile row, not derived from
+                            // the layout's own CSS, so it has to be checked separately.
+                            ['header_font_family', 'body_font_family', 'footer_font_family', 'portfolio_font_family'].forEach(field => {
+                                const chosen = profileData[field];
+                                if (chosen && ACCENT_FONT_VARIANTS[chosen]) needed.add(chosen);
+                            });
+                            if (needed.size === 0) return;
+
+                            const key = Array.from(needed).sort().join(',');
+                            if (accentFontsInjectedFor === key) return; // already loaded this exact set
+                            accentFontsInjectedFor = key;
+
+                            if (!document.getElementById('accentFontPreconnect1')) {
+                                const pre1 = document.createElement('link');
+                                pre1.id = 'accentFontPreconnect1';
+                                pre1.rel = 'preconnect';
+                                pre1.href = 'https://fonts.googleapis.com';
+                                document.head.appendChild(pre1);
+
+                                const pre2 = document.createElement('link');
+                                pre2.id = 'accentFontPreconnect2';
+                                pre2.rel = 'preconnect';
+                                pre2.href = 'https://fonts.gstatic.com';
+                                pre2.crossOrigin = 'anonymous';
+                                document.head.appendChild(pre2);
+                            }
+
+                            const families = Array.from(needed).map(f => ACCENT_FONT_VARIANTS[f]).join('&family=');
+                            const link = document.createElement('link');
+                            link.rel = 'stylesheet';
+                            link.href = `https://fonts.googleapis.com/css2?family=${families}&display=swap`;
+                            document.head.appendChild(link);
+                        }
+                    </script>
                     <style>
                         @font-face {
                             font-family: 'Space Grotesk';
@@ -9709,6 +9810,7 @@
 
                                     profile = profileData;
                                     targetUserId = profile.id;
+                                    ensurePortfolioAccentFonts(profile);
 
                                     // Load public artworks
                                     const { data: artworksData, error: artworksError } = await supabaseClient
@@ -9761,6 +9863,7 @@
                                     if (profileData) await attachOwnContactInfo(profileData);
 
                                     profile = profileData;
+                                    ensurePortfolioAccentFonts(profile);
 
                                     const { data: artworksData, error: artworksError } = await supabaseClient
                                         .from('artworks')
@@ -14617,6 +14720,7 @@
                                         updateHeaderOnly(styleData.header_layout, currentProfile);
                                         updateFooterOnly(styleData.footer_style, currentProfile);
                                         updateGridLayoutOnly(styleData.portfolio_layout);
+                                        ensurePortfolioAccentFonts(currentProfile);
                                         updateImageSizeOnly(styleData.image_size);
                                     }
                                 }
@@ -14800,6 +14904,7 @@
                             // Apply layouts
                             if (profileData.portfolio_layout) {
                                 updateGridLayoutOnly(profileData.portfolio_layout);
+                                ensurePortfolioAccentFonts(profileData);
                             }
                             if (profileData.image_size) {
                                 updateImageSizeOnly(profileData.image_size);
