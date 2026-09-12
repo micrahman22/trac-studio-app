@@ -131,6 +131,24 @@
     padding: 0.5rem 0.9rem;
     font-size: 1rem;
   }
+  /* Platform is pre-launch: minting is wired but still gated behind
+     feature_flags.minting_enabled, and real bugs are still turning up
+     post-deploy. Small, non-dismissible label next to the wordmark in
+     TRAC's own chrome only - never on an artist's public portfolio page,
+     which is their work, not app UI. */
+  .beta-badge {
+    display: inline-flex;
+    align-items: center;
+    margin-left: 0.5rem;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+  }
 
   /* ---------- Nav ---------- */
   nav.site-nav {
@@ -491,7 +509,10 @@
 
 <nav class="site-nav">
   <div class="wrap">
-    <a href="#" class="logo-mark">TRAC</a>
+    <div style="display:flex;align-items:center;">
+      <a href="#" class="logo-mark">TRAC</a>
+      <span class="beta-badge">Beta</span>
+    </div>
     <div class="nav-links">
       <a class="nav-item uc" href="#features">Features</a>
       <a class="nav-item uc" href="#pricing">Pricing</a>

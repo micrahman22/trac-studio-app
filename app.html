@@ -335,6 +335,15 @@
                         .header-left { display: flex; align-items: center; gap: 3rem; }
                         .logo-container { background: #000000; border-radius: 12px; padding: 0.75rem 1.25rem; display: inline-flex; align-items: center; justify-content: center; }
                         .gallery-logo { font-size: 2.2rem; font-weight: 600; letter-spacing: -0.02em; color: #ffffff; margin: 0; line-height: 1; }
+                        /* Platform is pre-launch: minting is wired but still gated
+                           behind feature_flags.minting_enabled, and real bugs are
+                           still turning up post-deploy. Small, non-dismissible
+                           label next to the wordmark in TRAC's own chrome only -
+                           these 3 headers (dashboard/blockchain/settings) never
+                           render inside #portfolioPage, so this never reaches an
+                           artist's public portfolio. */
+                        .beta-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.55rem; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #7a776f; border: 1px solid #d1d1d1; border-radius: 999px; }
+                        [data-theme="dark"] .beta-badge { color: var(--tc-ink-soft) !important; border-color: var(--tc-border) !important; }
                         .gallery-nav { display: flex; gap: 2rem; }
                         .nav-item { text-decoration: none; color: #666; font-size: 0.85rem; font-weight: 400; transition: color 0.2s; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; }
                         .nav-item.active, .nav-item:hover { color: #000; }
@@ -4762,8 +4771,11 @@
                         <header class="gallery-header">
                             <div class="header-container">
                                 <div class="header-left">
-                                    <div class="logo-container">
-                                        <h1 class="gallery-logo">TRAC</h1>
+                                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                                        <div class="logo-container">
+                                            <h1 class="gallery-logo">TRAC</h1>
+                                        </div>
+                                        <span class="beta-badge">Beta</span>
                                     </div>
                                     <nav class="gallery-nav">
                                         <a href="#" class="nav-item active" onclick="showSection('dashboard')">Dashboard</a>
@@ -5043,8 +5055,11 @@
                         <header class="gallery-header">
                             <div class="header-container">
                                 <div class="header-left">
-                                    <div class="logo-container">
-                                        <h1 class="gallery-logo">TRAC</h1>
+                                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                                        <div class="logo-container">
+                                            <h1 class="gallery-logo">TRAC</h1>
+                                        </div>
+                                        <span class="beta-badge">Beta</span>
                                     </div>
                                     <nav class="gallery-nav">
                                         <a href="#" class="nav-item" onclick="showSection('dashboard')">Dashboard</a>
@@ -5130,8 +5145,11 @@
                         <header class="gallery-header">
                             <div class="header-container">
                                 <div class="header-left">
-                                    <div class="logo-container">
-                                        <h1 class="gallery-logo">TRAC</h1>
+                                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                                        <div class="logo-container">
+                                            <h1 class="gallery-logo">TRAC</h1>
+                                        </div>
+                                        <span class="beta-badge">Beta</span>
                                     </div>
                                     <nav class="gallery-nav">
                                         <a href="#" class="nav-item" onclick="showSection('dashboard')">Dashboard</a>
