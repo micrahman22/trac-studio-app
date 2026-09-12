@@ -144,6 +144,10 @@
            Dashboard header logo box: always a solid black square. */
         .logo-container { background: #000000; border-radius: 12px; padding: 0.75rem 1.25rem; display: inline-flex; align-items: center; justify-content: center; }
         .gallery-logo { font-size: 2.2rem; font-weight: 600; letter-spacing: -0.02em; color: #ffffff; margin: 0; line-height: 1; }
+        /* Same rationale and rule as app.html's identical .beta-badge - platform
+           is pre-launch, minting gated behind feature_flags.minting_enabled. */
+        .beta-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.55rem; font-size: 0.65rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #7a776f; border: 1px solid #d1d1d1; border-radius: 999px; }
+        [data-theme="dark"] .beta-badge { color: var(--tc-ink-soft) !important; border-color: var(--tc-border) !important; }
         .icon-button { background: none; border: none; padding: 0.5rem; cursor: pointer; color: var(--tc-ink-soft); transition: color 0.2s; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
         .icon-button:hover { color: var(--tc-ink); background: var(--tc-surface-soft); }
         /* Still used by the certificate view's own branded header (openCertView).
@@ -357,8 +361,11 @@
      the multi-page nav (collector has only one page). -->
 <header class="gallery-header">
     <div class="header-container">
-        <div class="logo-container">
-            <h1 class="gallery-logo">TRAC</h1>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+            <div class="logo-container">
+                <h1 class="gallery-logo">TRAC</h1>
+            </div>
+            <span class="beta-badge">Beta</span>
         </div>
         <!-- Populated by updateHeaderNav() once the session resolves - body stays
              opacity:0 until then, so there's no logged-out flash to fill here. -->
